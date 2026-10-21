@@ -188,7 +188,7 @@ function piece(e, tgt) {
   if (e.modules.length) estados.push(`${e.modules.length} Módulo${e.modules.length > 1 ? 's' : ''}`);
   const sel = ui.mode && ui.mode.kind === 'attack' && ui.mode.uid === e.uid;
   const cls = ['peca', e.kind, 'disc-' + discOf(e), isT ? 'alvo' : '', can ? 'pode' : '', e.imovel > 0 ? 'imovel' : '', E.hasKw(e, 'guarda') ? 'guarda' : '', e.resonated ? 'ressoou' : '', sel ? 'sel' : ''].join(' ');
-  return `<button class="${cls}" data-ent="${e.uid}" data-info="e:${e.uid}" aria-label="${esc(e.name)}"><span class="nome">${esc(e.name)}</span><span class="selos">${kws}${tags}</span>${estados.length ? `<span class="estado">${estados.join(', ')}</span>` : ''}${body}</button>`;
+  return `<button class="${cls}" data-ent="${e.uid}" data-info="e:${e.uid}" aria-label="${esc(e.name)}"><span class="marca" aria-hidden="true">${iconSvg(cardIconName(e.id))}</span><span class="nome">${esc(e.name)}</span><span class="selos">${kws}${tags}</span>${estados.length ? `<span class="estado">${estados.join(', ')}</span>` : ''}${body}</button>`;
 }
 
 function leaderE(tgt) {
@@ -197,7 +197,7 @@ function leaderE(tgt) {
   const pct = Math.max(0, Math.round(100 * o.leader.hp / o.leader.maxHp));
   const res = enc.boss ? `<span>Evolução ${dots(o.resonance.points, enc.resonance)}</span>` : '';
   return `<section class="lider">
-    <div class="lider-id"><span class="lider-nome">${esc(o.leader.name)}</span><span class="lider-tier">${enc.tier}${st.phase2 ? ', fase 2' : ''}</span></div>
+    <div class="lider-id">${iconSvg(typeof ART !== 'undefined' ? ART.enc[st.encId] : null, 'ico-lider')}<span class="lider-nome">${esc(o.leader.name)}</span><span class="lider-tier">${enc.tier}${st.phase2 ? ', fase 2' : ''}</span></div>
     <p class="regra">${esc(enc.rule)}</p>
     <button class="alvo-lider ${isT ? 'alvo' : ''}" data-leader="E" data-info="l:E" aria-label="Vida de ${esc(o.leader.name)}: ${Math.max(0, o.leader.hp)}">
       <span class="vida-num">${Math.max(0, o.leader.hp)}</span><small>de ${o.leader.maxHp}</small>
@@ -266,6 +266,14 @@ function fmtText(text, compact) {
   const bold = t => esc(t).replace(KW_RE, '<b>$1</b>');
   return lines.map(l => bold(l.t)).join(compact || text.length > 118 ? ' ' : '<br>');
 }
+function hashStr(t) { let h = 7; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return Math.abs(h); }
+function iconSvg(name, cls) { const d = typeof ART !== 'undefined' && name ? ART.icons[name] : null; return d ? `<svg class="${cls || 'ico'}" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="${d}"/></svg>` : ''; }
+function cardIconName(id) { return typeof ART !== 'undefined' ? ART.card[id] : null; }
+function artBand(id, disc, big) {
+  const n = cardIconName(id); if (!n) return '';
+  const h = hashStr(id);
+  return `<span class="arte disc-${disc}${big ? ' grande' : ''}" data-d="${disc}" style="--ang:${100 + h % 160}deg;--px:${h % 37}px;--py:${(h >> 5) % 29}px" aria-hidden="true">${iconSvg(n)}</span>`;
+}
 function cardHtml(inst, i, extraCls, attrs, cost) {
   const d = E.DEF[inst.id];
   const pos = st ? E.compassoPos(st, 'P') : 1;
@@ -279,6 +287,7 @@ function cardHtml(inst, i, extraCls, attrs, cost) {
     <span class="custo ${c < d.cost ? 'menor' : c > d.cost ? 'maior' : ''}">${c}</span>
     <span class="nome">${esc(d.name)}</span>
     <span class="tipo">${TYPE_LABEL[d.type]}${esc(tags)}</span>
+    ${artBand(inst.id, d.disc || 'neutra')}
     <span class="texto">${fmtText(d.text)}</span>
     ${d.orbita ? `<span class="carga">${inst.cargas || 0} Carga${inst.cargas === 1 ? '' : 's'}</span>` : ''}
     ${hit ? '<span class="no-tempo">No Compasso</span>' : ''}
@@ -306,7 +315,7 @@ function infoPanel() {
       if (inst) {
         const d = E.DEF[inst.id];
         const chk = E.canPlay(st, 'P', +k.slice(2));
-        html = `<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}, custo ${E.getCost(st, 'P', inst)}${d.disc ? ', ' + DISC_NAME[d.disc] : ''}</p><p>${fmtText(d.text)}</p>${!chk.ok && chk.reason && st.turnSide === 'P' ? `<p class="linha">${esc(chk.reason)}</p>` : ''}${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}`;
+        html = `${artBand(inst.id, d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}, custo ${E.getCost(st, 'P', inst)}${d.disc ? ', ' + DISC_NAME[d.disc] : ''}</p><p>${fmtText(d.text)}</p>${!chk.ok && chk.reason && st.turnSide === 'P' ? `<p class="linha">${esc(chk.reason)}</p>` : ''}${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}`;
       }
     } else if (k.startsWith('e:')) {
       const e = E.ent(st, { t: 'e', uid: +k.slice(2) });
@@ -315,7 +324,7 @@ function infoPanel() {
         const kw = Object.keys(KW_LABEL).filter(x => E.hasKw(e, x)).map(x => KW_LABEL[x]);
         const st2 = e.kind === 'unit' ? `${E.getAtk(st, e)} de ataque, ${e.hp} de ${e.maxHp} de Vida` : e.kind === 'structure' ? `${e.hp} de Vida` : `contagem ${e.countdown}`;
         const extra = kw.slice(); if (e.imovel > 0) extra.push('Imóvel'); if (e.kind === 'ritual') extra.push('Ritual'); if (e.kind === 'structure') extra.push('Estrutura'); if (e.resonated) extra.push('Evoluir');
-        html = `<h2>${esc(e.name)}</h2><p class="linha">${TYPE_LABEL[d.type] || 'Unidade'} ${e.owner === 'P' ? 'sua' : 'inimiga'}, ${st2}</p>${d.text ? `<p>${fmtText(d.text)}</p>` : ''}${e.modules.length ? `<p class="linha">Módulos: ${e.modules.map(m => esc(E.DEF[m].name)).join(', ')}</p>` : ''}${glossFor(d.text, extra)}`;
+        html = `${artBand(e.id, discOf(e), true)}<h2>${esc(e.name)}</h2><p class="linha">${TYPE_LABEL[d.type] || 'Unidade'} ${e.owner === 'P' ? 'sua' : 'inimiga'}, ${st2}</p>${d.text ? `<p>${fmtText(d.text)}</p>` : ''}${e.modules.length ? `<p class="linha">Módulos: ${e.modules.map(m => esc(E.DEF[m].name)).join(', ')}</p>` : ''}${glossFor(d.text, extra)}`;
       }
     } else if (k === 'l:E') {
       const o = O();
@@ -328,7 +337,7 @@ function infoPanel() {
       html = `<h2>${esc(w.name)}</h2><p class="linha">Arma, ${w.atk} de ataque, ${w.dur} uso${w.dur > 1 ? 's' : ''} restante${w.dur > 1 ? 's' : ''}</p><p>${fmtText(d.text)}<br>Toque na arma para atacar com o protagonista; atacar uma unidade fere você com o ataque dela.</p>${glossFor(d.text)}`;
     } else if (k.startsWith('d:')) {
       const d = E.DEF[k.slice(2)];
-      if (d) html = `<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, ['Armadilha'])}`;
+      if (d) html = `${artBand(k.slice(2), d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, ['Armadilha'])}`;
     }
   }
   return `<section class="info" aria-label="Detalhes">${html || '<p class="info-vazia">Passe o mouse ou toque numa carta para ver os detalhes.</p>'}</section>`;
@@ -512,7 +521,7 @@ function renderHome() {
       <p class="camp-linha">Dia ${camp.day}. Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'}. Coleção: ${collectionSize()} cartas.</p>
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="camp-reset">Nova campanha</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="credits">Créditos</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="camp-reset">Nova campanha</button></div>
     </section>
     ${logsHtml()}`;
 }
@@ -521,6 +530,20 @@ function statsMini(d) {
   if (d.type === 'weapon') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, usos ${d.hp}"><b class="atk">${d.atk}</b><b class="dur">${d.hp}</b></span>`;
   if (d.type === 'structure') return `<span class="lc-stats" aria-label="Vida ${d.hp}"><b class="hp">${d.hp}</b></span>`;
   return '<span class="lc-stats"></span>';
+}
+function renderCredits() {
+  const A = typeof ART !== 'undefined' ? ART.authors : [];
+  const total = A.reduce((n, a) => n + a.count, 0);
+  const lista = A.slice().sort((a, b) => b.count - a.count).map(a => `<li>${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name)} (${a.count} ícone${a.count === 1 ? '' : 's'})${a.cc0 ? ', domínio público (CC0)' : ''}</li>`).join('');
+  $('#app').innerHTML = `<header class="abertura"><h1>Créditos</h1><p class="intro">A arte atual é provisória: ícones sobre fundos gerados pelo próprio jogo, até a arte definitiva.</p></header>
+  <section class="cena creditos">
+    <h2>Ícones</h2>
+    <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
+    <ul>${lista}</ul>
+    <h2>Fontes e bibliotecas</h2>
+    <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
+    <div class="linha-logs"><button class="botao principal" data-act="home">Voltar</button></div>
+  </section>`;
 }
 function renderDeck() {
   const deck = camp.deck, coll = camp.collection;
@@ -533,7 +556,7 @@ function renderDeck() {
     const canAdd = k < 2 && k < own && (!d.disc || d.disc === 'neutra' || d.disc === deck.disc);
     const btn = side === 'deck' ? `<button class="botao discreto" data-deckrem="${id}" aria-label="Tirar ${esc(d.name)}">Tirar</button>` : `<button class="botao discreto" data-deckadd="${id}" ${canAdd ? '' : 'disabled'} aria-label="Pôr ${esc(d.name)}">Pôr</button>`;
     const count = side === 'deck' ? `×${k}` : `${k}/${own}`;
-    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome">${esc(d.name)} ${rarTag(id)}<span class="lc-tipo">${d.module ? 'Feitiço (Módulo)' : TYPE_LABEL[d.type] + (d.tags.length ? ' (' + d.tags.join(', ') + ')' : '')}</span><small>${d.text ? fmtText(d.text, true) : ''}</small></span>${statsMini(d)}<span class="lc-qtd">${count}</span>${btn}</li>`;
+    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome"><span class="lc-ico">${iconSvg(cardIconName(id))}</span>${esc(d.name)} ${rarTag(id)}<span class="lc-tipo">${d.module ? 'Feitiço (Módulo)' : TYPE_LABEL[d.type] + (d.tags.length ? ' (' + d.tags.join(', ') + ')' : '')}</span><small>${d.text ? fmtText(d.text, true) : ''}</small></span>${statsMini(d)}<span class="lc-qtd">${count}</span>${btn}</li>`;
   };
   const deckIds = Object.keys(deck.cards).filter(id => deck.cards[id] > 0).sort(sortC);
   const f = ui.deckFilter;
@@ -564,7 +587,7 @@ function renderMap() {
     const p = pos(n); const info = R.NODE[n.type];
     const st8 = run.visited.includes(n.id) ? 'visto' : avail.includes(n.id) ? 'livre' : 'bloq';
     const title = info.label + ((n.type === 'elite' || n.type === 'chefe') && n.enc ? ': ' + encName(n.enc) : '');
-    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} title="${esc(title)}" aria-label="${esc(title)}"><span>${info.icon}</span></button>`;
+    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} title="${esc(title)}" aria-label="${esc(title)}">${iconSvg(typeof ART !== 'undefined' ? ART.node[n.type] : null) || `<span>${info.icon}</span>`}</button>`;
   }).join('');
   const bonus = []; if (run.bonus.hand) bonus.push(`+${run.bonus.hand} carta na próxima luta`); if (run.bonus.mana) bonus.push(`+${run.bonus.mana} de mana máxima na próxima luta`);
   const resume = run.inBattle ? `<div class="faixa"><span>Uma luta ficou pela metade.</span><button class="botao principal" data-act="run-resume">Retomar a luta</button></div>` : '';
@@ -578,7 +601,7 @@ function renderMap() {
     ${resume}
     <p class="intro centro">Escolha o próximo passo. O caminho sobe; o topo fecha o andar.</p>
     <div class="mapa" style="height:${(m.rows + 1) * H}px"><svg class="mapa-linhas" width="100%" height="${(m.rows + 1) * H}" aria-hidden="true">${lines}</svg>${nodes}</div>
-    <p class="legenda">${Object.values(R.NODE).map(n => `<span>${n.icon} ${n.label}</span>`).join('')}</p>`;
+    <p class="legenda">${Object.entries(R.NODE).map(([k, n]) => `<span>${iconSvg(typeof ART !== 'undefined' ? ART.node[k] : null, 'ico-leg') || n.icon} ${n.label}</span>`).join('')}</p>`;
 }
 function renderScene() {
   const sc = ui.scene; let body = '';
@@ -610,6 +633,7 @@ function renderScene() {
 function renderScreen() {
   if (ui.screen === 'avulsa') renderSetup();
   else if (ui.screen === 'deck' && camp) renderDeck();
+  else if (ui.screen === 'credits') renderCredits();
   else if (ui.screen === 'map' && camp && camp.run) renderMap();
   else if (ui.screen === 'scene' && ui.scene) renderScene();
   else { ui.screen = 'home'; renderHome(); }
@@ -622,6 +646,7 @@ async function runClick(ds) {
   if (act === 'avulsa') { ui.screen = 'avulsa'; render(); return true; }
   if (act === 'home') { ui.screen = 'home'; ui.scene = null; render(); window.scrollTo(0, 0); return true; }
   if (act === 'camp-notes') { ui.scene = { kind: 'notes' }; ui.screen = 'scene'; render(); return true; }
+  if (act === 'credits') { ui.screen = 'credits'; render(); return true; }
   if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { camp.deck.cards = {}; saveCamp(); render(); } return true; }
   if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (ds.deckadd) { const id = ds.deckadd; camp.deck.cards[id] = (camp.deck.cards[id] || 0) + 1; saveCamp(); render(); return true; }

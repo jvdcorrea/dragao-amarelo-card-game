@@ -151,7 +151,7 @@ const EVENTS = [
 ];
 const NOTES = {
   1: 'Dia 1. O buraco respondeu ao meu sangue como uma porta que reconhece a chave. Felix acha que é má ideia. Felix acha tudo que é interessante má ideia.',
-  2: 'Os cogumelos daqui crescem rápido demais. Se o broto não for cortado na hora, vira problema. Anotei para não esquecer. Esqueci duas vezes.',
+  2: 'Os cogumelos daqui crescem rápido demais. Se o broto não for cortado na hora, vira problema. Anotei para não esquecer. De novo.',
   3: 'Achei uma estrutura que solta morcegos sem parar. Quebre o ninho antes de brigar com a revoada. Sim, isso vale para a vida também.',
   4: 'Algo grande passou por aqui deixando estátuas. Estátuas com cara de surpresa. Não gosto de estátuas com cara de surpresa.',
   5: 'O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.',

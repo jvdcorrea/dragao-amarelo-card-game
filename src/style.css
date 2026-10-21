@@ -277,3 +277,31 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .barra { width: 80px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Arte provisória: ícones game-icons.net (CC BY 3.0) sobre fundos gerados */
+.arte { display: block; position: relative; height: 46px; border-radius: 6px; margin: 1px 0 2px; overflow: hidden; flex-shrink: 0;
+  background-image: var(--pat, none), linear-gradient(var(--ang, 135deg), color-mix(in srgb, var(--cor) 86%, #000), color-mix(in srgb, var(--cor) 58%, #fff));
+  background-position: var(--px, 0) var(--py, 0), 0 0; }
+.arte svg { position: absolute; inset: 0; margin: auto; width: 38px; height: 38px; fill: rgba(255, 255, 255, .95); filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .45)); }
+.arte.grande { height: 92px; margin: 0 0 8px; border-radius: 8px; }
+.arte.grande svg { width: 78px; height: 78px; }
+.arte[data-d=temporal] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='13' fill='none' stroke='white' stroke-opacity='.2' stroke-width='2'/%3E%3Cpath d='M20 10v10l7 5' fill='none' stroke='white' stroke-opacity='.2' stroke-width='2'/%3E%3C/svg%3E"); }
+.arte[data-d=draconic] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='16'%3E%3Cpath d='M0 16a12 12 0 0 1 24 0M-12 8a12 12 0 0 1 24 0M12 8a12 12 0 0 1 24 0' fill='none' stroke='white' stroke-opacity='.22' stroke-width='1.5'/%3E%3C/svg%3E"); }
+.arte[data-d=necro] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='26'%3E%3Cpath d='M0 5h40M0 9h40M0 13h40M0 17h40M0 21h40' stroke='white' stroke-opacity='.16'/%3E%3C/svg%3E"); }
+.arte[data-d=holy] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M0 18L18 0M-4 4L4 -4M14 22L22 14' stroke='white' stroke-opacity='.18' stroke-width='2'/%3E%3C/svg%3E"); }
+.arte[data-d=tech] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 .5h20M.5 0v20' stroke='white' stroke-opacity='.18'/%3E%3Ccircle cx='10' cy='10' r='2' fill='white' fill-opacity='.2'/%3E%3C/svg%3E"); }
+.arte[data-d=space] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='8' cy='12' r='1.3' fill='white' fill-opacity='.8'/%3E%3Ccircle cx='38' cy='6' r='.8' fill='white' fill-opacity='.7'/%3E%3Ccircle cx='50' cy='40' r='1.5' fill='white' fill-opacity='.75'/%3E%3Ccircle cx='20' cy='44' r='.9' fill='white' fill-opacity='.6'/%3E%3Ccircle cx='30' cy='28' r='.6' fill='white' fill-opacity='.6'/%3E%3Ccircle cx='55' cy='18' r='.7' fill='white' fill-opacity='.6'/%3E%3C/svg%3E"); }
+.arte[data-d=neutra] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='7' cy='7' r='3' fill='white' fill-opacity='.15'/%3E%3Ccircle cx='21' cy='21' r='3' fill='white' fill-opacity='.15'/%3E%3C/svg%3E"); }
+.arte[data-d=inimigo] { --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Ccircle cx='9' cy='10' r='5' fill='white' fill-opacity='.12'/%3E%3Ccircle cx='27' cy='25' r='3.5' fill='white' fill-opacity='.12'/%3E%3Ccircle cx='26' cy='7' r='2' fill='white' fill-opacity='.12'/%3E%3C/svg%3E"); }
+.carta { min-height: 232px; }
+.peca .marca { position: absolute; right: 3px; bottom: 24px; width: 46px; height: 46px; opacity: .17; pointer-events: none; }
+.peca .marca svg { width: 100%; height: 100%; fill: var(--cor); }
+.peca .nome, .peca .selos, .peca .estado, .peca .stats { position: relative; }
+.ico-lider { width: 30px; height: 30px; fill: var(--d-inimigo); align-self: center; flex-shrink: 0; }
+.lc-ico { display: inline-flex; vertical-align: -5px; margin-right: 5px; }
+.lc-ico svg { width: 22px; height: 22px; fill: var(--cor); }
+.no svg { width: 26px; height: 26px; fill: currentColor; }
+.ico-leg { width: 18px; height: 18px; fill: currentColor; vertical-align: -4px; }
+.creditos ul { margin: 6px 0 14px; padding-left: 20px; }
+.creditos li { margin: 2px 0; }
+.creditos a { color: inherit; text-decoration-color: var(--ouro-vivo); text-underline-offset: 2px; }

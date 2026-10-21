@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.39 · rascunho para editar*
+*Documento de design preliminar · v0.40 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -368,6 +368,8 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 **Mochila e derrota (P61, detalha P8):** cartas ganhas no andar vão para a mochila e só entram na coleção quando o andar é concluído. Se o protagonista cair (ou desistir), só 1 carta aleatória da mochila fica, e o andar recomeça no dia seguinte.
 
 **Edição do deck (P63):** só na guilda, entre descidas. Durante a descida, o deck é o que você levou.
+
+**Arte provisória (P64):** até a arte definitiva, cartas, inimigos e mapa usam ícones do game-icons.net (CC BY 3.0, com tela de créditos) sobre fundos gerados por Disciplina. Arte final: guia de estilo, IA só como rascunho de direção, ilustração encomendada começando por unidades e inimigos.
 
 **Boosters (P59):** ao concluir um andar pela primeira vez, o jogador escolhe o booster da Disciplina do deck ou o Geral. Revisitas não dão cartas (P20).
 

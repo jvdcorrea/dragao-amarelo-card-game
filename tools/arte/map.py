@@ -1,0 +1,20 @@
+CARD = {
+ # neutras
+ 'felix':'cat','pocao':'health-potion','mercenario':'swordman','tocha':'torch','rede':'bug-net','curandeira':'paw-heart','guardiao':'cross-shield','espada':'ancient-sword','coletor':'paw-print','lanceiro':'spears','bombardeiro':'unlit-bomb','investida_coord':'crossed-swords','capita':'captain-hat-profile','racao':'knapsack','bumerangue':'boomerang','formacao':'templar-shield','lamina_enc':'rusty-sword','elixir':'magic-potion','barril':'barrel','mapa_ergos':'treasure-map','gigante':'rock-golem',
+ # temporal
+ 'recruta':'spartan-helmet','batedor_amanha':'sands-of-time','escudeiro':'centurion-helmet','golpe_previsto':'sword-brandish','lamina_reb':'rune-sword','arqueira':'archer','rebobinar':'anticlockwise-rotation','veterano':'black-knight-helm','duelista':'two-handed-sword','licao':'open-book','coluna':'clock-tower','estandarte':'knight-banner','cavaleiro':'mounted-knight','machado':'battle-axe','carga':'swords-power','marechal':'hourglass',
+ # draconic
+ 'ovo':'dinosaur-egg','filhote_dragao':'dragon-head','seiva':'sprout','broto':'seedling','muralha':'tree-roots','pele':'dorsal-scales','chamado':'wolf-howl','rugido':'bestial-fangs','draconete':'spiked-dragon-head','guardia':'tree-growth','sopro':'fire-breath','matriarca':'egg-clutch','tita':'tree-face','furia':'claw-slashes','wyrm':'dragon-spiral','rei_dragao':'double-dragon',
+ # necro
+ 'pacto':'sacrificial-dagger','esqueleto':'skeleton','passo':'musical-notes','metronomo':'metronome','valsa':'music-spell','coveiro':'graveyard','maldicao':'cursed-star','contratempo':'time-trap','golpe_final':'reaper-scythe','menestrel':'harp','mao_alem':'skeletal-hand','maestro':'musical-score','coro':'floating-ghost','bailarina':'ghost','danse':'raise-skeleton','esqueleto22':'skull-crossed-bones','regente':'violin',
+ # holy
+ 'acolito':'prayer','oracao':'prayer-beads','lamina_veu':'cloak-dagger','novico':'hood','juramento':'angel-wings','veu_renovado':'hooded-figure','lamina_prece':'flying-dagger','anjo':'angel-outfit','fanatico':'monk-face','assassina':'hooded-assassin','vigilia':'candle-light','sacerdotisa':'sun-priest','mestre':'ninja-heroic-stance','julgamento':'hand-of-god','purificacao':'sunrise','liturgia':'winged-scepter','arauto':'striped-sun','serafim':'feathered-wing',
+ # tech
+ 'automato':'vintage-robot','frasco':'fizzing-flask','placa':'chest-armor','molas':'bouncing-spring','aprendiz_alq':'bubbling-flask','nucleo':'glowing-artifact','torre':'watchtower','golem_latao':'robot-golem','besta':'crossbow','gas':'poison-cloud','oficina':'gears','cav_engr':'clockwork','canhao':'cannon','destilaria':'round-bottom-flask','colosso':'metal-golem-head',
+ # space
+ 'faisca':'sparkles','astrolabio':'astrolabe','chuva':'burning-meteor','aprendiz_astral':'wizard-face','escudo_grav':'vibrating-shield','leitura':'telescope','raio':'moon','grifo':'griffin-symbol','golem_poeira':'golem-head','elemental':'spark-spirit','eclipse':'eclipse','cometa':'evil-comet','quimera':'harpy','buraco_negro':'spiky-eclipse','arquimago':'wizard-staff',
+ # inimigos e tokens
+ 'morcego':'bat','broto_cog':'grass-mushroom','cog_adulto':'mushroom','besouro':'scarab-beetle','aranha':'hanging-spider','enxame':'spider-web','grilo':'cricket','esporos':'dust-cloud','lagarto':'lizard-tongue','toupeira':'mole','ninho':'nest-birds','mordida_inf':'fangs','centopeia':'centipede','fungoide':'trunk-mushroom','fungo_colossal':'mushrooms-cluster','estatua':'colombian-statue','ninhada':'snake-egg','filhote_bas':'snake-tongue','cauda':'rattlesnake','mordida_pet':'snake-bite',
+}
+ENC = {'revoada':'moon-bats','jardim':'mushrooms','toca':'spider-face','bicharada':'worms','imperatriz':'queen-crown','fungo':'evil-tree','basilisco':'snake-spiral'}
+NODE = {'batalha':'crossed-swords','elite':'fanged-skull','evento':'uncertainty','acampamento':'campfire','tesouro':'open-treasure-chest','nota':'scroll-unfurled','chefe':'crowned-skull'}

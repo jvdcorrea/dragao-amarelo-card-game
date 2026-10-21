@@ -27,6 +27,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `src/run.js` | Campanha: raridades, boosters, geração do mapa, eventos e notas |
 | `src/ui.js` | Interface: batalha, guilda, mapa, cenas, editor de deck, logs |
 | `src/style.css`, `src/template.html` | Estilo e esqueleto da página |
+| `src/art.js` | Arte provisória: ícones e mapeamento carta para ícone (gerado por `tools/arte/gen.py`) |
 | `tools/build.py` | Gera o `index.html` a partir de `src/` |
 | `tests/` | Testes em Node: partidas simuladas, todas as cartas do pool e um bot guloso para sinais de balanceamento |
 | `docs/` | Design (`design.md`), cartas (`cartas.md`) e inimigos (`inimigos.md`) |
@@ -42,4 +43,12 @@ node tests/greedy.js            # taxas de vitória de um bot guloso por Discipl
 
 ## Versões dos documentos
 
-Design v0.39, cartas v0.15, inimigos v0.9.
+Design v0.40, cartas v0.15, inimigos v0.9.
+
+## Créditos
+
+A arte atual é provisória. Os ícones das cartas, dos inimigos e do mapa vêm do [game-icons.net](https://game-icons.net), sob a licença [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), de Lorc, Delapouite, Skoll, Caro Asercion, DarkZaitzev, Carl Olsen, Cathelineau, Sbed e Zajkonur; foram recoloridos, simplificados e combinados com fundos gerados pelo jogo. A lista completa, com a contagem por autor, fica na tela de Créditos do jogo.
+
+Fontes Alegreya e Alegreya Sans (SIL Open Font License), servidas pelo Google Fonts. Compactação dos logs com JSZip (MIT).
+
+Para trocar o ícone de uma carta, edite `tools/arte/map.py` e rode `tools/arte/gen.py` (instruções no topo do arquivo).
