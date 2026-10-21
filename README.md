@@ -6,6 +6,8 @@ Este repositório guarda o protótipo jogável e os documentos de design.
 
 ## Jogar
 
+[Clique aqui para jogar](https://jvdcorrea.github.io/dragao-amarelo-card-game/)
+
 Abra o `index.html` num navegador (é uma página única, sem dependências além das fontes do Google). Se o GitHub Pages estiver ativado para a branch `main`, ele também fica em `https://jvdcorrea.github.io/dragao-amarelo-card-game/`.
 
 O protótipo tem:
