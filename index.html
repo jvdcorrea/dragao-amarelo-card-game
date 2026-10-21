@@ -6,6 +6,7 @@
 <title>Dragão Amarelo: protótipo de batalha</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -137,6 +138,13 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 
 .faixa { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: .98rem; }
 .faixa.inimigo-vez { border-color: var(--d-inimigo); }
+.faixa { flex-wrap: wrap; }
+.faixa-botoes { display: inline-flex; gap: 6px; margin-left: auto; }
+.faixa-detalhe { flex-basis: 100%; border-top: 1px solid var(--line); padding-top: 6px; font-size: .92rem; }
+.faixa-detalhe p { margin: .2rem 0; }
+.faixa-detalhe dl { margin: 6px 0 0; font-size: .86rem; }
+.faixa-detalhe dt { font-weight: 700; } .faixa-detalhe dd { margin: 0 0 4px; color: var(--muted); }
+@media (min-width: 981px) { .faixa-detalhe { display: none; } }
 
 .painel-voce { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
 .painel-dados { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; min-width: 0; }
@@ -256,11 +264,17 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 @media (max-width: 860px) { .editor { grid-template-columns: minmax(0, 1fr); } }
 .editor h2 { font-size: 1.3rem; margin: 0 0 8px; }
 .lista-cartas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.linha-carta { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--cor); border-radius: 8px; padding: 5px 8px; }
+.linha-carta { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--cor); border-radius: 8px; padding: 5px 8px; }
 .lc-custo { width: 26px; height: 26px; border-radius: 50%; background: var(--mana); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
 .lc-nome { font-weight: 700; display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; }
 .lc-nome small { flex-basis: 100%; font-weight: 400; color: var(--muted); font-size: .8rem; }
 .lc-qtd { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lc-tipo { font-size: .76rem; font-weight: 700; color: var(--cor); }
+.lc-stats { display: inline-flex; gap: 4px; min-width: 48px; justify-content: flex-end; }
+.lc-stats b { font-family: "Alegreya", Georgia, serif; font-size: .95rem; min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.lc-stats .atk { background: var(--ouro-vivo); color: var(--ouro-tinta); }
+.lc-stats .hp { background: var(--vida); color: #fff; }
+.lc-stats .dur { background: var(--muted); color: var(--card); }
 .curva { display: flex; gap: 8px; align-items: flex-end; height: 92px; padding: 6px 0; }
 .curva div { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 30px; }
 .curva i { display: block; width: 18px; background: var(--mana); border-radius: 4px 4px 0 0; }
@@ -1159,7 +1173,7 @@ function deckSize(deck) { return Object.values(deck.cards).reduce((a, b) => a + 
 function deckProblems(deck, collection) {
   const p = [];
   const n = deckSize(deck);
-  if (n !== 30) p.push(`O deck tem ${n} cartas; precisa de 30.`);
+  if (n !== 30) p.push(`O deck tem ${n} carta${n === 1 ? '' : 's'}; precisa de 30.`);
   Object.entries(deck.cards).forEach(([id, k]) => {
     const d = E.DEF[id];
     if (k > 2) p.push(`${d.name}: no máximo 2 cópias.`);
@@ -1295,7 +1309,8 @@ const GLOSS = {
 
 let st = null;
 const ui = { mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.13/design-v0.35/inimigos-v0.7/proto-2026-10-18';
+const RULES = 'cartas-v0.15/design-v0.39/inimigos-v0.9/proto-2026-10-21b';
+const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
   idioma: 'ids de carta em portugues sem acento; nomes e textos completos em cards',
@@ -1327,24 +1342,52 @@ function finalizeGame(result) {
 function persist() { if (!st || st.saved) return; if (st.over) finalizeGame(); else lsSet(LS_CUR, gameRecord('in_progress')); }
 (function recoverUnfinished() { const cur = lsGet(LS_CUR, null); if (cur) { cur.result = 'abandoned'; pushGame(cur); lsDel(LS_CUR); } ui.nick = lsGet(LS_NICK, ''); })();
 function logCount() { return lsGet(LS_GAMES, []).length; }
-async function exportLogs() {
-  const games = lsGet(LS_GAMES, []);
+function exportCounts() {
+  const games = lsGet(LS_GAMES, []); const since = lsGet(LS_LASTEXP, null);
+  const cur = st && !st.saved ? 1 : 0;
+  return { all: games.length + cur, novas: games.filter(g => !since || g.endedAt > since).length + cur };
+}
+function openExport() { const c = exportCounts(); ui.modal = { kind: 'export-menu', all: c.all, novas: c.novas }; render(); }
+async function makeZip(inner, json) {
+  if (!window.JSZip) return null;
+  try { const z = new window.JSZip(); z.file(inner, json); return await z.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 9 } }); } catch (e) { return null; }
+}
+async function deliver(blob, filename) {
+  const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+  let dl = null;
+  if (inClaude) { try { dl = await window.claude.use('downloads'); } catch (e) { dl = null; } }
+  if (dl) {
+    try { await dl.save({ filename, data: blob }); return 'ok'; }
+    catch (err) { const code = err && err.code; if (code === 'declined') return 'declined'; if (code === 'rate_limited') return 'busy'; }
+  }
+  const file = (() => { try { return new File([blob], filename, { type: blob.type || 'application/octet-stream' }); } catch (e) { return null; } })();
+  const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  if (file && navigator.canShare && navigator.share && (touch || inClaude)) {
+    try { if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: filename }); return 'ok'; } }
+    catch (e) { if (e && e.name === 'AbortError') return 'declined'; }
+  }
+  if (!inClaude) {
+    try { const url = URL.createObjectURL(blob); const lnk = document.createElement('a'); lnk.href = url; lnk.download = filename; document.body.appendChild(lnk); lnk.click(); lnk.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); return 'ok'; } catch (e) { /* janela de cópia */ }
+  }
+  return 'fail';
+}
+async function exportLogs(scope) {
+  const since = lsGet(LS_LASTEXP, null);
+  let games = lsGet(LS_GAMES, []);
+  if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  const name = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 10)}.json`;
-  let dl = null;
-  try { if (window.claude && typeof window.claude.use === 'function') dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
-  if (dl) {
-    try { await dl.save({ filename: name, data: json }); toast(`Log exportado: ${payload.games.length} partida${payload.games.length === 1 ? '' : 's'}.`); return; }
-    catch (err) {
-      const code = err && err.code;
-      if (code === 'declined') { toast('Exportação cancelada.'); return; }
-      if (code === 'rate_limited') { toast('Já existe uma confirmação de download aberta.'); return; }
-    }
-  }
-  ui.modal = { kind: 'export', json, name, count: payload.games.length };
+  const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
+  const n = payload.games.length;
+  ui.modal = null; toast('Preparando o arquivo...');
+  const zip = await makeZip(base + '.json', json);
+  const res = await deliver(zip || new Blob([json], { type: 'application/json' }), base + (zip ? '.zip' : '.json'));
+  if (res === 'ok') { lsSet(LS_LASTEXP, payload.exportedAt); toast(`Log exportado: ${n} partida${n === 1 ? '' : 's'}${zip ? ', compactado em .zip' : ''}.`); return; }
+  if (res === 'declined') { toast('Exportação cancelada.'); return; }
+  if (res === 'busy') { toast('Já existe uma confirmação de download aberta.'); return; }
+  ui.modal = { kind: 'export', json, name: base + '.json', count: n, exportedAt: payload.exportedAt };
   render();
 }
 const $ = s => document.querySelector(s);
@@ -1448,10 +1491,18 @@ function centerBar() {
   else if (ui.busy || st.turnSide === 'E') { msg = `Vez de ${O().leader.name}.`; cls = 'inimigo-vez'; }
   else if (ui.mode) {
     cancel = true;
-    msg = { play: `Escolha um alvo para ${ui.mode.name}.`, attack: 'Escolha o alvo do ataque.', hero: 'Escolha o alvo da sua arma.', resonate: 'Escolha uma unidade sua para Evoluir.' }[ui.mode.kind];
+    msg = { play: `Escolha um alvo para ${ui.mode.name}.`, attack: 'Escolha o alvo do ataque.', hero: 'Escolha o alvo da sua arma.', resonate: 'Escolha uma unidade sua para Evoluir.', confirm: `Toque de novo em ${ui.mode.name} ou em Jogar para confirmar.`, inspect: `${ui.mode.name}: ${ui.mode.reason}` }[ui.mode.kind];
   } else msg = `Seu turno ${P().turnCount}. Jogue cartas, ataque com as unidades prontas e encerre o turno.`;
   const overBtn = st.over ? (st.ctx && st.ctx.mode === 'run' ? '<button class="botao principal" data-act="run-continue">Continuar</button>' : '<button class="botao" data-act="setup">Voltar</button>') : '';
-  return `<div class="faixa ${cls}"><span>${esc(msg)}</span>${cancel ? '<button class="botao discreto" data-act="cancel">Cancelar</button>' : (!st.over ? '<button class="botao discreto" data-act="quit">Sair da partida</button>' : overBtn)}</div>`;
+  const m = ui.mode;
+  const playBtn = m && m.kind === 'confirm' ? '<button class="botao principal" data-act="confirm-play">Jogar</button>' : '';
+  const cancelLbl = m && m.kind === 'inspect' ? 'Fechar' : 'Cancelar';
+  let det = '';
+  if (m && m.idx !== undefined && ['play', 'confirm', 'inspect'].includes(m.kind)) {
+    const inst = P().hand[m.idx];
+    if (inst) { const d = E.DEF[inst.id]; det = `<div class="faixa-detalhe"><p class="linha">${TYPE_LABEL[d.type]}${d.tags.length ? ' (' + esc(d.tags.join(', ')) + ')' : ''}, custo ${E.getCost(st, 'P', inst)}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}</div>`; }
+  }
+  return `<div class="faixa ${cls}"><span>${esc(msg)}</span><span class="faixa-botoes">${playBtn}${cancel ? `<button class="botao discreto" data-act="cancel">${cancelLbl}</button>` : (!st.over ? '<button class="botao discreto" data-act="quit">Sair da partida</button>' : overBtn)}</span>${det}</div>`;
 }
 
 function panelP() {
@@ -1511,7 +1562,7 @@ function cardHtml(inst, i, extraCls, attrs, cost) {
 }
 function handCard(inst, i) {
   const chk = (st.turnSide === 'P' && !ui.busy && !st.over) ? E.canPlay(st, 'P', i) : { ok: false };
-  const sel = ui.mode && ui.mode.kind === 'play' && ui.mode.idx === i;
+  const sel = ui.mode && ['play', 'confirm', 'inspect'].includes(ui.mode.kind) && ui.mode.idx === i;
   return cardHtml(inst, i, `${chk.ok ? 'jogavel' : 'bloqueada'} ${sel ? 'sel' : ''}`, `data-hand="${i}" data-info="h:${i}"`, E.getCost(st, 'P', inst));
 }
 
@@ -1570,6 +1621,9 @@ function overPanel() {
 }
 function modalHtml() {
   const m = ui.modal;
+  if (m.kind === 'export-menu') {
+    return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="em-t"><h2 id="em-t">Exportar log</h2><p>O arquivo sai compactado em .zip, cerca de 8 vezes menor. No celular, abre o menu de compartilhar ou salvar.</p><div class="opcoes"><button class="botao principal" data-act="export-novas" ${m.novas ? '' : 'disabled'}>Só as novas (${m.novas})</button><button class="botao" data-act="export-tudo" ${m.all ? '' : 'disabled'}>Tudo (${m.all})</button><button class="botao" data-act="close-modal">Cancelar</button></div><p class="intro">"Novas" são as partidas terminadas depois da última exportação.</p></div></div>`;
+  }
   if (m.kind === 'export') {
     return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="ex-t"><h2 id="ex-t">Exportar log</h2><p>O download não está disponível aqui. Copie o conteúdo abaixo (${m.count} partida${m.count === 1 ? '' : 's'}) e salve como ${esc(m.name)}.</p><textarea class="export-txt" readonly>${esc(m.json)}</textarea><div class="opcoes"><button class="botao principal" data-act="copy-log">Copiar</button><button class="botao" data-act="close-modal">Fechar</button></div></div></div>`;
   }
@@ -1733,9 +1787,15 @@ function renderHome() {
       <p class="camp-linha">Dia ${camp.day}. Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'}. Coleção: ${collectionSize()} cartas.</p>
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit">Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="camp-reset">Nova campanha</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="camp-reset">Nova campanha</button></div>
     </section>
     ${logsHtml()}`;
+}
+function statsMini(d) {
+  if (d.type === 'unit') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, Vida ${d.hp}"><b class="atk">${d.atk}</b><b class="hp">${d.hp}</b></span>`;
+  if (d.type === 'weapon') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, usos ${d.hp}"><b class="atk">${d.atk}</b><b class="dur">${d.hp}</b></span>`;
+  if (d.type === 'structure') return `<span class="lc-stats" aria-label="Vida ${d.hp}"><b class="hp">${d.hp}</b></span>`;
+  return '<span class="lc-stats"></span>';
 }
 function renderDeck() {
   const deck = camp.deck, coll = camp.collection;
@@ -1748,7 +1808,7 @@ function renderDeck() {
     const canAdd = k < 2 && k < own && (!d.disc || d.disc === 'neutra' || d.disc === deck.disc);
     const btn = side === 'deck' ? `<button class="botao discreto" data-deckrem="${id}" aria-label="Tirar ${esc(d.name)}">Tirar</button>` : `<button class="botao discreto" data-deckadd="${id}" ${canAdd ? '' : 'disabled'} aria-label="Pôr ${esc(d.name)}">Pôr</button>`;
     const count = side === 'deck' ? `×${k}` : `${k}/${own}`;
-    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome">${esc(d.name)} ${rarTag(id)}<small>${d.text ? fmtText(d.text, true) : TYPE_LABEL[d.type]}</small></span><span class="lc-qtd">${count}</span>${btn}</li>`;
+    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome">${esc(d.name)} ${rarTag(id)}<span class="lc-tipo">${d.module ? 'Feitiço (Módulo)' : TYPE_LABEL[d.type] + (d.tags.length ? ' (' + d.tags.join(', ') + ')' : '')}</span><small>${d.text ? fmtText(d.text, true) : ''}</small></span>${statsMini(d)}<span class="lc-qtd">${count}</span>${btn}</li>`;
   };
   const deckIds = Object.keys(deck.cards).filter(id => deck.cards[id] > 0).sort(sortC);
   const f = ui.deckFilter;
@@ -1762,7 +1822,7 @@ function renderDeck() {
     <p class="camp-linha ${probs.length ? 'erro' : 'ok'}">${R.deckSize(deck)}/30 cartas. ${probs.length ? esc(probs[0]) : 'Deck pronto para descer.'}</p>
     <div class="curva" aria-label="Curva de mana">${curve.map((n, i) => `<div><i style="height:${Math.round(48 * n / mx)}px"></i><span>${i === 7 ? '7+' : i}</span><small>${n}</small></div>`).join('')}</div>
     <div class="editor">
-      <section><h2>Deck</h2><ul class="lista-cartas">${deckIds.map(id => row(id, 'deck')).join('') || '<li class="vazio">Vazio</li>'}</ul></section>
+      <section><div class="linha-logs"><h2 style="margin:0">Deck</h2><button class="botao discreto" data-act="deck-clear" ${R.deckSize(deck) ? '' : 'disabled'}>Limpar deck</button></div><ul class="lista-cartas">${deckIds.map(id => row(id, 'deck')).join('') || '<li class="vazio">Vazio</li>'}</ul></section>
       <section><h2>Coleção</h2><div class="linha-logs">${[['disc', DISC_NAME[deck.disc]], ['neutra', 'Neutras'], ['todas', 'Todas']].map(([k, l]) => `<button class="botao ${f === k ? 'principal' : ''}" data-deckfilter="${k}">${esc(l)}</button>`).join('')}</div>
         <ul class="lista-cartas">${collIds.map(id => row(id, 'coll')).join('') || '<li class="vazio">Nada aqui ainda</li>'}</ul></section>
     </div>`;
@@ -1833,11 +1893,12 @@ async function runClick(ds) {
   const act = ds.act;
   if (ds.newdisc) { ui.newDisc = ds.newdisc; render(); return true; }
   if (act === 'camp-start') { if (ui.newDisc) { newCampaign(ui.newDisc); ui.screen = 'home'; render(); } return true; }
-  if (act === 'camp-reset') { const c = await choose('Nova campanha', 'Apagar a campanha atual (coleção, deck e progresso)? Os logs de partida continuam guardados.', [{ v: 'sim', label: 'Apagar e recomeçar' }]); if (c === 'sim') { camp = null; lsDel(LS_CAMP); ui.newDisc = null; ui.screen = 'home'; render(); } return true; }
+  if (act === 'camp-reset') { const c = await choose('Nova campanha', 'Apagar a campanha atual (coleção, deck e progresso)? Os logs de partida continuam guardados.', [{ v: 'sim', label: 'Apagar e recomeçar' }]); if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.newDisc = null; ui.screen = 'home'; render(); } return true; }
   if (act === 'avulsa') { ui.screen = 'avulsa'; render(); return true; }
   if (act === 'home') { ui.screen = 'home'; ui.scene = null; render(); window.scrollTo(0, 0); return true; }
   if (act === 'camp-notes') { ui.scene = { kind: 'notes' }; ui.screen = 'scene'; render(); return true; }
-  if (act === 'deck-edit') { ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { camp.deck.cards = {}; saveCamp(); render(); } return true; }
+  if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (ds.deckadd) { const id = ds.deckadd; camp.deck.cards[id] = (camp.deck.cards[id] || 0) + 1; saveCamp(); render(); return true; }
   if (ds.deckrem) { const id = ds.deckrem; camp.deck.cards[id] = Math.max(0, (camp.deck.cards[id] || 0) - 1); if (!camp.deck.cards[id]) delete camp.deck.cards[id]; saveCamp(); render(); return true; }
   if (ds.deckdisc) { const d = ds.deckdisc; camp.deck.disc = d; Object.keys(camp.deck.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.deck.cards[id]; }); saveCamp(); render(); return true; }
@@ -1878,7 +1939,7 @@ function render() {
   const handScroll = $('.mao') ? $('.mao').scrollLeft : 0;
   const logScroll = $('.registro ol') ? $('.registro ol').scrollTop : 0;
   const tgt = targetSet();
-  const mirando = ui.mode && ui.mode.kind !== null;
+  const mirando = ui.mode && ['play', 'attack', 'hero', 'resonate'].includes(ui.mode.kind);
   $('#app').innerHTML = `<div class="jogo">
     <main class="mesa ${mirando ? 'mirando' : ''}">
       ${leaderE(tgt)}
@@ -1979,11 +2040,13 @@ document.addEventListener('click', async ev => {
   const ds = t.dataset;
   if (ds.choice === undefined && !ds.prever && await runClick(ds)) return;
   if (ds.disc) { ui.disc = ds.disc; render(); return; }
-  if (ds.act === 'export') { exportLogs(); return; }
+  if (ds.act === 'export') { openExport(); return; }
+  if (ds.act === 'export-novas') { exportLogs('novas'); return; }
+  if (ds.act === 'export-tudo') { exportLogs('tudo'); return; }
   if (ds.act === 'close-modal') { ui.modal = null; render(); return; }
   if (ds.act === 'copy-log') {
     const ta = $('.export-txt'); if (ta) { ta.focus(); ta.select(); }
-    try { await navigator.clipboard.writeText(ui.modal.json); toast('Copiado.'); } catch (e) { try { document.execCommand('copy'); toast('Copiado.'); } catch (e2) { toast('Selecionei o texto; copie com Ctrl+C.'); } }
+    try { await navigator.clipboard.writeText(ui.modal.json); if (ui.modal.exportedAt) lsSet(LS_LASTEXP, ui.modal.exportedAt); toast('Copiado.'); } catch (e) { try { document.execCommand('copy'); toast('Copiado.'); } catch (e2) { toast('Selecionei o texto; copie com Ctrl+C.'); } }
     return;
   }
   if (ds.act === 'quit') {
@@ -2012,6 +2075,7 @@ document.addEventListener('click', async ev => {
   if (ds.info) ui.info = ds.info;
   if (ui.busy || st.over || st.turnSide !== 'P' || ui.modal) { refreshInfo(); return; }
   if (act === 'cancel') { ui.mode = null; render(); return; }
+  if (act === 'confirm-play') { if (ui.mode && ui.mode.kind === 'confirm') { const i = ui.mode.idx; ui.mode = null; await startPlay(i); } return; }
   if (act === 'end') { endPlayerTurn(); return; }
   if (act === 'resonate') {
     if (ui.mode && ui.mode.kind === 'resonate') { ui.mode = null; render(); return; }
@@ -2028,8 +2092,12 @@ document.addEventListener('click', async ev => {
   if (ds.hand !== undefined) {
     const idx = +ds.hand;
     if (ui.mode && ui.mode.kind === 'play' && ui.mode.idx === idx) { ui.mode = null; render(); return; }
-    ui.mode = null;
-    await startPlay(idx);
+    if (ui.mode && ui.mode.kind === 'confirm' && ui.mode.idx === idx) { ui.mode = null; await startPlay(idx); return; }
+    const inst = P().hand[idx]; if (!inst) return;
+    const chk = E.canPlay(st, 'P', idx);
+    if (!chk.ok) { ui.mode = { kind: 'inspect', idx, name: E.DEF[inst.id].name, reason: chk.reason || 'Não dá para jogar agora.' }; render(); return; }
+    if (chk.spec && chk.targets.length) { ui.mode = null; await startPlay(idx); return; }
+    ui.mode = { kind: 'confirm', idx, name: E.DEF[inst.id].name }; render();
     return;
   }
   if (ds.leader) {
