@@ -309,3 +309,37 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .creditos ul { margin: 6px 0 14px; padding-left: 20px; }
 .creditos li { margin: 2px 0; }
 .creditos a { color: inherit; text-decoration-color: var(--ouro-vivo); text-underline-offset: 2px; }
+
+/* Tela inicial, introdução e configurações */
+.engrenagem { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 15; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px var(--sombra); }
+.engrenagem svg { width: 26px; height: 26px; fill: currentColor; transition: transform .3s ease; }
+.engrenagem:hover svg, .engrenagem:focus-visible svg { transform: rotate(45deg); }
+.titulo-tela { min-height: calc(100dvh - 120px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 12px 12px; }
+.titulo-ico svg { width: 96px; height: 96px; fill: var(--ouro-vivo); filter: drop-shadow(0 2px 2px var(--sombra)); }
+.titulo-tela h1 { font-size: clamp(2.8rem, 10vw, 5.2rem); line-height: 1; margin: 8px 0 0; color: var(--ouro); letter-spacing: -.01em; }
+.titulo-tela .sub { font-family: "Alegreya", Georgia, serif; font-size: 1.3rem; margin: 10px 0 26px; max-width: 34ch; }
+.titulo-botoes { display: flex; flex-direction: column; gap: 10px; width: min(300px, 100%); }
+.titulo-botoes .botao { font-size: 1.1rem; padding: 12px 18px; }
+.titulo-save { color: var(--muted); margin: 14px 0 0; }
+.titulo-rodape { text-align: center; color: var(--muted); font-size: .8rem; margin: 6px 0 14px; }
+.intro-cena { margin-top: 40px; }
+.intro-cena.larga { max-width: 1000px; }
+.intro-cena p { font-size: 1.08rem; line-height: 1.55; }
+.intro-ico { display: flex; justify-content: center; margin-bottom: 8px; }
+.intro-ico svg { width: 72px; height: 72px; fill: var(--ouro-vivo); }
+.intro-ico.felix svg { fill: var(--d-neutra); }
+.fala { border-left: 4px solid var(--ouro-vivo); background: color-mix(in srgb, var(--ouro-vivo) 8%, transparent); border-radius: 0 10px 10px 0; padding: 8px 14px; margin: 12px 0; }
+.fala .quem { display: block; font-weight: 700; color: var(--ouro); font-size: .9rem; letter-spacing: .03em; text-transform: uppercase; }
+.fala p { margin: .35rem 0; font-family: "Alegreya", Georgia, serif; font-size: 1.15rem; }
+.intro-dica { color: var(--muted); font-size: .95rem !important; }
+.intro-botoes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.intro-botoes .botao.principal { min-width: 140px; }
+#intro-nome { font-size: 1.2rem; padding: 10px 12px; width: min(340px, 100%); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.config-item { display: flex; gap: 14px; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.config-item h2 { font-size: 1.2rem; margin: 0 0 2px; }
+.config-item p { margin: 0; color: var(--muted); }
+.config-item.perigo .botao:not([disabled]) { border-color: var(--vida); color: var(--vida); }
+@media (max-width: 600px) { .config-item { flex-direction: column; align-items: flex-start; } }
+.config-item .botao { white-space: nowrap; flex-shrink: 0; }
+.config .linha-logs { margin-top: 14px; }

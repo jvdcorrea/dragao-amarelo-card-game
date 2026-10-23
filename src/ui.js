@@ -33,7 +33,7 @@ const GLOSS = {
 };
 
 let st = null;
-const ui = { mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
+const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
 const RULES = 'cartas-v0.16/design-v0.40/inimigos-v0.10/proto-2026-10-22';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
@@ -101,7 +101,7 @@ async function exportLogs(scope) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
@@ -375,7 +375,7 @@ function modalHtml() {
 const R = window.RunLib;
 const LS_CAMP = 'dragao-amarelo-campanha-v1';
 let camp = lsGet(LS_CAMP, null);
-ui.screen = 'home'; ui.deckFilter = 'disc'; ui.scene = null; ui.newDisc = null;
+ui.screen = 'title'; ui.deckFilter = 'disc'; ui.scene = null; ui.newDisc = null;
 const saveCamp = () => { if (camp) lsSet(LS_CAMP, camp); };
 function mkRng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const rnd = Math.random;
@@ -387,9 +387,10 @@ const rarTag = id => { const r = R.RARITY[id] || 'C'; return `<span class="rar r
 function cardById(id, extraCls, attrs, note) {
   return cardHtml({ id, cargas: 0 }, 0, extraCls || '', attrs || '').replace(/(<span class="tipo">[\s\S]*?<\/span>)/, `$1${rarTag(id)}`).replace(/<\/button>$/, `${note ? `<span class="marca">${esc(note)}</span>` : ''}</button>`);
 }
-function newCampaign(disc) {
+function newCampaign(disc, name) {
   const coll = R.starterCollection(disc);
   camp = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), created: new Date().toISOString(), startDisc: disc, day: 0, floor: 1, cleared: {}, collection: coll, deck: { disc, cards: Object.assign({}, coll) }, notes: [], history: [], run: null };
+  if (name) { camp.name = name; camp.introSeen = true; }
   hist({ k: 'campanha', disc });
   saveCamp();
 }
@@ -497,15 +498,9 @@ function logsHtml() {
     <button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
     <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>Apagar logs</button></div></section>`;
 }
+function gearBtn() { return `<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
 function renderHome() {
-  if (!camp) {
-    const discs = Object.entries(E.DISC).map(([id, d]) => `<button class="opcao disc-${id} ${ui.newDisc === id ? 'escolhida' : ''}" data-newdisc="${id}" aria-pressed="${ui.newDisc === id}"><span class="opcao-nome">${esc(d.name)}</span><span class="opcao-papel">${esc(d.role)}</span><span class="opcao-texto">${esc(d.plan)}</span></button>`).join('');
-    $('#app').innerHTML = `<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">Campanha: As Grutas Vivas</p><p class="intro">Escolha a Disciplina que o poder herdado desperta. Você começa com o deck inicial dela (20 neutras e 10 da Disciplina) e cresce com boosters e recompensas.</p></header>
-      <section class="escolha"><h2>Primeira Disciplina</h2><div class="grade-disc">${discs}</div></section>
-      <div class="acoes-setup"><button class="botao principal" data-act="camp-start" ${ui.newDisc ? '' : 'disabled'}>Começar campanha</button> <button class="botao" data-act="avulsa">Batalha avulsa</button></div>
-      ${logsHtml()}`;
-    return;
-  }
+  if (!camp) { ui.screen = 'title'; renderTitle(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
   const next = Math.min(camp.floor, 5);
   const allDone = camp.cleared[5];
@@ -516,12 +511,12 @@ function renderHome() {
   const mainBtn = camp.run ? `<button class="botao principal" data-act="continue-run">Continuar descida (andar ${camp.run.floor})</button>`
     : allDone ? `<p class="destaque">Grupo 1 concluído: Ergos não estava nas Grutas. O caminho segue mais fundo.</p>`
     : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>Descer ao andar ${next}</button>`;
-  $('#app').innerHTML = `<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">Campanha: As Grutas Vivas</p></header>
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p></header>
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day}. Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'}. Coleção: ${collectionSize()} cartas.</p>
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="credits">Créditos</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="camp-reset">Nova campanha</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="to-title">Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
 }
@@ -542,7 +537,62 @@ function renderCredits() {
     <ul>${lista}</ul>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
-    <div class="linha-logs"><button class="botao principal" data-act="home">Voltar</button></div>
+    <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>
+  </section>`;
+}
+const INTRO = [
+  { icon: 'carta', paras: ['A carta chega numa terça-feira, com um selo de cera amarela já meio rachado.', '«{nome}, se esta carta chegou até você, é porque eu me atrasei. De novo.» Assinado: Ergos, seu tio.', 'O resto do papel é uma lista. Um prédio na Rua dos Caldeireiros. As licenças da guilda de aventureiros Dragão Amarelo. E uma dívida com um banqueiro da Coroa, com mais zeros do que você gostaria de contar.', 'Pelo jeito, você herdou tudo. Inclusive a dívida.'] },
+  { icon: 'felix', paras: ['O prédio da guilda cheira a poeira, cerveja velha e alguma coisa queimada. No balcão, um gato de asas abre um olho só.'], fala: ['Então você é {nome}. Ergos falava de você. Pouco, mas falava.', 'Sou Felix, o familiar dele. Sim, eu falo. Não, não vou fazer isso em festas.'] },
+  { icon: 'buraco', paras: ['Felix aponta com o rabo para um alçapão atrás do balcão. Do buraco sobe um ar frio que não combina com a estação.'], fala: ['Seu tio não morreu. Ele desceu.', 'Embaixo da guilda tem uma dungeon. Ela foi aberta com o sangue da família, então só alguém da família chega ao fim dela. Ergos desceu há semanas e não voltou. Ele está preso lá embaixo. Eu sinto isso.', 'Então, tecnicamente, sobrou para você.'] },
+  { icon: 'segredo', paras: ['Felix fica em silêncio por um tempo, o que você logo vai descobrir que é raro.'], fala: ['Ele dizia que no fundo tem a resposta para um problema que o mundo inteiro finge que não existe. Não me pergunte qual.', 'Quando falava disso, ele parava de fazer piada. E o Ergos nunca para de fazer piada.'] },
+];
+function introName() { return (ui.intro && ui.intro.name) || ''; }
+function renderIntro() {
+  const it = ui.intro; const step = it.step; const nome = esc(introName());
+  const fill = t => esc(t).replace(/\{nome\}/g, `<b>${nome}</b>`);
+  const pular = '<button class="botao discreto" data-act="intro-skip">Pular introdução</button>';
+  let body;
+  if (step === 0) {
+    body = `<div class="intro-ico">${iconSvg(ART.ui.carta)}</div><h2>Antes de tudo</h2><p>Como você se chama?</p>
+      <div class="linha-logs"><label for="intro-nome" class="sr">Seu nome</label><input id="intro-nome" type="text" maxlength="24" value="${nome}" placeholder="Seu nome" autocomplete="off"></div>
+      <div class="intro-botoes"><button class="botao" data-act="to-title">Voltar</button><button class="botao principal" data-act="intro-next">Continuar</button></div>`;
+  } else if (step <= INTRO.length) {
+    const sc = INTRO[step - 1];
+    body = `<div class="intro-ico${sc.fala ? ' felix' : ''}">${iconSvg(ART.ui[sc.icon])}</div>${sc.paras.map(p => `<p>${fill(p)}</p>`).join('')}${sc.fala ? `<div class="fala"><span class="quem">Felix</span>${sc.fala.map(f => `<p>${fill(f)}</p>`).join('')}</div>` : ''}
+      <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button>${pular}<button class="botao principal" data-act="intro-next">Continuar</button></div>`;
+  } else if (!camp) {
+    const discs = Object.entries(E.DISC).map(([id, d]) => `<button class="opcao disc-${id} ${ui.newDisc === id ? 'escolhida' : ''}" data-newdisc="${id}" aria-pressed="${ui.newDisc === id}"><span class="opcao-nome">${esc(d.name)}</span><span class="opcao-papel">${esc(d.role)}</span><span class="opcao-texto">${esc(d.plan)}</span></button>`).join('');
+    body = `<div class="intro-ico felix">${iconSvg(ART.ui.disciplinas)}</div><div class="fala"><span class="quem">Felix</span><p>Antes de descer, ele deixou anotações sobre seis Disciplinas de combate. Seu sangue vai responder a uma delas.</p><p>Escolha com calma. Ou não: ele também não escolheu com calma.</p></div>
+      <p class="intro-dica">Você começa com o deck inicial da Disciplina (20 cartas neutras e 10 dela) e cresce com boosters e recompensas.</p>
+      <div class="grade-disc">${discs}</div>
+      <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button><button class="botao principal" data-act="intro-finish" ${ui.newDisc ? '' : 'disabled'}>Entrar na guilda</button></div>`;
+  } else {
+    body = `<div class="intro-ico felix">${iconSvg(ART.ui.guilda)}</div><div class="fala"><span class="quem">Felix</span><p>A julgar pela poeira no seu sapato, você já desceu algumas vezes. Ótimo: menos explicação.</p></div>
+      <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button><button class="botao principal" data-act="intro-finish">Entrar na guilda</button></div>`;
+  }
+  $('#app').innerHTML = `<section class="cena intro-cena${step > INTRO.length && !camp ? ' larga' : ''}" aria-live="polite">${body}</section>`;
+  const inp = $('#intro-nome'); if (inp) { inp.focus(); inp.addEventListener('input', () => { ui.intro.name = inp.value; }); inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); runClick({ act: 'intro-next' }); } }); }
+}
+function renderTitle() {
+  const save = camp ? `${camp.name ? esc(camp.name) + ', ' : ''}dia ${camp.day}, ${camp.cleared[5] ? 'Grutas concluídas' : 'andar ' + Math.min(camp.floor, 5)}${camp.run ? ' (descida em andamento)' : ''}` : 'Nenhum jogo salvo.';
+  $('#app').innerHTML = `${gearBtn()}<section class="titulo-tela">
+    <div class="titulo-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.titulo : null)}</div>
+    <h1>Dragão Amarelo</h1>
+    <p class="sub">Uma guilda, uma dívida e um buraco que responde ao seu sangue.</p>
+    <div class="titulo-botoes">
+      <button class="botao principal" data-act="title-continue" ${camp ? '' : 'disabled'}>Continuar</button>
+      <button class="botao" data-act="title-guild">Entrar na guilda</button>
+    </div>
+    <p class="titulo-save">${save}</p>
+  </section>
+  <p class="titulo-rodape">Protótipo, ${esc(RULES)}</p>`;
+}
+function renderSettings() {
+  $('#app').innerHTML = `<header class="abertura"><h1>Configurações</h1></header>
+  <section class="cena config">
+    <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
+    <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
+    <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
   </section>`;
 }
 function renderDeck() {
@@ -631,7 +681,10 @@ function renderScene() {
   $('#app').innerHTML = `<section class="cena">${vida}${body}</section>`;
 }
 function renderScreen() {
-  if (ui.screen === 'avulsa') renderSetup();
+  if (ui.screen === 'title') renderTitle();
+  else if (ui.screen === 'intro' && ui.intro) renderIntro();
+  else if (ui.screen === 'settings') renderSettings();
+  else if (ui.screen === 'avulsa') renderSetup();
   else if (ui.screen === 'deck' && camp) renderDeck();
   else if (ui.screen === 'credits') renderCredits();
   else if (ui.screen === 'map' && camp && camp.run) renderMap();
@@ -646,7 +699,30 @@ async function runClick(ds) {
   if (act === 'avulsa') { ui.screen = 'avulsa'; render(); return true; }
   if (act === 'home') { ui.screen = 'home'; ui.scene = null; render(); window.scrollTo(0, 0); return true; }
   if (act === 'camp-notes') { ui.scene = { kind: 'notes' }; ui.screen = 'scene'; render(); return true; }
-  if (act === 'credits') { ui.screen = 'credits'; render(); return true; }
+  if (act === 'credits') { ui.screen = 'credits'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'settings') { if (ui.screen !== 'settings' && ui.screen !== 'credits') ui.settingsFrom = ui.screen; ui.screen = 'settings'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'settings-back') { ui.screen = camp || ui.settingsFrom !== 'home' ? (ui.settingsFrom || 'title') : 'title'; render(); return true; }
+  if (act === 'to-title') { ui.screen = 'title'; ui.intro = null; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'title-continue') { if (!camp) return true; ui.screen = camp.run ? 'map' : 'home'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'title-guild') { if (camp && camp.introSeen) { ui.screen = 'home'; } else { ui.intro = { step: 0, name: (camp && camp.name) || '' }; ui.newDisc = null; ui.screen = 'intro'; } render(); window.scrollTo(0, 0); return true; }
+  if (act === 'intro-next') {
+    if (ui.intro.step === 0) { const v = (ui.intro.name || '').trim().replace(/\s+/g, ' '); if (!v) { toast('Escreva um nome para continuar.'); return true; } ui.intro.name = v; }
+    ui.intro.step++; render(); window.scrollTo(0, 0); return true;
+  }
+  if (act === 'intro-back') { ui.intro.step = Math.max(0, ui.intro.step - 1); render(); window.scrollTo(0, 0); return true; }
+  if (act === 'intro-skip') { ui.intro.step = INTRO.length + 1; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'intro-finish') {
+    const name = introName().trim();
+    if (!camp) { if (!ui.newDisc) return true; newCampaign(ui.newDisc, name); }
+    else { camp.name = name; camp.introSeen = true; saveCamp(); }
+    ui.intro = null; ui.newDisc = null; ui.screen = 'home'; render(); window.scrollTo(0, 0); return true;
+  }
+  if (act === 'save-delete') {
+    if (!camp) return true;
+    const c = await choose('Apagar save', 'Apagar a campanha salva (nome, coleção, deck e progresso)? Isso não tem volta. Os logs de partidas continuam guardados.', [{ v: 'sim', label: 'Apagar save' }]);
+    if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, name: camp.name || '', created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.intro = null; ui.newDisc = null; ui.settingsFrom = 'title'; ui.screen = 'title'; render(); toast('Save apagado.'); }
+    return true;
+  }
   if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { camp.deck.cards = {}; saveCamp(); render(); } return true; }
   if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (ds.deckadd) { const id = ds.deckadd; camp.deck.cards[id] = (camp.deck.cards[id] || 0) + 1; saveCamp(); render(); return true; }

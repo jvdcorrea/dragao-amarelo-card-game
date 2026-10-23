@@ -18,3 +18,4 @@ CARD = {
 }
 ENC = {'revoada':'moon-bats','jardim':'mushrooms','toca':'spider-face','bicharada':'worms','imperatriz':'queen-crown','fungo':'evil-tree','basilisco':'snake-spiral'}
 NODE = {'batalha':'crossed-swords','elite':'fanged-skull','evento':'uncertainty','acampamento':'campfire','tesouro':'open-treasure-chest','nota':'scroll-unfurled','chefe':'crowned-skull'}
+UI = {'engrenagem':'cog','titulo':'dragon-head','carta':'wax-seal','guilda':'tavern-sign','felix':'cat','buraco':'hole-ladder','segredo':'all-seeing-eye','disciplinas':'spell-book'}
