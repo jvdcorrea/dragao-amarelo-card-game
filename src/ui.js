@@ -34,7 +34,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.16/design-v0.40/inimigos-v0.10/proto-2026-10-22';
+const RULES = 'cartas-v0.16/design-v0.41/inimigos-v0.10/proto-2026-10-23';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -535,6 +535,8 @@ function renderCredits() {
     <h2>Ícones</h2>
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
+    <h2>Ilustrações</h2>
+    <p>A fachada da guilda (tela inicial) e Felix no balcão (introdução) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>
@@ -546,6 +548,8 @@ const INTRO = [
   { icon: 'buraco', paras: ['Felix aponta com o rabo para um alçapão atrás do balcão. Do buraco sobe um ar frio que não combina com a estação.'], fala: ['Seu tio não morreu. Ele desceu.', 'Embaixo da guilda tem uma dungeon. Ela foi aberta com o sangue da família, então só alguém da família chega ao fim dela. Ergos desceu há semanas e não voltou. Ele está preso lá embaixo. Eu sinto isso.', 'Então, tecnicamente, sobrou para você.'] },
   { icon: 'segredo', paras: ['Felix fica em silêncio por um tempo, o que você logo vai descobrir que é raro.'], fala: ['Ele dizia que no fundo tem a resposta para um problema que o mundo inteiro finge que não existe. Não me pergunte qual.', 'Quando falava disso, ele parava de fazer piada. E o Ergos nunca para de fazer piada.'] },
 ];
+const HAS_IMG = k => typeof IMG !== 'undefined' && !!IMG[k];
+function felixArt(fallbackIcon) { return HAS_IMG('felix') ? '<div class="intro-arte" role="img" aria-label="Felix, um gato preto de asas, sentado no balcão da guilda entre livros e pergaminhos"></div>' : `<div class="intro-ico felix">${iconSvg(ART.ui[fallbackIcon || 'felix'])}</div>`; }
 function introName() { return (ui.intro && ui.intro.name) || ''; }
 function renderIntro() {
   const it = ui.intro; const step = it.step; const nome = esc(introName());
@@ -558,16 +562,16 @@ function renderIntro() {
       <div class="intro-botoes"><button class="botao" data-act="to-title">Voltar</button><button class="botao principal" data-act="intro-next">Continuar</button></div>`;
   } else if (step <= INTRO.length) {
     const sc = INTRO[step - 1];
-    body = `<div class="intro-ico${sc.fala ? ' felix' : ''}">${iconSvg(ART.ui[sc.icon])}</div>${sc.paras.map(p => `<p>${fill(p)}</p>`).join('')}${sc.fala ? `<div class="fala"><span class="quem">Felix</span>${sc.fala.map(f => `<p>${fill(f)}</p>`).join('')}</div>` : ''}
+    body = `${sc.fala ? felixArt(sc.icon) : `<div class="intro-ico">${iconSvg(ART.ui[sc.icon])}</div>`}${sc.paras.map(p => `<p>${fill(p)}</p>`).join('')}${sc.fala ? `<div class="fala"><span class="quem">Felix</span>${sc.fala.map(f => `<p>${fill(f)}</p>`).join('')}</div>` : ''}
       <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button>${pular}<button class="botao principal" data-act="intro-next">Continuar</button></div>`;
   } else if (!camp) {
     const discs = Object.entries(E.DISC).map(([id, d]) => `<button class="opcao disc-${id} ${ui.newDisc === id ? 'escolhida' : ''}" data-newdisc="${id}" aria-pressed="${ui.newDisc === id}"><span class="opcao-nome">${esc(d.name)}</span><span class="opcao-papel">${esc(d.role)}</span><span class="opcao-texto">${esc(d.plan)}</span></button>`).join('');
-    body = `<div class="intro-ico felix">${iconSvg(ART.ui.disciplinas)}</div><div class="fala"><span class="quem">Felix</span><p>Antes de descer, ele deixou anotações sobre seis Disciplinas de combate. Seu sangue vai responder a uma delas.</p><p>Escolha com calma. Ou não: ele também não escolheu com calma.</p></div>
+    body = `${felixArt('disciplinas')}<div class="fala"><span class="quem">Felix</span><p>Antes de descer, ele deixou anotações sobre seis Disciplinas de combate. Seu sangue vai responder a uma delas.</p><p>Escolha com calma. Ou não: ele também não escolheu com calma.</p></div>
       <p class="intro-dica">Você começa com o deck inicial da Disciplina (20 cartas neutras e 10 dela) e cresce com boosters e recompensas.</p>
       <div class="grade-disc">${discs}</div>
       <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button><button class="botao principal" data-act="intro-finish" ${ui.newDisc ? '' : 'disabled'}>Entrar na guilda</button></div>`;
   } else {
-    body = `<div class="intro-ico felix">${iconSvg(ART.ui.guilda)}</div><div class="fala"><span class="quem">Felix</span><p>A julgar pela poeira no seu sapato, você já desceu algumas vezes. Ótimo: menos explicação.</p></div>
+    body = `${felixArt('guilda')}<div class="fala"><span class="quem">Felix</span><p>A julgar pela poeira no seu sapato, você já desceu algumas vezes. Ótimo: menos explicação.</p></div>
       <div class="intro-botoes"><button class="botao" data-act="intro-back">Voltar</button><button class="botao principal" data-act="intro-finish">Entrar na guilda</button></div>`;
   }
   $('#app').innerHTML = `<section class="cena intro-cena${step > INTRO.length && !camp ? ' larga' : ''}" aria-live="polite">${body}</section>`;
@@ -575,17 +579,18 @@ function renderIntro() {
 }
 function renderTitle() {
   const save = camp ? `${camp.name ? esc(camp.name) + ', ' : ''}dia ${camp.day}, ${camp.cleared[5] ? 'Grutas concluídas' : 'andar ' + Math.min(camp.floor, 5)}${camp.run ? ' (descida em andamento)' : ''}` : 'Nenhum jogo salvo.';
-  $('#app').innerHTML = `${gearBtn()}<section class="titulo-tela">
-    <div class="titulo-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.titulo : null)}</div>
-    <h1>Dragão Amarelo</h1>
+  const arte = HAS_IMG('guilda');
+  $('#app').innerHTML = `${gearBtn()}<section class="titulo-tela${arte ? ' com-arte' : ''}">
+    ${arte ? '<div class="titulo-fundo" role="img" aria-label="Fachada da guilda Dragão Amarelo à noite, com a placa iluminada e as janelas acesas"></div>' : `<div class="titulo-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.titulo : null)}</div>`}
+    <h1${arte ? ' class="sr"' : ''}>Dragão Amarelo</h1>
     <p class="sub">Uma guilda, uma dívida e um buraco que responde ao seu sangue.</p>
     <div class="titulo-botoes">
       <button class="botao principal" data-act="title-continue" ${camp ? '' : 'disabled'}>Continuar</button>
       <button class="botao" data-act="title-guild">Entrar na guilda</button>
     </div>
     <p class="titulo-save">${save}</p>
-  </section>
-  <p class="titulo-rodape">Protótipo, ${esc(RULES)}</p>`;
+    <p class="titulo-rodape">Protótipo, ${esc(RULES)}</p>
+  </section>`;
 }
 function renderSettings() {
   $('#app').innerHTML = `<header class="abertura"><h1>Configurações</h1></header>
@@ -963,5 +968,6 @@ document.addEventListener('keydown', ev => {
   }
 });
 
+if (typeof IMG !== 'undefined') for (const [k, v] of Object.entries(IMG)) document.documentElement.style.setProperty('--img-' + k, `url("${v}")`);
 render();
 })();
