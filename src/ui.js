@@ -34,7 +34,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.15/design-v0.39/inimigos-v0.9/proto-2026-10-21b';
+const RULES = 'cartas-v0.16/design-v0.40/inimigos-v0.10/proto-2026-10-22';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -681,7 +681,7 @@ async function runClick(ds) {
 function mulliganHtml() {
   const p = P(); const next = E.nextMulliganSize(st);
   const cards = p.hand.map((inst, i) => cardHtml(inst, i, '', `data-info="h:${i}" tabindex="-1"`)).join('');
-  return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="mu-t"><h2 id="mu-t">Mão inicial</h2><p>Mantenha ou troque a mão inteira. A primeira troca é grátis; cada troca seguinte vem com uma carta a menos.${st.mulligans ? ` Trocas feitas: ${st.mulligans}.` : ''}</p><div class="prever-lista">${cards || '<span class="vazio">Mão vazia</span>'}</div><div class="opcoes"><button class="botao principal" data-act="keep">Manter</button><button class="botao" data-act="mull" ${p.hand.length ? '' : 'disabled'}>Trocar (${next} carta${next === 1 ? '' : 's'})</button></div></div></div>`;
+  return `<div class="veu"><div class="janela larga" role="dialog" aria-modal="true" aria-labelledby="mu-t"><h2 id="mu-t">Mão inicial</h2><p>Mantenha ou troque a mão inteira. A primeira troca é grátis; cada troca seguinte vem com uma carta a menos.${st.mulligans ? ` Trocas feitas: ${st.mulligans}.` : ''}</p><div class="prever-lista">${cards || '<span class="vazio">Mão vazia</span>'}</div><div class="opcoes"><button class="botao principal" data-act="keep">Manter</button><button class="botao" data-act="mull" ${p.hand.length ? '' : 'disabled'}>Trocar (${next} carta${next === 1 ? '' : 's'})</button></div></div></div>`;
 }
 function render() {
   if (ui.screen !== 'battle' || !st) { renderScreen(); $('#app').insertAdjacentHTML('beforeend', (ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : '') + (ui.modal ? modalHtml() : '')); return; }

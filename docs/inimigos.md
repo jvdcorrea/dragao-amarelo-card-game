@@ -1,6 +1,6 @@
 # Dragão Amarelo: Inimigos · Grupo 1
 
-*v0.9 · complementa o design (v0.37) e as cartas (v0.15) · todos os números são provisórios*
+*v0.10 · complementa o design (v0.40) e as cartas (v0.16) · todos os números são provisórios*
 
 ---
 
@@ -63,7 +63,7 @@ Os andares 1 a 4 fecham com uma Elite (P42), sorteada entre as do grupo a partir
 | Carta | Custo | Tipo | Stats | Texto |
 |---|---|---|---|---|
 | **Morcego da Gruta** | 1 | Unidade | 1/1 | Avanço |
-| **Cogumelo-Broto** | 1 | Unidade | 0/2 | Brotar: vira um Cogumelo Adulto 3/3 |
+| **Cogumelo-Broto** | 1 | Unidade | 0/1 | Brotar: vira um Cogumelo Adulto 3/3 |
 | **Besouro Cascudo** | 2 | Unidade | 1/4 | Guarda |
 | **Aranha Tecelã** | 2 | Unidade | 2/2 | Ao Entrar: deixe uma unidade inimiga Imóvel |
 | **Enxame de Grilos** | 2 | Feitiço | | Invoque três Grilos 1/1 |

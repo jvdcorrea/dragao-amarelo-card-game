@@ -66,7 +66,7 @@ def('tita', { name: 'Titã do Bosque', cost: 7, type: 'unit', atk: 7, hp: 7, kw:
 // Necrodance
 def('pacto', { name: 'Pacto Sangrento', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 3 de vida. Ganhe 2 de mana neste turno.', playable(st, s) { return S(st, s).leader.hp > 3; }, onPlay(st, s) { S(st, s).leader.hp -= 3; S(st, s).mana += 2; } });
 def('esqueleto', { name: 'Esqueleto Bailarino', cost: 1, type: 'unit', atk: 1, hp: 1, disc: 'necro', text: 'Ao Morrer: dê +1/+1 a uma unidade aliada aleatória.', onDeath(st, e) { const o = pick(st, aliveUnits(st, e.owner)); if (o) buff(o, 1, 1); } });
-def('passo', { name: 'Passo de Abertura', cost: 1, type: 'spell', disc: 'necro', compasso: [1], target: () => 'enemyUnit', targetRequired: true, text: 'Cause 1 de dano a uma unidade inimiga. Compasso 1: compre 1 carta.', onPlay(st, s, c) { dmg(st, c.target, 1, src(s, { spell: true })); if (onBeat(st, s, c, 1)) draw(st, s, 1); } });
+def('passo', { name: 'Passo de Abertura', cost: 0, type: 'spell', disc: 'necro', compasso: [1], target: () => 'enemyUnit', targetRequired: true, text: 'Cause 1 de dano a uma unidade inimiga. Compasso 1: compre 1 carta.', onPlay(st, s, c) { dmg(st, c.target, 1, src(s, { spell: true })); if (onBeat(st, s, c, 1)) draw(st, s, 1); } });
 def('metronomo', { name: 'Metrônomo Ósseo', cost: 2, type: 'unit', atk: 2, hp: 2, disc: 'necro', compasso: [2], text: 'Compasso 2: invoque um Esqueleto Bailarino.', onPlay(st, s, c) { if (onBeat(st, s, c, 2)) summon(st, s, 'esqueleto'); } });
 def('valsa', { name: 'Valsa Macabra', cost: 2, type: 'spell', disc: 'necro', compasso: [3], target: () => 'friendlyUnit', targetRequired: true, text: 'Destrua uma unidade aliada; o Ao Morrer dela ativa duas vezes. Compasso 3: compre 1 carta.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { e.extraDeath = (e.extraDeath || 0) + 1; e.destroyed = true; } if (onBeat(st, s, c, 3)) draw(st, s, 1); } });
 def('coveiro', { name: 'Coveiro Ritmado', cost: 2, type: 'unit', atk: 1, hp: 3, sangria: 2, disc: 'necro', text: 'Sangria 2. Sempre que uma unidade aliada morrer, ganha +1/+0.', onFriendlyDeath(st, e) { e.atk += 1; } });
@@ -125,7 +125,7 @@ def('cav_engr', { name: 'Cavaleiro de Engrenagens', cost: 5, type: 'unit', atk: 
 
 // Inimigos: Grutas Vivas
 def('morcego', { name: 'Morcego da Gruta', cost: 1, type: 'unit', atk: 1, hp: 1, kw: ['avanco'], text: 'Avanço.' });
-def('broto_cog', { name: 'Cogumelo-Broto', cost: 1, type: 'unit', atk: 0, hp: 2, brotar: 'cog_adulto', text: 'Brotar: vira um Cogumelo Adulto 3/3.' });
+def('broto_cog', { name: 'Cogumelo-Broto', cost: 1, type: 'unit', atk: 0, hp: 1, brotar: 'cog_adulto', text: 'Brotar: vira um Cogumelo Adulto 3/3.' });
 def('cog_adulto', { name: 'Cogumelo Adulto', cost: 3, type: 'unit', atk: 3, hp: 3, token: true, text: '' });
 def('besouro', { name: 'Besouro Cascudo', cost: 2, type: 'unit', atk: 1, hp: 4, kw: ['guarda'], text: 'Guarda.' });
 def('aranha', { name: 'Aranha Tecelã', cost: 2, type: 'unit', atk: 2, hp: 2, target: () => 'enemyUnit', text: 'Ao Entrar: deixe uma unidade inimiga Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { setImovel(st, e); log(st, `${e.name} fica Imóvel.`); } } });

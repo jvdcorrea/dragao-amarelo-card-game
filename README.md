@@ -43,7 +43,7 @@ node tests/greedy.js            # taxas de vitória de um bot guloso por Discipl
 
 ## Versões dos documentos
 
-Design v0.40, cartas v0.15, inimigos v0.9.
+Design v0.40, cartas v0.16, inimigos v0.10.
 
 ## Créditos
 

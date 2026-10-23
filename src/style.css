@@ -208,6 +208,10 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .janela p { margin: 0 0 12px; color: var(--muted); }
 .janela .opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .prever-lista { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.janela { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+.janela.larga { max-width: 760px; }
+.janela > .opcoes { position: sticky; bottom: -16px; background: var(--surface); padding: 8px 0 2px; margin-bottom: -2px; }
+@media (max-width: 600px) { .prever-lista { flex-wrap: nowrap; overflow-x: auto; padding: 12px 4px 6px 12px; scroll-snap-type: x proximity; } .prever-lista .carta { scroll-snap-align: start; } }
 .prever-lista .carta { cursor: pointer; }
 .prever-lista .carta.fundo { opacity: .5; }
 .prever-lista .carta .marca { font-size: .75rem; font-weight: 700; color: var(--vida); }

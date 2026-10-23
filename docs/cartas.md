@@ -1,12 +1,13 @@
 # Dragão Amarelo: Amostra de Cartas
 
-*v0.15 · complementa o documento de design (v0.37) e o arquivo de inimigos · todos os números são provisórios*
+*v0.16 · complementa o documento de design (v0.40) e o arquivo de inimigos · todos os números são provisórios*
 
 **Como ler**
 - Colunas: Carta | Custo | Tipo | Stats | Texto.
 - Batalha: custo em mana; stats = Ataque/Vida (armas: Ataque/Durabilidade).
 - Social: custo em Lábia; stats = Peso/Firmeza. Peso derruba a Firmeza de Argumentos e a Resistência do interlocutor.
 - Referência de curva: uma unidade sem texto costuma somar cerca de (2 × custo + 1) em stats. Texto forte se paga com stats menores.
+- Regra de dominância: nenhuma carta pode ser estritamente pior que outra da mesma raridade que caiba no mesmo deck (mesma Disciplina ou neutra), ou seja, de mesmo tipo, custo igual ou maior e nada a mais. Entre raridades diferentes, a versão de raridade maior pode ser melhor.
 
 ---
 
@@ -208,7 +209,7 @@ Deck inicial completo (30 cartas): custo médio ≈ 2,6. O resto do pool da Disc
 |---|---|---|---|---|---|
 | **Pacto Sangrento** | 0 | Feitiço | | Perca 3 de vida. Ganhe 2 de mana neste turno | Inicial |
 | **Esqueleto Bailarino** | 1 | Unidade | 1/1 | Ao Morrer: dê +1/+1 a uma unidade aliada aleatória | Inicial |
-| **Passo de Abertura** | 1 | Feitiço | | Cause 1 de dano a uma unidade. Compasso 1: compre 1 carta | Inicial |
+| **Passo de Abertura** | 0 | Feitiço | | Cause 1 de dano a uma unidade. Compasso 1: compre 1 carta | Inicial |
 | **Metrônomo Ósseo** | 2 | Unidade | 2/2 | Compasso 2: invoque um Esqueleto Bailarino | Inicial |
 | **Valsa Macabra** | 2 | Feitiço | | Destrua uma unidade aliada; o Ao Morrer dela ativa duas vezes. Compasso 3: compre 1 carta | Inicial |
 | **Coveiro Ritmado** | 2 | Unidade | 1/3 | Sangria 2. Sempre que uma unidade aliada morrer, ganha +1/+0 | Inicial |
@@ -242,12 +243,12 @@ Deck inicial completo (30 cartas): custo médio ≈ 2,6. O resto do pool da Disc
 | Carta | Cópias | Custo | O que ensina |
 |---|---|---|---|
 | Esqueleto Bailarino | 2 | 1 | Ao Morrer |
-| Passo de Abertura | 2 | 1 | Compasso 1 |
+| Passo de Abertura | 2 | 0 | Compasso 1 |
 | Metrônomo Ósseo | 2 | 2 | Compasso 2 |
 | Menestrel Cadavérico | 2 | 3 | Compasso 3 e Sangria |
 | Maestro Sem Pulso | 2 | 4 | Valor na morte |
 
-Deck inicial completo (30 cartas): custo médio ≈ 2,1. O resto do pool da Disciplina chega por Recompensa e pelos mestres.
+Deck inicial completo (30 cartas): custo médio ≈ 2,0. O resto do pool da Disciplina chega por Recompensa e pelos mestres.
 
 > [!warning] Regente da Última Valsa
 > "Todo Compasso cumprido" é um capstone divertido, mas pode apagar a mecânica justamente quando ela fica interessante. Testar; alternativa: o Regente faz a contagem andar de dois em dois (1, 3, 1, 3...).
