@@ -1,6 +1,6 @@
 # Dragão Amarelo: Amostra de Cartas
 
-*v0.16 · complementa o documento de design (v0.40) e o arquivo de inimigos · todos os números são provisórios*
+*v0.17 · complementa o documento de design (v0.42) e o arquivo de inimigos · todos os números são provisórios*
 
 **Como ler**
 - Colunas: Carta | Custo | Tipo | Stats | Texto.
@@ -454,7 +454,7 @@ Deck inicial completo (30 cartas): custo médio ≈ 2,6 (nominal; Órbita barate
 
 ## Neutras
 
-*Tema (P53): os Felinos da Guilda [nome provisório], gatos aventureiros que acompanham o protagonista, mais equipamentos, armas e táticas mundanas. Algumas excepcionais (um golem, uma criatura lendária) ficam para depois.*
+*Tema (P53, lore em P66): as cartas básicas são os aliados da família desde os tempos antigos. A família sempre teve um laço com os felinos, que hoje ajudam, felizes, pela magia das cartas. São os Felinos da Guilda [nome provisório], gatos aventureiros que acompanham o protagonista, mais equipamentos, armas e táticas mundanas. Algumas excepcionais (um golem, uma criatura lendária) ficam para depois.*
 
 > [!warning] Nome dos gatos
 > Palico é um termo da Capcom (Monster Hunter). Os gatos daqui são originais: usam a marcação **Felino**, e o grupo se chama provisoriamente Felinos da Guilda. Felix passa a ser um deles.

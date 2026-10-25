@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.41 · rascunho para editar*
+*Documento de design preliminar · v0.42 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -371,7 +371,9 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 
 **Arte provisória (P64):** até a arte definitiva, cartas, inimigos e mapa usam ícones do game-icons.net (CC BY 3.0, com tela de créditos) sobre fundos gerados por Disciplina. Arte final: guia de estilo, IA só como rascunho de direção, ilustração encomendada começando por unidades e inimigos.
 
-**Tela inicial e introdução (P65):** o jogo abre numa tela inicial com Continuar (volta à descida em andamento ou, sem descida, à guilda; bloqueado sem save) e Entrar na guilda (vai direto à guilda se a introdução já foi vista). A engrenagem no canto superior direito abre as Configurações, que por enquanto têm Créditos e Apagar save. A introdução pede o nome do protagonista e conta a herança: a carta de Ergos, a chegada à guilda, Felix, o buraco aberto com o sangue da família e a insinuação do problema do mundo (P36). Termina na escolha da Disciplina inicial. O texto evita marcas de gênero, já que o jogo não pergunta.
+**Tela inicial e introdução (P65):** o jogo abre numa tela inicial com Continuar (volta à descida em andamento ou, sem descida, à guilda; bloqueado sem save) e Entrar na guilda (vai direto à guilda se a introdução já foi vista). A engrenagem no canto superior direito abre as Configurações, que por enquanto têm Créditos e Apagar save. A introdução pede o nome do protagonista e conta a herança: a carta de Ergos, a chegada à guilda, Felix, o buraco aberto com o sangue da família a insinuação do problema do mundo (P36) e as cartas básicas. Termina na escolha da Disciplina inicial. O texto evita marcas de gênero, já que o jogo não pergunta.
+
+**Cartas básicas (P66, lore das neutras):** as neutras são as cartas básicas, os aliados da família desde os tempos antigos. A família sempre teve um laço com os felinos, e hoje eles ajudam, felizes, pela magia das cartas; junto vão as ferramentas de sempre (tocha, espada, poção, rede). Felix também está no baralho.
 
 **Boosters (P59):** ao concluir um andar pela primeira vez, o jogador escolhe o booster da Disciplina do deck ou o Geral. Revisitas não dão cartas (P20).
 
