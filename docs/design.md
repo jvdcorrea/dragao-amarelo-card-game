@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.47 · rascunho para editar*
+*Documento de design preliminar · v0.48 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -385,7 +385,7 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
 - **Instalações (P71):** depois da primeira aventureira, Felix sugere reabrir a taverna e o menu de Instalações é liberado. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia; a Taverna oferece 3 candidatos gerados ao acaso por dia (placeholder; no jogo final, contratar envolve batalha social), por 25 de ouro mais 15 por nível acima de 1. O **Alojamento** (P76) amplia o limite de aventureiros: começa em 4 e cada nível abre mais 2, até 10; custa 60, 120 e 200 de ouro por nível, usa a obra do dia e exige a Taverna aberta. Área de treinamento, Laboratório arcano e Ferraria aparecem bloqueadas, à espera de um NPC que as libere.
 - **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão por monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos). Não gasta ação; vitória dá 15 a 25 de ouro, derrota custa até 20 de ouro.
 - **Cidade (P73):** uma visita por dia. Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
-- **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez).
+- **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez). Da segunda visita em diante, Gun'Liao, Charles e Mikeus cumprimentam com outra fala. A parte de compra da tela de cada Mestre se chama Treinamento.
   - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
   - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.

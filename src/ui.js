@@ -730,33 +730,36 @@ const MESTRE_INFO = {
     place: 'A vitrine da ACT, Magitech & Enchanted Innovations, pisca em roxo: engrenagens, frascos e um autômato que acena sozinho. Na porta, uma mulher de armadura e vestido, cajado de engrenagem na mão, mede você de cima a baixo com um sorriso de quem já calculou o seu preço.',
     greet: 'Isso é um baralho mágico no seu bolso ou está feliz em me ver?',
     opts: [
-      { id: 'a', label: 'Que? Como assim?', reply: ['Relaxa, meu bem. Eu falo do baralho. O seu bolso está emitindo três frequências arcanas diferentes, e só uma delas é nervosismo.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
-      { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Só um aviso: eu flerto de graça e cobro por todo o resto. Mas felicidade é ótima para os negócios, e se ela vier acompanhada de ouro, melhor ainda.'] },
-      { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. E, para quem sabe agradecer, mais justo ainda.'] },
+      { id: 'a', label: 'Que? Como assim?', reply: ['O seu bolso está emitindo três frequências arcanas diferentes. Eu só juntei dois com dois. Lógica simples.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
+      { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Vamos ver se você tem a mesma iniciativa para os negócios. Tudo que você vê aqui é Magitech da mais alta qualidade, certamente investir em equipamento de qualidade é mais atraente que meu rostinho lindo, não?'] },
+      { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. Se lembrar de falar por favor e obrigado, mais justo ainda.'] },
     ] },
   holy: { name: "Gun'Liao", title: 'mestre do Holy Shadowmancy', img: 'gunliao', pos: '45% 35%', face: '46% 20%',
     place: 'No terraço da catedral, entre gárgulas e vitrais de anjos, um homem de escamas no rosto e olhos amarelos segura um cajado de serpente alada. Ele sorri antes de você chegar perto, como se já esperasse a visita.',
     greet: 'Saudações, meu cordeirinho. Interessado em aprender sobre os deuses e em que moeda eles negociam?',
+    greet2: 'Luz e Liturgia. Sombra e Sangue. Bem-vindo novamente, meu cordeirinho.',
     opts: [
-      { id: 'a', label: 'Me ensine, mestre.', reply: ['Primeira lição: os deuses não são generosos. São justos. Cobram em fervor, em sacrifício, às vezes em silêncio. Pague o preço certo e até o céu assina contrato com você.', 'Segunda lição: o preço é sempre pago por alguém. Melhor que seja um monstro. Não acha?'] },
-      { id: 'b', label: 'Você também ensina sobre o que habita as sombras? Achei que clérigos eram do bem!', reply: ['E somos. A luz precisa de quem caminhe onde ela não alcança.', 'Um monstro abatido em silêncio é uma oração que ninguém precisou ouvir. Os deuses aceitam as duas, cordeirinho. E só um de nós precisa se sentir culpado. Não sou eu.'] },
-      { id: 'c', label: 'Estou mais interessado nas artes sombrias.', reply: ['Honestidade. Que raro. Que refrescante.', 'As sombras são só o lugar onde a fé espera a hora certa. Emboscada, Revelar, Sacrifício: chame de arte sombria, se preferir. Eu chamo de liturgia com bom timing.'] },
+      { id: 'a', label: 'Me ensine, mestre.', reply: ['Primeira lição: os deuses não são generosos. São justos. Cobram em fervor, em sacrifício, às vezes em silêncio. Pague o preço certo e até o céu assina contrato com você.', 'Segunda lição: Se alguém precisa pagar o preço em sangue, é melhor que seja um monstro, não acha? Há monstros no mundo todo, esperando para derramar o seu. Não permita.'] },
+      { id: 'b', label: 'Você também ensina sobre o que habita as sombras? Achei que clérigos eram do bem!', reply: ['E somos. A luz precisa de quem caminhe onde ela não alcança.', 'Um monstro abatido em silêncio é uma oração surda, tão boa quanto uma peregrinação. Os deuses aceitam as duas, cordeirinho. E só um de nós precisa se sentir culpado. Deixe que eu absolvo toda sua culpa.'] },
+      { id: 'c', label: 'Estou mais interessado nas artes sombrias.', reply: ['Honestidade. Que raro. Que refrescante.', 'As sombras são o lugar que protege e conforta os de fé enquanto eles esperam a hora certa. Emboscar, Revelar, Sacrificar. Chame de arte sombria se preferir. Eu, pessoalmente, chamo de liturgia com bom timing.'] },
     ] },
   necro: { name: 'Charles Goodwich', title: 'o bom lich, mestre da Necrodança', img: 'goodwich', pos: '45% 30%', face: '47% 14%',
     place: 'As últimas notas ainda ecoam pela lona do Necro-Circus. A plateia pula no compasso, um-dois-três, um-dois-três, enquanto esqueletos de chapéu de plumas fecham o refrão com violino, alaúde e tambor, e cães e gatos espectrais correm pelo palco. É impossível não balançar a cabeça. Quando a música para, o vocalista desce, um lich de cabelo prateado com uma guitarra que ainda solta faíscas azuis, e acena para você.',
     greet: 'Saudações! Curtiu o show? Quer um autógrafo?',
+    greet2: 'Bem-vindo novamente, guerreiro cartomante. Como posso ajudá-lo hoje?',
     opts: [
       { id: 'a', label: 'Sim, por favor!', once: 'autografo', reply: ['>Ele rabisca o seu ingresso com um floreio e um sorriso de caveira: «Para {nome}, que tem ritmo. Charles G.»', 'Guarda bem. Daqui a uns trezentos anos isso vale uma fortuna. Confia, eu já vi acontecer.'] },
-      { id: 'b', label: 'Ótimo show! Está contratando?', reply: ['Valeu! A banda está completa, mas a gente sempre precisa de quem saiba contar até três.', 'Necrodança é isso: o Compasso. Um, dois, três, e volta. A carta certa no tempo certo e a música faz o resto. Eu dou aula, se quiser. Não precisa morrer antes, juro.'] },
-      { id: 'c', label: 'Sabe, eu sou tipo um necrodançarino também, mas meu palco é uma masmorra mágica.', reply: ['Turnê subterrânea! Respeito demais.', 'Eu fui arquimago, sabia? Uns mil anos estudando o fim de tudo, e no fim a resposta era um bom refrão. Se a sua masmorra tiver eco, sorte sua. Acústica de caverna é outra coisa.'] },
+      { id: 'b', label: 'Ótimo show! Está contratando?', reply: ['Valeu! Quem sabe no dia do seu funeral, mas a gente valoriza quem saiba contar até três. Trate de aprender até lá, se ainda estiver interessado!', 'Necrodança é isso: o Compasso. Um, dois, três, e volta. A carta certa no tempo certo e a música faz o resto. Eu dou aula, se quiser. Não precisa morrer antes, juro.'] },
+      { id: 'c', label: 'Sabe, eu sou tipo um necrodançarino também, mas meu palco é uma masmorra mágica.', reply: ['Turnê subterrânea! Respeito demais.', 'Eu passei minha vida estudando e aprendendo todos os segredos da magia para conquistar todas as masmorras e acumular poder, mas no fim nada supera o poder de um bom refrão e um sorriso no rosto. Se a sua masmorra tiver eco, sorte sua. Acústica de caverna é outra coisa.'] },
     ] },
   temporal: { name: 'Mikeus', title: 'mestre de Temporal Warfare', img: 'mikeus', pos: '48% 30%', face: '50% 12%',
     place: 'No pátio de um dojo, sob nuvens que parecem passar rápido demais, um guerreiro de armadura vermelha e gasta segura um elmo debaixo do braço. A lança dele brilha com runas que você não reconhece, e ele olha para você como quem reencontra um velho conhecido.',
     greet: 'Você. Nós lutaremos juntos no futuro. É melhor começarmos a treinar agora.',
+    greet2: 'Chegou bem na hora do treinamento. Vamos.',
     opts: [
       { id: 'a', label: 'Nós seremos amigos?', reply: ['>Ele fica em silêncio por um tempo longo.', 'Você vai salvar a minha vida duas vezes. Eu vou salvar a sua três. E você vai dizer que eu estou contando errado. Tire suas conclusões.'] },
       { id: 'b', label: 'O que vai acontecer no futuro?', reply: ['Não. Cada palavra que eu digo sobre aquilo muda alguma coisa, e eu já vi o que acontece quando muda demais.', 'Treine. É a única resposta que não cria paradoxo.'] },
-      { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Temporal Warfare é isso: golpear antes, voltar depois, chegar quando o inimigo ainda está se preparando.'] },
+      { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Eu sou ambos um aprendiz e o fundador da disciplina do Temporal Warfare, então escute quando digo: Golpeie antes, volte depois. A vitória geralmente pertence a quem percebe o confronto antes.'] },
       { id: 'd', label: 'Melhor começar logo então, se você não tem tempo a perder, eu tenho menos ainda.', reply: ['>Mikeus aponta a lança para o dojo e, pela primeira vez, quase sorri.', 'Boa resposta. Foi a mesma que você me deu da outra vez.'] },
     ] },
 };
@@ -783,10 +786,10 @@ function renderNpc() {
       const said = ui.talk && ui.talk.npc === id ? mi.opts.find(o => o.id === ui.talk.opt) : null;
       const opts = mi.opts.filter(o => !(o.once && used[o.once] && !(said && said.id === o.id)) && !(said && said.id === o.id));
       talk = `${mestreArt(d, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
-        <div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(mi.greet)}</p></div>
+        <div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet)}</p></div>
         ${said ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(said.label)}</p></div>${said.reply.filter(r => r[0] === '>').map(r => `<p class="narra">${fill(r.slice(1))}</p>`).join('')}<div class="fala"><span class="quem">${esc(mi.name)}</span>${said.reply.filter(r => r[0] !== '>').map(r => `<p>${fill(r)}</p>`).join('')}</div>` : ''}
         ${opts.length ? `<div class="opcoes coluna dialogo">${opts.map(o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`).join('')}</div>` : ''}
-        <h3>Loja</h3>`;
+        <h3>Treinamento</h3>`;
     }
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
       <div class="opcoes"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button></div>`;
@@ -840,7 +843,7 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-visit') {
     if (camp.acts.npc && camp.acts.npc !== ds.npc) { toast('A visita de hoje já foi usada.'); return true; }
-    if (!camp.acts.npc) { camp.acts.npc = ds.npc; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
+    if (camp.acts.npc !== ds.npc) { camp.flags.visits = camp.flags.visits || {}; camp.flags.visits[ds.npc] = (camp.flags.visits[ds.npc] || 0) + 1; camp.acts.npc = ds.npc; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
     if (ui.npc !== ds.npc) ui.talk = null;
     ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
   }
@@ -954,7 +957,7 @@ function renderTitle() {
   $('#app').innerHTML = `${gearBtn()}<section class="titulo-tela${arte ? ' com-arte' : ''}">
     ${arte ? '<div class="titulo-fundo" role="img" aria-label="Fachada da guilda Dragão Amarelo à noite, com a placa iluminada e as janelas acesas"></div>' : `<div class="titulo-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.titulo : null)}</div>`}
     <h1${arte ? ' class="sr"' : ''}>Dragão Amarelo</h1>
-    <p class="sub">Uma guilda, uma dívida e um buraco que responde ao seu sangue.</p>
+    <p class="sub">Uma guilda, uma dívida e um mistério.</p>
     <div class="titulo-botoes">
       <button class="botao principal" data-act="title-continue" ${camp ? '' : 'disabled'}>Continuar</button>
       <button class="botao" data-act="title-guild">Entrar na guilda</button>
