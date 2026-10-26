@@ -783,6 +783,7 @@ async function guildClick(act, ds) {
   }
   return false;
 }
+const bi = k => iconSvg(typeof ART !== 'undefined' ? ART.ui[k] : null, 'ico-btn');
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
   ensureGuild();
@@ -792,20 +793,20 @@ function renderHome() {
   const allDone = camp.cleared[5];
   const floors = [1, 2, 3, 4, 5].map(f => {
     const done = camp.cleared[f]; const cur = !done && f === camp.floor;
-    return `<div class="andar ${done ? 'feito' : cur ? 'atual' : 'bloq'}"><b>${f}</b><span>${done ? 'Concluído' : cur ? 'Próximo' : 'Bloqueado'}</span>${done ? `<button class="botao discreto" data-floor="${f}" data-revisit="1" ${camp.acts.descer || camp.run ? 'disabled' : ''}>Revisitar</button>` : ''}</div>`;
+    return `<div class="andar ${done ? 'feito' : cur ? 'atual' : 'bloq'}"><b>${f}</b><span>${done ? 'Concluído' : cur ? 'Próximo' : 'Bloqueado'}</span>${done ? `<button class="botao discreto" data-floor="${f}" data-revisit="1" aria-label="Revisitar o andar ${f}" title="Revisitar o andar ${f}" ${camp.acts.descer || camp.run ? 'disabled' : ''}>${bi('revisitar')}<span class="rev-txt">Revisitar</span></button>` : ''}</div>`;
   }).join('');
-  const mainBtn = camp.run ? `<button class="botao principal" data-act="continue-run">Continuar descida (andar ${camp.run.floor})</button>`
+  const mainBtn = camp.run ? `<button class="botao principal" data-act="continue-run">${bi('descer')}Continuar descida (andar ${camp.run.floor})</button>`
     : allDone ? `<p class="destaque">Grupo 1 concluído: Ergos não estava nas Grutas. O caminho segue mais fundo.</p>`
-    : camp.acts.descer ? '<button class="botao principal" disabled>Você já desceu hoje</button>'
-    : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>Descer ao andar ${next}</button>`;
+    : camp.acts.descer ? `<button class="botao principal" disabled>${bi('descer')}Você já desceu hoje</button>`
+    : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>${bi('descer')}Descer ao andar ${next}</button>`;
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p></header>
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
       ${guildStatus()}
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run ? 'disabled' : ''}>Ir à cidade</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">Quadro de Missões</button>` : ''}${camp.flags.facilities ? '<button class="botao" data-act="g-instalacoes">Instalações</button>' : ''}${camp.fac.taverna === 'ativa' ? '<button class="botao" data-act="g-taverna">Taverna</button>' : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>Encerrar o dia</button></div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="to-title">Tela inicial</button></div>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run ? 'disabled' : ''}>${bi('cidade')}Ir à cidade</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
 }

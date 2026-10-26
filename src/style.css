@@ -376,3 +376,9 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .instalacao.bloq { opacity: .75; }
 .npc.visitando { border-color: var(--ouro-vivo); }
 .lista-adv li.vazio, .lista-missoes li.vazio { color: var(--muted); justify-content: flex-start; }
+
+/* Ícones nos botões da guilda */
+.ico-btn { width: 1.2em; height: 1.2em; fill: currentColor; vertical-align: -0.24em; margin-right: .45em; flex-shrink: 0; }
+.botao.principal .ico-btn { width: 1.35em; height: 1.35em; }
+.botao.discreto .ico-btn { width: 1em; height: 1em; margin-right: .3em; }
+@media (max-width: 600px) { .andar .rev-txt { display: none; } .andar .botao .ico-btn { margin: 0; } .andar > span { font-size: .72rem; } }
