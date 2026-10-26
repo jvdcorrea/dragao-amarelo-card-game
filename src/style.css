@@ -409,3 +409,6 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .cheat-linha select { max-width: 100%; }
 .cheat-check { display: flex; gap: 8px; align-items: center; min-width: 0 !important; }
 .cheats h2 { margin-top: 18px; }
+.prever-lista .carta .marca.nova { color: var(--d-draconic); }
+.prever-lista .carta .marca.tem1 { color: var(--muted); }
+.prever-lista .carta .marca.repetida { color: var(--vida); }

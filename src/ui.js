@@ -385,8 +385,12 @@ function addCards(ids) { ids.forEach(id => { camp.collection[id] = (camp.collect
 function collectionSize() { return Object.values(camp.collection).reduce((a, b) => a + b, 0); }
 function ownedDiscs() { return R.DISCS.filter(d => Object.keys(camp.collection).some(id => E.DEF[id].disc === d)); }
 const rarTag = id => { const r = R.RARITY[id] || 'C'; return `<span class="rar rar-${r}">${R.RAR[r]}</span>`; };
-function cardById(id, extraCls, attrs, note) {
-  return cardHtml({ id, cargas: 0 }, 0, extraCls || '', attrs || '').replace(/(<span class="tipo">[\s\S]*?<\/span>)/, `$1${rarTag(id)}`).replace(/<\/button>$/, `${note ? `<span class="marca">${esc(note)}</span>` : ''}</button>`);
+function cardById(id, extraCls, attrs, note, noteCls) {
+  return cardHtml({ id, cargas: 0 }, 0, extraCls || '', attrs || '').replace(/(<span class="tipo">[\s\S]*?<\/span>)/, `$1${rarTag(id)}`).replace(/<\/button>$/, `${note ? `<span class="marca ${noteCls || ''}">${esc(note)}</span>` : ''}</button>`);
+}
+function copiesNote(id) {
+  const n = (camp.collection[id] || 0) + (camp.run ? camp.run.mochila.filter(x => x === id).length : 0);
+  return n >= 2 ? [`Repetida: você já tem ${n}`, 'repetida'] : n === 1 ? ['Você tem 1', 'tem1'] : ['Nova', 'nova'];
 }
 function newCampaign(disc, name) {
   const coll = R.starterCollection(disc);
@@ -1122,7 +1126,7 @@ function renderScene() {
   } else if (sc.kind === 'nota') {
     body = `<h2>Nota de Ergos</h2><blockquote class="nota">${esc(R.NOTES[sc.floor])}</blockquote><p class="destaque">${sc.first ? 'Felix guarda a anotação. Na próxima luta, comece com 1 carta a mais.' : 'Você já leu esta nota.'}</p><div class="opcoes"><button class="botao principal" data-act="scene-ok">Continuar</button></div>`;
   } else if (sc.kind === 'elite') {
-    body = `<h2>Recompensa da Elite</h2><p>Escolha uma carta para a mochila.</p><div class="prever-lista">${sc.cards.map(id => cardById(id, '', `data-pick="${id}"`)).join('')}</div><div class="opcoes"><button class="botao" data-act="pick-skip">Pular</button></div>`;
+    body = `<h2>Recompensa da Elite</h2><p>Escolha uma carta para a mochila.</p><div class="prever-lista">${sc.cards.map(id => { const [t, c] = copiesNote(id); return cardById(id, '', `data-pick="${id}"`, t, c); }).join('')}</div><p class="intro-dica">O deck aceita até 2 cópias de cada carta; a contagem inclui o que já está na mochila.</p><div class="opcoes"><button class="botao" data-act="pick-skip">Pular</button></div>`;
   } else if (sc.kind === 'booster-choice') {
     body = `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Escolha o seu booster.</p>
       <div class="opcoes"><button class="botao principal disc-${camp.deck.disc}" data-pack="${camp.deck.disc}">Booster de ${esc(DISC_NAME[camp.deck.disc])}</button><button class="botao" data-pack="geral">Booster Geral</button></div>
