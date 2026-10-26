@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.45*
+*Atualizada em 26/10/2026 · acompanha o design v0.46*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -26,7 +26,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 5. **[~] Evento do primeiro aventureiro** (P70). Na primeira volta de uma descida, Brisa (batedora) pede trabalho e o Quadro de Missões é liberado. Missões rendem ouro, às vezes uma carta, e dão experiência.
    - *Falta:* definir quem é o primeiro aventureiro.
 
-6. **[~] Menu de instalações e Taverna** (P71). Depois da Brisa, Felix sugere reabrir a taverna. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia. A Taverna oferece 3 candidatos aleatórios por dia, até 4 aventureiros.
+6. **[~] Menu de instalações e Taverna** (P71). Depois da Brisa, Felix sugere reabrir a taverna. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia. A Taverna oferece 3 candidatos aleatórios por dia. **[x] Alojamento** (P76): começa com 4 vagas e cada nível abre mais 2, até 10 (60, 120 e 200 de ouro, 1 dia de obra cada).
    - *Falta:* personagens de verdade no lugar dos aleatórios e a contratação por batalha social.
 
 7. **[ ] Outras instalações:** Área de treinamento (melhorar aventureiros e unidades), Laboratório arcano (feitiços e upgrades mágicos), Ferraria (equipamentos em carta e dos aventureiros). Já aparecem bloqueadas, cada uma esperando um NPC.

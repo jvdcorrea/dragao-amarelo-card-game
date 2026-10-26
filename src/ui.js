@@ -516,6 +516,7 @@ const ACT_LABEL = { descer: 'Descer', npc: 'Visita na cidade', despachar: 'Despa
 const FAC = {
   quadro: { name: 'Quadro de Missões', desc: 'Pedidos de clientes e do governo. Despache aventureiros.' },
   taverna: { name: 'Taverna', desc: 'Onde aventureiros procuram trabalho. Contrate novos membros.' },
+  alojamento: { name: 'Alojamento', desc: 'Quartos para os aventureiros. Cada nível abre espaço para mais 2.' },
   treino: { name: 'Área de treinamento', desc: 'Melhorar aventureiros e unidades.', lock: 'Precisa de um instrutor (NPC a definir).' },
   lab: { name: 'Laboratório arcano', desc: 'Melhorar feitiços e outros upgrades mágicos.', lock: 'Precisa de um arcanista (NPC a definir).' },
   ferraria: { name: 'Ferraria', desc: 'Melhorar equipamentos em carta e dos aventureiros.', lock: 'Precisa de um ferreiro (NPC a definir).' },
@@ -530,6 +531,8 @@ const MISSOES = [
 ];
 const MESTRES = { temporal: 'Mestre de Temporal Warfare', draconic: 'Mestre de Draconic Primalism', necro: 'Mestre de Necrodance', holy: 'Mestre de Holy Shadowmancy', tech: 'Mestre de Magitech', space: 'Mestre de Space Wizardry' };
 const BOOSTER_PRECO = 60, HIRE_BASE = 25, ADV_MAX = 4;
+const ALOJ = [60, 120, 200]; /* custo de cada nível do Alojamento; cada nível abre 2 vagas */
+const advMax = () => ADV_MAX + 2 * ((camp && camp.fac && camp.fac.alojamento) || 0);
 const VENDA = { C: 5, I: 12, R: 30 };
 function newAdv(fixed) {
   const used = new Set((camp ? (camp.advs || []).concat(camp.recruits || []) : []).map(a => a.name)); const livres = NOMES.filter(n => !used.has(n[0]));
@@ -555,6 +558,7 @@ function ensureGuild() {
   camp.recruits = camp.recruits || [];
   camp.pending = camp.pending || [];
   camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: 'bloq', lab: 'bloq', ferraria: 'bloq' };
+  if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
   if (camp.defense) registerDefense(camp.defense);
 }
@@ -603,6 +607,7 @@ function endDay() {
   const lines = [];
   if (camp.building) {
     const b = camp.building;
+    if (b.id === 'alojamento') { camp.fac.alojamento = b.level; lines.push(`O alojamento ganhou mais quartos (nível ${b.level}). Agora cabem ${advMax()} aventureiros na guilda.`); hist({ k: 'obra', id: 'alojamento', level: b.level }); }
     if (b.id === 'taverna') { camp.fac.taverna = 'ativa'; lines.push('A taverna está limpa e aberta de novo. Já tem gente procurando trabalho.'); hist({ k: 'obra', id: 'taverna' }); }
     camp.building = null;
   }
@@ -678,7 +683,7 @@ function renderQuadro() {
   <section class="cena larga guilda-tela">
     <h2>Pedidos</h2><ul class="lista-missoes">${mis || '<li class="vazio">Nenhum pedido novo. Volte amanhã.</li>'}</ul>
     <p class="intro-dica">A chance de sucesso cresce com o nível e quando a especialidade bate com o pedido (Guerreiro: escolta, Batedor: busca, Mago: arcano, Clérigo: cura). Falha: volta sem nada e passa 1 dia se recuperando.</p>
-    <h2>Aventureiros (${camp.advs.length}/${ADV_MAX})</h2><ul class="lista-adv">${camp.advs.map(advRow).join('')}</ul>
+    <h2>Aventureiros (${camp.advs.length}/${advMax()})</h2><ul class="lista-adv">${camp.advs.map(advRow).join('')}</ul>
     <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div>
   </section>`;
 }
@@ -689,21 +694,29 @@ function renderInstalacoes() {
     if (id === 'taverna' && s === 'suja') act = camp.building ? '<span class="linha">Faxina em andamento: fica pronta ao fim do dia.</span>' : `<button class="botao" data-act="g-build-taverna" ${camp.acts.construir ? 'disabled' : ''}>Fazer faxina na taverna (1 dia de trabalho)</button>`;
     else if (id === 'taverna' && s === 'ativa') act = '<button class="botao" data-act="g-taverna">Entrar</button>';
     else if (id === 'quadro' && s === 'ativo') act = '<button class="botao" data-act="g-quadro">Abrir</button>';
+    else if (id === 'alojamento') {
+      const lvl = s || 0; const cost = ALOJ[lvl];
+      if (camp.building && camp.building.id === 'alojamento') act = '<span class="linha">Obra em andamento: fica pronta ao fim do dia.</span>';
+      else if (camp.fac.taverna !== 'ativa') act = '<span class="linha">Precisa da Taverna aberta.</span>';
+      else if (cost === undefined) act = '<span class="linha">Todos os quartos construídos.</span>';
+      else act = `<button class="botao" data-act="g-build-aloj" ${camp.acts.construir || camp.building || camp.gold < cost ? 'disabled' : ''}>${lvl ? 'Ampliar' : 'Construir'} (nível ${lvl + 1}): ${cost} de ouro e 1 dia de trabalho</button>`;
+      return `<li class="instalacao ${lvl ? 'ativo' : 'bloq'}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${lvl ? `Nível ${lvl}` : 'Não construído'}</span><p class="linha">${esc(f.desc)} Hoje cabem ${advMax()} aventureiros${cost !== undefined ? `; o próximo nível leva a ${advMax() + 2}` : ''}.</p></div><div>${act}</div></li>`;
+    }
     else if (f.lock) act = `<span class="linha">${esc(f.lock)}</span>`;
     const estado = { ativo: 'Ativo', ativa: 'Ativa', suja: 'Abandonada', bloq: 'Bloqueada' }[s] || s;
     return `<li class="instalacao ${s}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${estado}</span><p class="linha">${esc(f.desc)}</p></div><div>${act}</div></li>`;
   };
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Instalações</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${camp.acts.construir ? 'obra de hoje já feita' : 'obra de hoje disponível'}</p></header>
-  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'treino', 'lab', 'ferraria'].map(row).join('')}</ul>
+  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'alojamento', 'treino', 'lab', 'ferraria'].map(row).join('')}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
 function renderTaverna() {
-  const full = camp.advs.length >= ADV_MAX;
+  const full = camp.advs.length >= advMax();
   const cards = camp.recruits.map((a, i) => { const price = HIRE_BASE + 15 * (a.lvl - 1); return `<li class="adv"><b>${esc(a.name)}</b> <span class="linha">${esc(advClass(a))}, nível ${a.lvl}</span><button class="botao" data-act="g-hire" data-idx="${i}" ${full || camp.gold < price ? 'disabled' : ''}>Contratar (${price} de ouro)</button></li>`; }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Taverna</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro</p></header>
   <section class="cena larga guilda-tela"><p>O cheiro de cerveja velha voltou, o que Felix considera progresso. Hoje, procurando trabalho:</p>
   <ul class="lista-adv">${cards || '<li class="vazio">Ninguém hoje. Volte amanhã.</li>'}</ul>
-  <p class="intro-dica">${full ? `A guilda está cheia (${ADV_MAX} aventureiros).` : 'Os candidatos mudam a cada dia.'} Aventureiros gerados ao acaso, provisórios. No jogo final, contratar envolve batalha social.</p>
+  <p class="intro-dica">${full ? `A guilda está cheia (${advMax()} aventureiros). O Alojamento, nas Instalações, abre mais vagas.` : 'Os candidatos mudam a cada dia.'} Aventureiros gerados ao acaso, provisórios. No jogo final, contratar envolve batalha social.</p>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
 /* Mestres das Disciplinas: retrato, apresentação e diálogo */
@@ -804,6 +817,11 @@ async function guildClick(act, ds) {
     if (camp.acts.construir || camp.building) return true;
     camp.acts.construir = true; camp.building = { id: 'taverna' }; hist({ k: 'obra-inicio', id: 'taverna' }); saveCamp(); render(); toast('Mãos à obra: a taverna fica pronta ao fim do dia.'); return true;
   }
+  if (act === 'g-build-aloj') {
+    const lvl = camp.fac.alojamento || 0; const cost = ALOJ[lvl];
+    if (cost === undefined || camp.acts.construir || camp.building || camp.gold < cost || camp.fac.taverna !== 'ativa') return true;
+    camp.gold -= cost; camp.acts.construir = true; camp.building = { id: 'alojamento', level: lvl + 1 }; hist({ k: 'obra-inicio', id: 'alojamento', level: lvl + 1, gold: cost }); saveCamp(); render(); toast(`Obra começada: o alojamento fica pronto ao fim do dia (-${cost} de ouro).`); return true;
+  }
   if (act === 'g-dispatch') {
     const m = camp.missions.find(x => x.id === ds.mid); const sel = $(`#m-${ds.mid}`); const a = sel && camp.advs.find(x => x.id === sel.value);
     if (!m || !a || a.status !== 'livre') return true;
@@ -812,7 +830,7 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-hire') {
     const a = camp.recruits[+ds.idx]; if (!a) return true; const price = HIRE_BASE + 15 * (a.lvl - 1);
-    if (camp.gold < price || camp.advs.length >= ADV_MAX) return true;
+    if (camp.gold < price || camp.advs.length >= advMax()) return true;
     camp.gold -= price; camp.advs.push(a); camp.recruits.splice(+ds.idx, 1); hist({ k: 'aventureiro', name: a.name, cls: a.cls, lvl: a.lvl, price }); saveCamp(); render(); toast(`${a.name} entrou para a guilda.`); return true;
   }
   if (act === 'g-visit') {
