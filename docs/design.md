@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.43 · rascunho para editar*
+*Documento de design preliminar · v0.44 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -384,7 +384,14 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
 - **Aventureiros e missões (P70, aplica P19, P22, P25):** na primeira volta de uma descida, uma aventureira bate à porta (Brisa, batedora, placeholder) e o Quadro de Missões é liberado. Cada aventureiro tem classe (Guerreiro, Batedor, Mago, Clérigo), nível e especialidade; missões têm dificuldade 1 a 3, duração em dias, ouro e às vezes uma carta. Chance de sucesso: 60% + 15% × (nível + 1 se a especialidade bate − dificuldade), entre 20% e 95%. Falha: volta sem nada e passa 1 dia se recuperando. Sucesso dá experiência; o nível sobe a cada (nível × 2) sucessos. Até 4 aventureiros.
 - **Instalações (P71):** depois da primeira aventureira, Felix sugere reabrir a taverna e o menu de Instalações é liberado. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia; a Taverna oferece 3 candidatos gerados ao acaso por dia (placeholder; no jogo final, contratar envolve batalha social), por 25 de ouro mais 15 por nível acima de 1. Área de treinamento, Laboratório arcano e Ferraria aparecem bloqueadas, à espera de um NPC que as libere.
 - **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão por monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos). Não gasta ação; vitória dá 15 a 25 de ouro, derrota custa até 20 de ouro.
-- **Cidade (P73):** uma visita por dia. Os seis Mestres (personagens a definir, todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
+- **Cidade (P73):** uma visita por dia. Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
+- **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez).
+  - **Chrome, mestra do Magitech (Enchanting Technology):** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
+  - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
+  - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
+  - **Mikeus, mestre de Temporal Warfare:** grande guerreiro do passado e do futuro, vive nesta era para treinar guerreiros para um conflito que ainda vai acontecer; não dá detalhes, para evitar paradoxos.
+  - Draconic Primalism e Space Wizardry: mestres ainda a definir.
+- **Sala de guerra:** a ilustração da sala de guerra (mesa com mapa, lareira e Felix na poltrona) é o cabeçalho da tela da guilda.
 
 **Boosters (P59, revisto em P67):** ao concluir um andar pela primeira vez, o jogador ganha o booster do andar: um booster geral (3 Comuns, 1 Incomum, 1 Incomum ou Rara) em que 2 cartas são garantidas da Disciplina do deck (1 Comum e a vaga Incomum ou Rara); as outras 3 podem vir de qualquer Disciplina ou das básicas. Cartas que o jogador ainda não tem têm o dobro de chance, mas repetidas continuam possíveis. Boosters só de uma Disciplina ficam com os Mestres (P73). Revisitas não dão cartas (P20).
 

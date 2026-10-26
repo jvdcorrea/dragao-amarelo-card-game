@@ -706,11 +706,48 @@ function renderTaverna() {
   <p class="intro-dica">${full ? `A guilda está cheia (${ADV_MAX} aventureiros).` : 'Os candidatos mudam a cada dia.'} Aventureiros gerados ao acaso, provisórios. No jogo final, contratar envolve batalha social.</p>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
+/* Mestres das Disciplinas: retrato, apresentação e diálogo */
+const MESTRE_INFO = {
+  tech: { name: 'Chrome', title: 'mestra do Magitech', img: 'chrome', pos: '72% 40%', face: '64% 18%',
+    place: 'A vitrine da ACT, Magitech & Enchanted Innovations, pisca em roxo: engrenagens, frascos e um autômato que acena sozinho. Na porta, uma mulher de armadura e vestido, cajado de engrenagem na mão, mede você de cima a baixo com um sorriso de quem já calculou o seu preço.',
+    greet: 'Isso é um baralho mágico no seu bolso ou está feliz em me ver?',
+    opts: [
+      { id: 'a', label: 'Que? Como assim?', reply: ['Relaxa, meu bem. Eu falo do baralho. O seu bolso está emitindo três frequências arcanas diferentes, e só uma delas é nervosismo.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
+      { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Só um aviso: eu flerto de graça e cobro por todo o resto. Mas felicidade é ótima para os negócios, e se ela vier acompanhada de ouro, melhor ainda.'] },
+      { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é a Enchanting Technology: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. E, para quem sabe agradecer, mais justo ainda.'] },
+    ] },
+  holy: { name: "Gun'Liao", title: 'mestre do Holy Shadowmancy', img: 'gunliao', pos: '45% 35%', face: '46% 20%',
+    place: 'No terraço da catedral, entre gárgulas e vitrais de anjos, um homem de escamas no rosto e olhos amarelos segura um cajado de serpente alada. Ele sorri antes de você chegar perto, como se já esperasse a visita.',
+    greet: 'Saudações, meu cordeirinho. Interessado em aprender sobre os deuses e em que moeda eles negociam?',
+    opts: [
+      { id: 'a', label: 'Me ensine, mestre.', reply: ['Primeira lição: os deuses não são generosos. São justos. Cobram em fervor, em sacrifício, às vezes em silêncio. Pague o preço certo e até o céu assina contrato com você.', 'Segunda lição: o preço é sempre pago por alguém. Melhor que seja um monstro. Não acha?'] },
+      { id: 'b', label: 'Você também ensina sobre o que habita as sombras? Achei que clérigos eram do bem!', reply: ['E somos. A luz precisa de quem caminhe onde ela não alcança.', 'Um monstro abatido em silêncio é uma oração que ninguém precisou ouvir. Os deuses aceitam as duas, cordeirinho. E só um de nós precisa se sentir culpado. Não sou eu.'] },
+      { id: 'c', label: 'Estou mais interessado nas artes sombrias.', reply: ['Honestidade. Que raro. Que refrescante.', 'As sombras são só o lugar onde a fé espera a hora certa. Emboscada, Revelar, Sacrifício: chame de arte sombria, se preferir. Eu chamo de liturgia com bom timing.'] },
+    ] },
+  necro: { name: 'Charles Goodwich', title: 'o bom lich, mestre da Necrodança', img: 'goodwich', pos: '45% 30%', face: '47% 14%',
+    place: 'As últimas notas ainda ecoam pela lona do Necro-Circus. A plateia pula no compasso, um-dois-três, um-dois-três, enquanto esqueletos de chapéu de plumas fecham o refrão com violino, alaúde e tambor, e cães e gatos espectrais correm pelo palco. É impossível não balançar a cabeça. Quando a música para, o vocalista desce, um lich de cabelo prateado com uma guitarra que ainda solta faíscas azuis, e acena para você.',
+    greet: 'Saudações! Curtiu o show? Quer um autógrafo?',
+    opts: [
+      { id: 'a', label: 'Sim, por favor!', once: 'autografo', reply: ['>Ele rabisca o seu ingresso com um floreio e um sorriso de caveira: «Para {nome}, que tem ritmo. Charles G.»', 'Guarda bem. Daqui a uns trezentos anos isso vale uma fortuna. Confia, eu já vi acontecer.'] },
+      { id: 'b', label: 'Ótimo show! Está contratando?', reply: ['Valeu! A banda está completa, mas a gente sempre precisa de quem saiba contar até três.', 'Necrodança é isso: o Compasso. Um, dois, três, e volta. A carta certa no tempo certo e a música faz o resto. Eu dou aula, se quiser. Não precisa morrer antes, juro.'] },
+      { id: 'c', label: 'Sabe, eu sou tipo um necrodançarino também, mas meu palco é uma masmorra mágica.', reply: ['Turnê subterrânea! Respeito demais.', 'Eu fui arquimago, sabia? Uns mil anos estudando o fim de tudo, e no fim a resposta era um bom refrão. Se a sua masmorra tiver eco, sorte sua. Acústica de caverna é outra coisa.'] },
+    ] },
+  temporal: { name: 'Mikeus', title: 'mestre de Temporal Warfare', img: 'mikeus', pos: '48% 30%', face: '50% 12%',
+    place: 'No pátio de um dojo, sob nuvens que parecem passar rápido demais, um guerreiro de armadura vermelha e gasta segura um elmo debaixo do braço. A lança dele brilha com runas que você não reconhece, e ele olha para você como quem reencontra um velho conhecido.',
+    greet: 'Você. Nós lutaremos juntos no futuro. É melhor começarmos a treinar agora.',
+    opts: [
+      { id: 'a', label: 'Nós seremos amigos?', reply: ['>Ele fica em silêncio por um tempo longo.', 'Você vai salvar a minha vida duas vezes. Eu vou salvar a sua três. E você vai dizer que eu estou contando errado. Tire suas conclusões.'] },
+      { id: 'b', label: 'O que vai acontecer no futuro?', reply: ['Não. Cada palavra que eu digo sobre aquilo muda alguma coisa, e eu já vi o que acontece quando muda demais.', 'Treine. É a única resposta que não cria paradoxo.'] },
+      { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Temporal Warfare é isso: golpear antes, voltar depois, chegar quando o inimigo ainda está se preparando.'] },
+      { id: 'd', label: 'Melhor começar logo então, se você não tem tempo a perder, eu tenho menos ainda.', reply: ['>Mikeus aponta a lança para o dojo e, pela primeira vez, quase sorri.', 'Boa resposta. Foi a mesma que você me deu da outra vez.'] },
+    ] },
+};
+function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
 function renderCidade() {
   const v = camp.acts.npc;
-  const npc = (id, name, role) => `<li class="npc ${v === id ? 'visitando' : ''}"><div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}" ${v && v !== id ? 'disabled' : ''}>${v === id ? 'Voltar a falar' : 'Visitar'}</button></li>`;
-  const mestres = Object.entries(MESTRES).map(([d, n]) => npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`)).join('');
+  const npc = (id, name, role, thumb) => `<li class="npc ${v === id ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}" ${v && v !== id ? 'disabled' : ''}>${v === id ? 'Voltar a falar' : 'Visitar'}</button></li>`;
+  const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${v ? 'visita de hoje já usada' : 'uma visita por dia'}</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
   <h2>Outros</h2><ul class="lista-npc">${npc('copias', 'Comprador de cópias', 'Compra as cópias que passam de 2 (o deck só aceita 2). Papel provisório: pode virar outro NPC ou outra mecânica.')}</ul>
@@ -719,8 +756,21 @@ function renderCidade() {
 function renderNpc() {
   const id = ui.npc; let body = '';
   if (id.startsWith('mestre-')) {
-    const d = id.slice(7);
-    body = `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p><p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
+    const d = id.slice(7); const mi = MESTRE_INFO[d];
+    const nome = esc((camp && camp.name) || 'você');
+    const fill = t => esc(t).replace(/\{nome\}/g, nome);
+    let talk = '';
+    if (mi) {
+      const used = (camp.flags.once || {});
+      const said = ui.talk && ui.talk.npc === id ? mi.opts.find(o => o.id === ui.talk.opt) : null;
+      const opts = mi.opts.filter(o => !(o.once && used[o.once] && !(said && said.id === o.id)) && !(said && said.id === o.id));
+      talk = `${mestreArt(d, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
+        <div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(mi.greet)}</p></div>
+        ${said ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(said.label)}</p></div>${said.reply.filter(r => r[0] === '>').map(r => `<p class="narra">${fill(r.slice(1))}</p>`).join('')}<div class="fala"><span class="quem">${esc(mi.name)}</span>${said.reply.filter(r => r[0] !== '>').map(r => `<p>${fill(r)}</p>`).join('')}</div>` : ''}
+        ${opts.length ? `<div class="opcoes coluna dialogo">${opts.map(o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`).join('')}</div>` : ''}
+        <h3>Loja</h3>`;
+    }
+    body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
       <div class="opcoes"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button></div>`;
   } else {
     const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
@@ -768,7 +818,13 @@ async function guildClick(act, ds) {
   if (act === 'g-visit') {
     if (camp.acts.npc && camp.acts.npc !== ds.npc) { toast('A visita de hoje já foi usada.'); return true; }
     if (!camp.acts.npc) { camp.acts.npc = ds.npc; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
+    if (ui.npc !== ds.npc) ui.talk = null;
     ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
+  }
+  if (act === 'g-talk') {
+    const d = ds.npc.slice(7); const mi = MESTRE_INFO[d]; const o = mi && mi.opts.find(x => x.id === ds.opt); if (!o) return true;
+    if (o.once) { camp.flags.once = camp.flags.once || {}; if (camp.flags.once[o.once]) return true; camp.flags.once[o.once] = true; }
+    ui.talk = { npc: ds.npc, opt: o.id }; hist({ k: 'dialogo', npc: ds.npc, opt: o.id }); saveCamp(); render(); return true;
   }
   if (act === 'g-buy') {
     const d = ds.dd; if (camp.gold < BOOSTER_PRECO) return true;
@@ -799,7 +855,8 @@ function renderHome() {
     : allDone ? `<p class="destaque">Grupo 1 concluído: Ergos não estava nas Grutas. O caminho segue mais fundo.</p>`
     : camp.acts.descer ? `<button class="botao principal" disabled>${bi('descer')}Você já desceu hoje</button>`
     : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>${bi('descer')}Descer ao andar ${next}</button>`;
-  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p></header>
+  const cab = `<h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p>`;
+  $('#app').innerHTML = `${gearBtn()}${HAS_IMG('warroom') ? `<header class="guilda-hero" role="img" aria-label="Sala de guerra da guilda: mesa com mapa, lareira acesa e Felix dormindo na poltrona"><div>${cab}</div></header>` : `<header class="abertura">${cab}</header>`}
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
       ${guildStatus()}
@@ -826,7 +883,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial) e Felix no balcão (introdução) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich e Mikeus (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>

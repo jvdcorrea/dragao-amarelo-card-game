@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.43*
+*Atualizada em 26/10/2026 · acompanha o design v0.44*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -35,8 +35,8 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 8. **[~] Defesas com inimigos aleatórios** (P72). A partir do dia 3, 20% de chance por noite. Os invasores são monstros do Buraco, em quatro temas com cartas do grupo 1. Vitória dá ouro; derrota custa até 20 de ouro.
    - *Falta:* ladrões (precisam de cartas humanas), defesas sociais, e Cofre ou vigias reduzindo a chance.
 
-9. **[~] Mestres na cidade** (P73). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia.
-   - *Falta:* definir os seis Mestres (NPCs únicos) e aprender Disciplinas novas com eles (P29).
+9. **[~] Mestres na cidade** (P73, P74). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia. Quatro já têm retrato e diálogo: Chrome (Magitech), Gun'Liao (Holy Shadowmancy), Charles Goodwich (Necrodança) e Mikeus (Temporal Warfare).
+   - *Falta:* os Mestres de Draconic Primalism e de Space Wizardry, e aprender Disciplinas novas com eles (P29).
 
 **[x] Estrutura de base** (P68): o dia com as quatro ações (descer, visita, despacho, obra, uma vez cada) e o botão "Encerrar o dia". Descer não passa mais o dia sozinho.
 

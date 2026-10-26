@@ -382,3 +382,19 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .botao.principal .ico-btn { width: 1.35em; height: 1.35em; }
 .botao.discreto .ico-btn { width: 1em; height: 1em; margin-right: .3em; }
 @media (max-width: 600px) { .andar .rev-txt { display: none; } .andar .botao .ico-btn { margin: 0; } .andar > span { font-size: .72rem; } }
+
+/* Sala de guerra e Mestres */
+.guilda-hero { position: relative; min-height: clamp(170px, 28vw, 290px); border-radius: 14px; overflow: hidden; margin: 0 0 14px; display: flex; align-items: flex-end; padding: 16px 20px; background: linear-gradient(180deg, rgba(8, 10, 20, 0) 35%, rgba(8, 10, 20, .82) 100%), var(--img-warroom) center 58% / cover no-repeat; box-shadow: 0 2px 8px var(--sombra); }
+.guilda-hero h1 { color: #f6c64a; margin: 0; text-shadow: 0 2px 12px rgba(0, 0, 0, .85); }
+.guilda-hero .sub { color: #f3eee2; margin: 2px 0 0; text-shadow: 0 1px 6px rgba(0, 0, 0, .9); }
+.npc-arte { width: 100%; aspect-ratio: 11 / 6; max-height: 340px; border-radius: 10px; margin: 0 0 12px; background-size: cover; background-repeat: no-repeat; box-shadow: 0 2px 8px var(--sombra); }
+.npc-thumb { width: 58px; height: 58px; flex: 0 0 58px; border-radius: 50%; background-size: 560% auto; background-repeat: no-repeat; border: 2px solid var(--ouro-vivo); }
+.npc-thumb.vazio { display: flex; align-items: center; justify-content: center; font-family: "Alegreya", Georgia, serif; font-size: 1.6rem; color: var(--muted); border-color: var(--line); background: var(--bg, transparent); }
+.lista-npc li { flex-wrap: nowrap; }
+.lista-npc li > div:not(.npc-thumb) { flex: 1 1 auto; }
+.fala.voce { border-left-color: var(--line); background: transparent; }
+.opcoes.dialogo .botao { text-align: left; white-space: normal; }
+@media (max-width: 600px) { .lista-npc li { flex-wrap: wrap; } }
+.narra { font-style: italic; color: var(--muted); margin: 8px 0 0; }
+.lista-npc li > div.npc-thumb { flex: 0 0 58px; width: 58px; height: 58px; }
+.guilda-hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; }
