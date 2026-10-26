@@ -3,7 +3,7 @@
 const E = window.Engine;
 const TYPE_LABEL = { unit: 'Unidade', spell: 'Feitiço', weapon: 'Arma', structure: 'Estrutura', ritual: 'Ritual', trap: 'Armadilha' };
 const KW_LABEL = { guarda: 'Guarda', investida: 'Acelerar', avanco: 'Avanço', letal: 'Letal', dreno: 'Dreno', escudo: 'Escudo', emboscada: 'Emboscada', eco: 'Eco' };
-const DISC_NAME = { temporal: 'Temporal Warfare', draconic: 'Draconic Primalism', necro: 'Necrodance', holy: 'Holy Shadowmancy', tech: 'Enchanting Technology', space: 'Space Wizardry', neutra: 'Neutra' };
+const DISC_NAME = { temporal: 'Temporal Warfare', draconic: 'Draconic Primalism', necro: 'Necrodance', holy: 'Holy Shadowmancy', tech: 'Magitech', space: 'Space Wizardry', neutra: 'Neutra' };
 const GLOSS = {
   'Guarda': 'Inimigos precisam atacar unidades com Guarda primeiro.',
   'Acelerar': 'Pode atacar qualquer alvo, inclusive o líder, no turno em que entra.',
@@ -528,7 +528,7 @@ const MISSOES = [
   [2, 'busca', 'Recuperar um anel perdido no esgoto'], [2, 'escolta', 'Caçar o lobo que ronda as fazendas'], [2, 'arcano', 'Investigar luzes no cemitério'], [2, 'cura', 'Conter a febre na estalagem do porto'],
   [3, 'escolta', 'Proteger a carruagem do coletor de impostos'], [3, 'busca', 'Buscar ervas raras na encosta do vulcão'], [3, 'arcano', 'Fechar um círculo de invocação abandonado'], [3, 'escolta', 'Expulsar bandidos da estrada do norte'],
 ];
-const MESTRES = { temporal: 'Mestre de Temporal Warfare', draconic: 'Mestre de Draconic Primalism', necro: 'Mestre de Necrodance', holy: 'Mestre de Holy Shadowmancy', tech: 'Mestre de Enchanting Technology', space: 'Mestre de Space Wizardry' };
+const MESTRES = { temporal: 'Mestre de Temporal Warfare', draconic: 'Mestre de Draconic Primalism', necro: 'Mestre de Necrodance', holy: 'Mestre de Holy Shadowmancy', tech: 'Mestre de Magitech', space: 'Mestre de Space Wizardry' };
 const BOOSTER_PRECO = 60, HIRE_BASE = 25, ADV_MAX = 4;
 const VENDA = { C: 5, I: 12, R: 30 };
 function newAdv(fixed) {
@@ -714,7 +714,7 @@ const MESTRE_INFO = {
     opts: [
       { id: 'a', label: 'Que? Como assim?', reply: ['Relaxa, meu bem. Eu falo do baralho. O seu bolso está emitindo três frequências arcanas diferentes, e só uma delas é nervosismo.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
       { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Só um aviso: eu flerto de graça e cobro por todo o resto. Mas felicidade é ótima para os negócios, e se ela vier acompanhada de ouro, melhor ainda.'] },
-      { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é a Enchanting Technology: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. E, para quem sabe agradecer, mais justo ainda.'] },
+      { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. E, para quem sabe agradecer, mais justo ainda.'] },
     ] },
   holy: { name: "Gun'Liao", title: 'mestre do Holy Shadowmancy', img: 'gunliao', pos: '45% 35%', face: '46% 20%',
     place: 'No terraço da catedral, entre gárgulas e vitrais de anjos, um homem de escamas no rosto e olhos amarelos segura um cajado de serpente alada. Ele sorri antes de você chegar perto, como se já esperasse a visita.',

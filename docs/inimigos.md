@@ -163,7 +163,7 @@ Medido com o deck inicial novo (20 neutras fixas + 10 introdutórias, P53) e com
 | Draconic Primalism | 78% a 100% | 98% | 68% | 45% |
 | Necrodance | 63% a 100% | 70% | 55% | 0% |
 | Holy Shadowmancy | 70% a 100% | 85% | 38% | 5% |
-| Enchanting Technology | 30% a 98% | 93% | 23% | 3% |
+| Magitech | 30% a 98% | 93% | 23% | 3% |
 | Space Wizardry | 53% a 100% | 78% | 33% | 5% |
 
 > [!warning] O que os números sugerem

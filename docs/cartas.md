@@ -328,7 +328,7 @@ Deck inicial completo (30 cartas): custo médio ≈ 2,4. O resto do pool da Disc
 
 ---
 
-## Enchanting Technology · Midrange e valor (aprofundada)
+## Magitech · Midrange e valor (aprofundada)
 
 *Fantasia: engenhocas encantadas, alquimia e engenharia arcana. Plano de jogo: unidades medianas que acumulam Módulos, Estruturas que geram valor turno a turno e Armadilhas que punem o inimigo. Raramente vence rápido; vence porque cada troca deixa algo para trás.*
 
@@ -503,7 +503,7 @@ O núcleo neutro é barato de propósito: cobre os turnos 1 a 3 de qualquer Disc
 Espaço para as neutras que não cabem em nenhuma Disciplina (um golem, uma criatura lendária). O **Gigante das Profundezas** (6 de custo, 6/7, sem texto, Recompensa) fica como marcador até você definir.
 
 > [!tip] Felinos como cola
-> A marcação Felino dá identidade às neutras sem roubar assinatura de nenhuma Disciplina: Capitã, Lanceiro, Rede de Captura, Ração e Bumerangue ficam melhores com gatos em campo. A Rede de Captura é um feitiço imediato, e não uma Armadilha, para não invadir o território de Enchanting Technology.
+> A marcação Felino dá identidade às neutras sem roubar assinatura de nenhuma Disciplina: Capitã, Lanceiro, Rede de Captura, Ração e Bumerangue ficam melhores com gatos em campo. A Rede de Captura é um feitiço imediato, e não uma Armadilha, para não invadir o território de Magitech.
 
 > [!warning] Gato Farejador
 > Ouro por ataque transforma revisitas em farm otimizável. Definir [X] com teto por batalha (ou por dia) para ele ser um bônus simpático, não a estratégia ótima de renda.
@@ -557,7 +557,7 @@ O deck social usa sempre a mesma Disciplina do deck de batalha e segue a mesma l
 | Draconic Primalism | Calma Ancestral, Força Bruta, Presença Colossal | Cristal de Lábia, perfil Respeito, força bruta no topo |
 | Necrodance | Desabafo Mórbido, Charme Fúnebre, Elogio Póstumo | Compasso 1, 2 e 3 (o custo 0 ajuda a acertar o ritmo) |
 | Holy Shadowmancy | Informante das Sombras, Vigília de Oração, Sermão Inflamado | Chantagem, Ritual social, perfil Princípios |
-| Enchanting Technology | Demonstração Impressionante, Cláusula Escondida, Adendo Técnico | Perfil Ganância, Armadilha social, Módulo social |
+| Magitech | Demonstração Impressionante, Cláusula Escondida, Adendo Técnico | Perfil Ganância, Armadilha social, Módulo social |
 | Space Wizardry | Jargão Celeste, Profecia Vaga, Diagrama Incompreensível | Silenciar, Órbita social, Cargas |
 
 ---
@@ -574,7 +574,7 @@ Três raridades: **Comum**, **Incomum** e **Rara**. Em geral, as cartas de Recom
 | Draconic Primalism | Ovo do Penhasco, Seiva Primordial, Broto Ancestral, Muralha de Raízes, Pele de Escamas, Chamado da Mata, Draconete Curioso | Rugido Primal, Guardiã do Bosque, Sopro Ancestral, Matriarca dos Ninhos, Titã do Bosque | Fúria Selvagem, Wyrm do Âmago, Rei-Dragão Ancestral |
 | Necrodance | Esqueleto Bailarino, Passo de Abertura, Metrônomo Ósseo, Coveiro Ritmado, Mão do Além, Pacto Sangrento | Valsa Macabra, Maldição do Contratempo, Golpe Final da Valsa, Menestrel Cadavérico, Maestro Sem Pulso, Coro de Lamentos | Bailarina Pálida, Danse Macabre, Regente da Última Valsa |
 | Holy Shadowmancy | Acólito Vigilante, Oração Breve, Lâmina do Véu, Noviço Sem Rosto, Juramento Velado, Fanático do Véu | Véu Renovado, Assassina Devota, Lâmina da Prece, Vigília Silenciosa, Sacerdotisa do Crepúsculo, Mestre Sem Nome, Julgamento Silencioso, Purificação | Grande Liturgia, Arauto da Aurora Velada, Serafim de Mil Véus |
-| Enchanting Technology | Autômato de Bolso, Frasco Volátil, Placa de Reforço, Armadilha de Molas, Aprendiz de Alquimista, Núcleo Encantado | Torre de Vigia Mecânica, Golem de Latão, Besta de Repetição, Gás Paralisante, Oficina Ambulante, Cavaleiro de Engrenagens | Canhão de Ombro, Destilaria de Elixires, Colosso Arcano |
+| Magitech | Autômato de Bolso, Frasco Volátil, Placa de Reforço, Armadilha de Molas, Aprendiz de Alquimista, Núcleo Encantado | Torre de Vigia Mecânica, Golem de Latão, Besta de Repetição, Gás Paralisante, Oficina Ambulante, Cavaleiro de Engrenagens | Canhão de Ombro, Destilaria de Elixires, Colosso Arcano |
 | Space Wizardry | Faísca Estelar, Astrolábio Animado, Chuva de Meteoritos, Aprendiz Astral, Escudo de Gravidade | Leitura das Estrelas, Raio Lunar, Grifo Cometário, Golem de Poeira Estelar, Elemental de Nebulosa, Eclipse, Cometa Convocado | Quimera Nebular, Buraco Negro, Arquimago do Zênite |
 | Neutras | Felix, o Familiar, Tocha do Explorador, Rede de Captura, Gata Curandeira, Gato Guardião, Espada de Ferro, Gato Coletor, Poção de Fôlego, Gato Lanceiro, Gato Bombardeiro, Ração de Viagem, Bumerangue | Investida Coordenada, Capitã dos Felinos, Formação Defensiva, Lâmina Encomendada, Elixir do Boticário, Barril de Pólvora | Mapa Rabiscado de Ergos, Gigante das Profundezas |
 

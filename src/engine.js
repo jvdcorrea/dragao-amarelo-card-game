@@ -109,7 +109,7 @@ def('elemental', { name: 'Elemental de Nebulosa', cost: 5, type: 'unit', atk: 4,
 def('eclipse', { name: 'Eclipse', cost: 5, type: 'spell', orbita: true, disc: 'space', text: 'Órbita. Cause 2 de dano a todas as unidades inimigas, +1 por Carga (máx. +3).', onPlay(st, s, c) { aoeUnits(st, s, 2 + Math.min(3, c.inst.cargas || 0), src(s, { spell: true })); } });
 def('cometa', { name: 'Cometa Convocado', cost: 8, type: 'spell', orbita: true, orbitaCost: true, disc: 'space', target: () => 'anyEnemy', targetRequired: true, text: 'Órbita. Custa 1 a menos por Carga. Cause 6 de dano a um inimigo.', onPlay(st, s, c) { dmg(st, c.target, 6, src(s, { spell: true })); } });
 
-// Enchanting Technology
+// Magitech
 def('automato', { name: 'Autômato de Bolso', cost: 1, type: 'unit', atk: 1, hp: 2, tags: ['Construto'], disc: 'tech', text: 'Construto. Ao Evoluir: ganha Letal.', onResonate(st, e) { e.kw.letal = true; } });
 def('frasco', { name: 'Frasco Volátil', cost: 1, type: 'spell', disc: 'tech', target: () => 'friendlyUnit', targetRequired: true, text: 'Dê +1/+0 e Letal a uma unidade aliada neste turno.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { e.tempAtk += 1; e.tempKw.letal = true; } } });
 def('placa', { name: 'Placa de Reforço', cost: 1, type: 'spell', module: true, disc: 'tech', target: () => 'friendlyUnit', targetRequired: true, text: 'Módulo. Acople: +1/+1.', attach(e) { buff(e, 1, 1); } });
@@ -180,7 +180,7 @@ const DISC = {
   draconic: { name: 'Draconic Primalism', role: 'Ramp', plan: 'Segurar o começo atrás de Guarda, ganhar Cristais e chegar ao Despertar.', cards: ['broto', 'muralha', 'rugido', 'matriarca', 'tita'] },
   necro: { name: 'Necrodance', role: 'Ritmo e morte', plan: 'Turnos de três cartas no Compasso certo, sacrifício e vida como recurso.', cards: ['esqueleto', 'passo', 'metronomo', 'menestrel', 'maestro'] },
   holy: { name: 'Holy Shadowmancy', role: 'Controle', plan: 'Ninjas atacam das sombras, e cada unidade abatida ao se revelar é um sacrifício que acelera os Rituais.', cards: ['novico', 'juramento', 'lamina_prece', 'assassina', 'purificacao'] },
-  tech: { name: 'Enchanting Technology', role: 'Midrange e valor', plan: 'Módulos que voltam para a mão, Estruturas que geram valor e Armadilhas.', cards: ['placa', 'molas', 'golem_latao', 'torre', 'cav_engr'] },
+  tech: { name: 'Magitech', role: 'Midrange e valor', plan: 'Módulos que voltam para a mão, Estruturas que geram valor e Armadilhas.', cards: ['placa', 'molas', 'golem_latao', 'torre', 'cav_engr'] },
   space: { name: 'Space Wizardry', role: 'Combo', plan: 'Feitiços baratos carregam a Órbita na mão até um turno explosivo.', cards: ['faisca', 'aprendiz_astral', 'raio', 'golem_poeira', 'cometa'] },
 };
 const NEUTRAL_STARTER = { felix: 2, tocha: 2, rede: 2, curandeira: 2, guardiao: 2, espada: 2, coletor: 1, pocao: 1, lanceiro: 2, bombardeiro: 2, investida_coord: 1, capita: 1 };

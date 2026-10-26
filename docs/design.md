@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.44 · rascunho para editar*
+*Documento de design preliminar · v0.45 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -306,7 +306,7 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 - **Deck inicial (P53):** 20 neutras fixas (Felinos e equipamentos mundanos) + seleção introdutória de 10 cartas da Disciplina escolhida. Listas no arquivo de cartas.
 - Começa com 1, escolhida no tutorial. Novas vêm de mestres na cidade, via batalha social.
 - Cada Disciplina também dá cartas sociais (P12).
-- [A DEFINIR: os nomes em inglês ficam no jogo final ou são provisórios?]
+- [A DEFINIR: os nomes em inglês ficam no jogo final ou são provisórios?] Magitech passou a se chamar só **Magitech** (P75).
 
 **Decks (P47):** batalha com 30 cartas e até 2 cópias; social menor, com 20 cartas e também até 2 cópias.
 
@@ -326,7 +326,7 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 | **Draconic Primalism** | Ramp, criaturas grandes | Força da natureza e dragões poderosos | Dragoncraft (SV), Druid (HS) |
 | **Necrodance** | Valor na morte; vida como recurso | Mortos-vivos, maldições, música, danse macabre; sacrifica criaturas e a própria vida | Shadowcraft e Bloodcraft (SV), Warlock e Death Knight (HS) |
 | **Holy Shadowmancy** | Controle | Anjos, ninjas e fanáticos; unidades que não podem ser atacadas até agir; rituais com contagem regressiva | Havencraft + Ambush (SV), Priest/Rogue (HS) |
-| **Enchanting Technology** | Midrange e valor | Construtos, armadilhas, estruturas, venenos, poções, armas, upgrades | Portalcraft (SV), Mech/Secret Hunter (HS) |
+| **Magitech** | Midrange e valor | Construtos, armadilhas, estruturas, venenos, poções, armas, upgrades | Portalcraft (SV), Mech/Secret Hunter (HS) |
 | **Space Wizardry** | Combo, dano direto | Magia clássica com tema espacial, arcanismo, monstros clássicos invocados | Runecraft (SV), Mage (HS) |
 | **Neutras** | Qualquer deck | Felinos da Guilda, equipamentos e táticas mundanas | Neutras |
 
@@ -338,7 +338,7 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 | Draconic Primalism | Ramp (ganhar cristal) e **Despertar**: efeito extra com 7+ de mana máxima, como o Overflow do SV | Presença imponente, força bruta, paciência de dragão (aguenta muita pressão) |
 | Necrodance | **Compasso**: contagem 1-2-3 das cartas jogadas no turno; cartas ganham efeito extra ou só podem ser jogadas em posições específicas ("Compasso 1 ou 3"), voltando ao 1 depois do 3; sacrifício e Sangria; Ao Morrer forte | Humor mórbido, charme macabro, rumores que viram maldição social |
 | Holy Shadowmancy | **Revelar** e **Sacrifício**: ninjas atacam saindo da Emboscada, e cada unidade abatida assim acelera os **Rituais** (permanentes com contagem regressiva) | Sermão e fé (lado sagrado), segredos e chantagem (lado ninja) |
-| Enchanting Technology | **Módulo**: upgrades que se acoplam a unidades e voltam para a mão quando elas morrem; Armadilhas; venenos (Letal) | Demonstrações, presentes engenhosos, contratos bem redigidos |
+| Magitech | **Módulo**: upgrades que se acoplam a unidades e voltam para a mão quando elas morrem; Armadilhas; venenos (Letal) | Demonstrações, presentes engenhosos, contratos bem redigidos |
 | Space Wizardry | **Órbita**: cartas na mão ficam mais fortes a cada feitiço lançado (como o Spellboost do SV), fechando em combo | Misterioso e sábio, jargão que confunde |
 | Neutras | Utilidade e preenchimento de curva | Táticas básicas (elogio, blefe, suborno) |
 
@@ -386,7 +386,7 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
 - **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão por monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos). Não gasta ação; vitória dá 15 a 25 de ouro, derrota custa até 20 de ouro.
 - **Cidade (P73):** uma visita por dia. Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
 - **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez).
-  - **Chrome, mestra do Magitech (Enchanting Technology):** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
+  - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
   - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
   - **Mikeus, mestre de Temporal Warfare:** grande guerreiro do passado e do futuro, vive nesta era para treinar guerreiros para um conflito que ainda vai acontecer; não dá detalhes, para evitar paradoxos.
