@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.42 · rascunho para editar*
+*Documento de design preliminar · v0.43 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -25,7 +25,7 @@
 | Revisitas | Monstros repovoam com outra composição e mesma dificuldade; só a primeira vitória dá recompensas de poder | P20 |
 | Recurso | Mana clássica | P5 |
 | Run de um andar | Mapa em grafo (6 linhas + nó final); vida carrega com +6 por vitória; cartas ganhas vão para a mochila e só entram na coleção ao concluir o andar; o deck só é editado na guilda, entre descidas | P60, P61, P62 |
-| Boosters e raridade | Comum, Incomum, Rara; booster de 5 cartas, um por Disciplina e um Geral, ao concluir um andar pela primeira vez | P59 |
+| Boosters e raridade | Comum, Incomum, Rara; booster de 5 cartas. Fim de andar (1ª vez): booster do andar, geral com 2 cartas garantidas da Disciplina do deck. Boosters só de uma Disciplina: com os Mestres, na cidade | P59, P67, P73 |
 | Mulligan | Troca da mão inteira; a 1ª troca é grátis e cada uma seguinte vem com 1 carta a menos | P55 |
 | Vida do protagonista | 30 | Seção 5 |
 | Decks | Batalha: 30 cartas, até 2 cópias. Social: 20 cartas, até 2 cópias | P47 |
@@ -375,7 +375,18 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 
 **Cartas básicas (P66, lore das neutras):** as neutras são as cartas básicas, os aliados da família desde os tempos antigos. A família sempre teve um laço com os felinos, e hoje eles ajudam, felizes, pela magia das cartas; junto vão as ferramentas de sempre (tocha, espada, poção, rede). Felix também está no baralho.
 
-**Boosters (P59):** ao concluir um andar pela primeira vez, o jogador escolhe o booster da Disciplina do deck ou o Geral. Revisitas não dão cartas (P20).
+### Guilda no protótipo (P68 a P73)
+
+Primeira versão jogável do gerenciamento. Os números são provisórios e as decisões marcadas como placeholder estão na lista de tarefas (`dragao-amarelo-todo.md`).
+
+- **Dia e ações (P68, aplica P4 e P34):** cada ação importante vale uma vez por dia: descer, uma visita na cidade, despachar missões e uma obra. Descer não passa mais o dia; o dia só avança em "Encerrar o dia", que resolve missões, recuperação, obras e a chance de defesa. Campanhas novas começam no dia 1.
+- **Ouro (P69):** cada luta vencida dá ouro (Batalha 8 a 12, Elite 20 a 25, Chefe 50), inclusive em revisitas. O ouro vai direto para o cofre da guilda e não se perde numa derrota, ao contrário da mochila.
+- **Aventureiros e missões (P70, aplica P19, P22, P25):** na primeira volta de uma descida, uma aventureira bate à porta (Brisa, batedora, placeholder) e o Quadro de Missões é liberado. Cada aventureiro tem classe (Guerreiro, Batedor, Mago, Clérigo), nível e especialidade; missões têm dificuldade 1 a 3, duração em dias, ouro e às vezes uma carta. Chance de sucesso: 60% + 15% × (nível + 1 se a especialidade bate − dificuldade), entre 20% e 95%. Falha: volta sem nada e passa 1 dia se recuperando. Sucesso dá experiência; o nível sobe a cada (nível × 2) sucessos. Até 4 aventureiros.
+- **Instalações (P71):** depois da primeira aventureira, Felix sugere reabrir a taverna e o menu de Instalações é liberado. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia; a Taverna oferece 3 candidatos gerados ao acaso por dia (placeholder; no jogo final, contratar envolve batalha social), por 25 de ouro mais 15 por nível acima de 1. Área de treinamento, Laboratório arcano e Ferraria aparecem bloqueadas, à espera de um NPC que as libere.
+- **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão por monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos). Não gasta ação; vitória dá 15 a 25 de ouro, derrota custa até 20 de ouro.
+- **Cidade (P73):** uma visita por dia. Os seis Mestres (personagens a definir, todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
+
+**Boosters (P59, revisto em P67):** ao concluir um andar pela primeira vez, o jogador ganha o booster do andar: um booster geral (3 Comuns, 1 Incomum, 1 Incomum ou Rara) em que 2 cartas são garantidas da Disciplina do deck (1 Comum e a vaga Incomum ou Rara); as outras 3 podem vir de qualquer Disciplina ou das básicas. Cartas que o jogador ainda não tem têm o dobro de chance, mas repetidas continuam possíveis. Boosters só de uma Disciplina ficam com os Mestres (P73). Revisitas não dão cartas (P20).
 
 **Coleção e deck:** a coleção é salva entre runs (campanha). O editor monta o deck a partir dela: 30 cartas, até 2 cópias, uma Disciplina mais neutras. Trocar a Disciplina do deck tira as cartas da anterior.
 

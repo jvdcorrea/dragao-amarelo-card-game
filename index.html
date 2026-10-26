@@ -366,6 +366,27 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .titulo-tela.com-arte .titulo-rodape { color: #b8b3a6; margin-top: 18px; }
 @media (max-width: 600px) { .titulo-tela.com-arte h1 { font-size: clamp(2.4rem, 12vw, 3.2rem); } .titulo-tela.com-arte .sub { font-size: 1.1rem; } }
 .intro-arte { width: 100%; aspect-ratio: 11 / 6; max-height: 300px; border-radius: 10px; margin: 0 0 14px; background: var(--img-felix) 40% 52% / cover no-repeat; box-shadow: 0 2px 8px var(--sombra); }
+/* Guilda: dia, ouro e telas de gestão */
+.ouro { color: var(--ouro); }
+.dia-acoes { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.dia-acoes .acao { font-size: .82rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.dia-acoes .acao.usada { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.guilda-botoes { margin-top: 8px; }
+.botao.principal-2 { margin-left: auto; border-color: var(--ouro-vivo); font-weight: 700; }
+.cena.larga, .guilda-tela { max-width: 980px; }
+.lista-missoes, .lista-adv, .lista-fac, .lista-npc { list-style: none; padding: 0; margin: 6px 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.lista-missoes li, .lista-adv li, .lista-fac li, .lista-npc li { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); }
+.lista-missoes li > div:first-child, .lista-fac li > div:first-child, .lista-npc li > div:first-child { flex: 1 1 260px; }
+.lista-missoes p, .lista-fac p, .lista-npc p { margin: 2px 0 0; }
+.missao-acao { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.missao-acao select { max-width: 260px; padding: 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.lista-adv .estado-adv { margin-left: auto; color: var(--muted); font-size: .9rem; }
+.selo-fac { font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.instalacao.ativo .selo-fac, .instalacao.ativa .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
+.instalacao.suja .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
+.instalacao.bloq { opacity: .75; }
+.npc.visitando { border-color: var(--ouro-vivo); }
+.lista-adv li.vazio, .lista-missoes li.vazio { color: var(--muted); justify-content: flex-start; }
 
 </style>
 </head>
@@ -1245,6 +1266,23 @@ function openPack(rng, type) {
   const slots = ['C', 'C', 'C', 'I', rng() < 0.35 ? 'R' : 'I'];
   return slots.map(r => cardFrom(rng, groups, r));
 }
+/* Escolha com peso: cartas que o jogador ainda não tem valem o dobro. */
+function weightedFrom(rng, groups, rar, coll) {
+  let cands = [];
+  groups.forEach(g => { cands = cands.concat(poolOf(g).filter(id => RARITY[id] === rar)); });
+  if (!cands.length) groups.forEach(g => { cands = cands.concat(poolOf(g)); });
+  if (!coll) return pick(rng, cands);
+  const w = cands.map(id => (coll[id] ? 1 : 2)); let r = rng() * w.reduce((s, x) => s + x, 0);
+  for (let i = 0; i < cands.length; i++) { r -= w[i]; if (r < 0) return cands[i]; }
+  return cands[cands.length - 1];
+}
+/* Booster do andar: geral, com 2 cartas garantidas da Disciplina do deck (1 Comum e a vaga Incomum/Rara). */
+function openFloorPack(rng, disc, coll) {
+  const all = DISCS.concat(['neutra']); const top = rng() < 0.35 ? 'R' : 'I';
+  return [weightedFrom(rng, [disc], 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'I', coll), weightedFrom(rng, [disc], top, coll)];
+}
+/* Booster de Mestre: 5 cartas da Disciplina. */
+function openDiscPack(rng, disc, coll) { const top = rng() < 0.35 ? 'R' : 'I'; return ['C', 'C', 'C', 'I', top].map(rr => weightedFrom(rng, [disc], rr, coll)); }
 function eliteChoices(rng, disc) { return [0, 1, 2].map(() => cardFrom(rng, [disc, 'neutra'], rng() < 0.3 ? 'R' : 'I')); }
 function treasureCard(rng, disc) { return cardFrom(rng, [disc, 'neutra'], rollRarity(rng, { C: 0.55, I: 0.35 })); }
 
@@ -1352,7 +1390,7 @@ const NOTES = {
   5: 'O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.',
 };
 
-const RunLib = { RAR, RARITY, DISCS, poolOf, openPack, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
+const RunLib = { RAR, RARITY, DISCS, poolOf, openPack, openFloorPack, openDiscPack, weightedFrom, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
 if (typeof module !== 'undefined' && module.exports) module.exports = RunLib;
 else root.RunLib = RunLib;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1395,7 +1433,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.16/design-v0.41/inimigos-v0.10/proto-2026-10-23';
+const RULES = 'cartas-v0.17/design-v0.43/inimigos-v0.10/proto-2026-10-25';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -1462,7 +1500,7 @@ async function exportLogs(scope) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
@@ -1711,7 +1749,8 @@ function overPanel() {
   return `<div class="veu"><div class="janela resultado" role="dialog" aria-modal="true" aria-labelledby="res-t">
     <h2 id="res-t">${win ? 'Vitória' : 'Derrota'}</h2>
     <p>${win ? `${esc(O().leader.name)} caiu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Vida.` : `Você caiu no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Vida.`}</p>
-    ${st.ctx && st.ctx.mode === 'run' ? '<div class="opcoes"><button class="botao principal" data-act="run-continue">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>' : ''}<div class="opcoes" ${st.ctx && st.ctx.mode === 'run' ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>
+    ${win && st.ctx && st.ctx.mode === 'run' && camp && camp.run && camp.run.inBattle ? `<p class="destaque">Recompensa: +${camp.run.inBattle.gold || 0} de ouro.</p>` : ''}
+    ${st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') ? `<div class="opcoes"><button class="botao principal" data-act="${st.ctx.mode === 'defesa' ? 'def-continue' : 'run-continue'}">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>` : ''}<div class="opcoes" ${st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>
   </div></div>`;
 }
 function modalHtml() {
@@ -1750,18 +1789,21 @@ function cardById(id, extraCls, attrs, note) {
 }
 function newCampaign(disc, name) {
   const coll = R.starterCollection(disc);
-  camp = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), created: new Date().toISOString(), startDisc: disc, day: 0, floor: 1, cleared: {}, collection: coll, deck: { disc, cards: Object.assign({}, coll) }, notes: [], history: [], run: null };
+  camp = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), created: new Date().toISOString(), startDisc: disc, day: 1, floor: 1, cleared: {}, collection: coll, deck: { disc, cards: Object.assign({}, coll) }, notes: [], history: [], run: null };
   if (name) { camp.name = name; camp.introSeen = true; }
+  ensureGuild();
   hist({ k: 'campanha', disc });
   saveCamp();
 }
 function startDescent(floor, revisit) {
   const probs = R.deckProblems(camp.deck, camp.collection);
   if (probs.length) { toast('Ajuste o deck antes de descer: ' + probs[0]); return; }
-  camp.day += 1;
+  ensureGuild();
+  if (camp.acts.descer) { toast('Você já desceu hoje. Encerre o dia para descer de novo.'); return; }
+  camp.acts.descer = true;
   const seed = (Date.now() ^ (floor * 7919)) >>> 0;
   const withNote = !revisit && !camp.notes.includes(floor);
-  camp.run = { floor, revisit: !!revisit, seed, map: R.genMap(mkRng(seed), floor, withNote), pos: null, visited: [], hp: 30, mochila: [], bonus: {}, evUsed: [], inBattle: null };
+  camp.run = { floor, revisit: !!revisit, seed, map: R.genMap(mkRng(seed), floor, withNote), pos: null, visited: [], hp: 30, mochila: [], bonus: {}, evUsed: [], inBattle: null, gold: 0 };
   hist({ k: 'descida', floor, revisit: !!revisit, deck: R.deckList(camp.deck) });
   saveCamp();
   ui.screen = 'map'; render(); window.scrollTo(0, 0);
@@ -1776,6 +1818,7 @@ function reward(ids, why) {
 function hpChange(n) { const run = camp.run; run.hp = Math.max(1, Math.min(30, run.hp + n)); }
 function startRunBattle(b) {
   const run = camp.run;
+  if (!b.gold) b.gold = goldFor(b.type);
   run.inBattle = b;
   st = E.newGame(camp.deck.disc, b.enc, null, { deck: R.deckList(camp.deck), hp: run.hp, encBonus: b.encBonus || 0, extraHand: run.bonus.hand || 0, extraMana: run.bonus.mana || 0 });
   st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -1829,26 +1872,30 @@ function battleDone() {
   st = null; run.inBattle = null;
   hist({ k: 'luta', floor: run.floor, enc: b.enc, type: b.type, won, hp: hpEnd });
   if (!won) { floorFailed('Você caiu na luta.'); return; }
+  const gg = b.gold || goldFor(b.type); camp.gold = (camp.gold || 0) + gg; run.gold = (run.gold || 0) + gg; hist({ k: 'ouro', from: b.type, gold: gg });
   run.hp = Math.min(30, hpEnd + 6);
+  toast(`+${gg} de ouro.`);
   if (b.final) { floorCleared(); return; }
   if (b.type === 'elite' && !run.revisit) { ui.scene = { kind: 'elite', cards: R.eliteChoices(rnd, camp.deck.disc) }; ui.screen = 'scene'; saveCamp(); render(); return; }
   saveCamp(); ui.screen = 'map'; render(); window.scrollTo(0, 0);
 }
 function floorCleared() {
   const run = camp.run;
-  if (run.revisit) { hist({ k: 'andar', floor: run.floor, res: 'revisita' }); camp.run = null; saveCamp(); ui.scene = { kind: 'msg', title: `Andar ${run.floor} revisitado`, text: 'Você volta à superfície. Revisitas não dão cartas.' }; ui.screen = 'scene'; render(); return; }
+  if (run.revisit) { hist({ k: 'andar', floor: run.floor, res: 'revisita' }); camp.run = null; afterRun(); saveCamp(); ui.scene = { kind: 'msg', title: `Andar ${run.floor} revisitado`, text: `Você volta à superfície com ${run.gold || 0} de ouro. Revisitas não dão cartas.` }; ui.screen = 'scene'; render(); return; }
   addCards(run.mochila);
   camp.cleared[run.floor] = true; camp.floor = Math.max(camp.floor, run.floor + 1);
   hist({ k: 'andar', floor: run.floor, res: 'concluido', mochila: run.mochila.slice() });
-  ui.scene = { kind: 'booster-choice', floor: run.floor, mochila: run.mochila.slice() };
-  camp.run = null; saveCamp(); ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+  const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
+  hist({ k: 'booster', type: 'andar', disc: camp.deck.disc, cards: pack });
+  ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0 };
+  camp.run = null; afterRun(); saveCamp(); ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 function floorFailed(why) {
   const run = camp.run; let kept = null;
   if (!run.revisit && run.mochila.length) { kept = run.mochila[Math.floor(rnd() * run.mochila.length)]; addCards([kept]); }
   hist({ k: 'andar', floor: run.floor, res: 'derrota', kept, lost: run.mochila.length - (kept ? 1 : 0) });
-  camp.run = null; saveCamp();
-  ui.scene = { kind: 'msg', title: 'Você caiu', text: `${why} Felix te arrasta de volta à superfície. O andar ${run.floor} recomeça amanhã.${kept ? ` Da mochila, só sobrou ${E.DEF[kept].name}.` : ''}` };
+  camp.run = null; afterRun(); saveCamp();
+  ui.scene = { kind: 'msg', title: 'Você caiu', text: `${why} Felix te arrasta de volta à superfície. O andar ${run.floor} recomeça amanhã.${run.gold ? ` O ouro das lutas (${run.gold}) já está no cofre da guilda.` : ''}${kept ? ` Da mochila, só sobrou ${E.DEF[kept].name}.` : ''}` };
   ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 
@@ -1860,23 +1907,303 @@ function logsHtml() {
     <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>Apagar logs</button></div></section>`;
 }
 function gearBtn() { return `<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
+/* ===== Guilda: dia, ouro, aventureiros, instalações, defesas e cidade ===== */
+const GOLD = { batalha: [8, 12], elite: [20, 25], chefe: [50, 50] };
+const rint = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+function goldFor(type) { const g = GOLD[type] || GOLD.batalha; return rint(g[0], g[1]); }
+const ACT_LABEL = { descer: 'Descer', npc: 'Visita na cidade', despachar: 'Despacho', construir: 'Obra' };
+const FAC = {
+  quadro: { name: 'Quadro de Missões', desc: 'Pedidos de clientes e do governo. Despache aventureiros.' },
+  taverna: { name: 'Taverna', desc: 'Onde aventureiros procuram trabalho. Contrate novos membros.' },
+  treino: { name: 'Área de treinamento', desc: 'Melhorar aventureiros e unidades.', lock: 'Precisa de um instrutor (NPC a definir).' },
+  lab: { name: 'Laboratório arcano', desc: 'Melhorar feitiços e outros upgrades mágicos.', lock: 'Precisa de um arcanista (NPC a definir).' },
+  ferraria: { name: 'Ferraria', desc: 'Melhorar equipamentos em carta e dos aventureiros.', lock: 'Precisa de um ferreiro (NPC a definir).' },
+};
+const NOMES = [['Aldo', 'm'], ['Dório', 'm'], ['Elva', 'f'], ['Fausto', 'm'], ['Gilda', 'f'], ['Heitor', 'm'], ['Iara', 'f'], ['Jonas', 'm'], ['Kaila', 'f'], ['Lauro', 'm'], ['Mirela', 'f'], ['Nuno', 'm'], ['Odete', 'f'], ['Pietro', 'm'], ['Quitéria', 'f'], ['Rufino', 'm'], ['Selma', 'f'], ['Tadeu', 'm'], ['Ulla', 'f'], ['Vasco', 'm'], ['Wanda', 'f'], ['Xisto', 'm'], ['Yolanda', 'f'], ['Zé Grilo', 'm'], ['Benedita', 'f'], ['Otávio', 'm'], ['Lúcia', 'f']];
+const CLASSES = { guerreiro: { m: 'Guerreiro', f: 'Guerreira', tag: 'escolta' }, batedor: { m: 'Batedor', f: 'Batedora', tag: 'busca' }, mago: { m: 'Mago', f: 'Maga', tag: 'arcano' }, clerigo: { m: 'Clérigo', f: 'Clériga', tag: 'cura' } };
+const TAG_NAME = { escolta: 'escolta', busca: 'busca', arcano: 'arcano', cura: 'cura' };
+const MISSOES = [
+  [1, 'escolta', 'Escoltar um mercador até a vila vizinha'], [1, 'busca', 'Achar o bode fujão do moleiro'], [1, 'cura', 'Levar remédios ao asilo da Rua Baixa'], [1, 'arcano', 'Acender as lamparinas encantadas da praça'],
+  [2, 'busca', 'Recuperar um anel perdido no esgoto'], [2, 'escolta', 'Caçar o lobo que ronda as fazendas'], [2, 'arcano', 'Investigar luzes no cemitério'], [2, 'cura', 'Conter a febre na estalagem do porto'],
+  [3, 'escolta', 'Proteger a carruagem do coletor de impostos'], [3, 'busca', 'Buscar ervas raras na encosta do vulcão'], [3, 'arcano', 'Fechar um círculo de invocação abandonado'], [3, 'escolta', 'Expulsar bandidos da estrada do norte'],
+];
+const MESTRES = { temporal: 'Mestre de Temporal Warfare', draconic: 'Mestre de Draconic Primalism', necro: 'Mestre de Necrodance', holy: 'Mestre de Holy Shadowmancy', tech: 'Mestre de Enchanting Technology', space: 'Mestre de Space Wizardry' };
+const BOOSTER_PRECO = 60, HIRE_BASE = 25, ADV_MAX = 4;
+const VENDA = { C: 5, I: 12, R: 30 };
+function newAdv(fixed) {
+  const used = new Set((camp ? (camp.advs || []).concat(camp.recruits || []) : []).map(a => a.name)); const livres = NOMES.filter(n => !used.has(n[0]));
+  const [name, g] = fixed ? [fixed.name, fixed.g] : (livres.length ? livres : NOMES)[Math.floor(rnd() * (livres.length || NOMES.length))];
+  const cls = fixed ? fixed.cls : Object.keys(CLASSES)[Math.floor(rnd() * 4)];
+  const lvl = fixed ? fixed.lvl : (rnd() < 0.7 ? 1 : 2);
+  return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, g, cls, lvl, xp: 0, status: 'livre', mission: null, days: 0 };
+}
+const advClass = a => CLASSES[a.cls][a.g];
+function newMission() {
+  const [diff, tag, title] = MISSOES[Math.floor(rnd() * MISSOES.length)];
+  return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), diff, tag, title, days: diff, gold: diff * 15 + rint(0, 10), card: diff >= 2 && rnd() < 0.35 };
+}
+function successChance(a, m) { const match = CLASSES[a.cls].tag === m.tag ? 1 : 0; return Math.max(0.2, Math.min(0.95, 0.6 + 0.15 * (a.lvl + match - m.diff))); }
+function ensureGuild() {
+  if (!camp) return;
+  if (camp.gold === undefined) camp.gold = 0;
+  if (!camp.day) camp.day = 1;
+  camp.acts = camp.acts || {};
+  camp.flags = camp.flags || {};
+  camp.advs = camp.advs || [];
+  camp.missions = camp.missions || [];
+  camp.recruits = camp.recruits || [];
+  camp.pending = camp.pending || [];
+  camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: 'bloq', lab: 'bloq', ferraria: 'bloq' };
+  if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
+  if (camp.defense) registerDefense(camp.defense);
+}
+function afterRun() {
+  if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro')) camp.pending.push({ kind: 'primeiro-aventureiro' });
+}
+function refreshBoard() {
+  if (camp.fac.quadro === 'ativo') { camp.missions = camp.missions.filter(m => m.taken); while (camp.missions.filter(m => !m.taken).length < 3) camp.missions.push(newMission()); }
+  if (camp.fac.taverna === 'ativa') { camp.recruits = []; for (let i = 0; i < 3; i++) camp.recruits.push(newAdv()); }
+}
+/* Defesas */
+const DEF_TEMAS = [
+  { leader: 'Enxame do Buraco', text: 'Morcegos famintos sobem pelo alçapão.', pool: { morcego: 6, enxame: 4, ninho: 2, lagarto: 3, besouro: 3 } },
+  { leader: 'Ninhada de Aranhas', text: 'Teias aparecem no depósito durante a noite.', pool: { aranha: 6, centopeia: 2, mordida_inf: 3, lagarto: 3, besouro: 3 } },
+  { leader: 'Colônia de Fungos', text: 'Algo cresce no porão e não para de crescer.', pool: { broto_cog: 5, toupeira: 3, esporos: 2, fungoide: 2, besouro: 4, mordida_inf: 2 } },
+  { leader: 'Bicharada Solta', text: 'Uma porta mal fechada e a bicharada da dungeon invade o salão.', pool: { toupeira: 3, morcego: 3, aranha: 3, enxame: 2, lagarto: 3, besouro: 2, broto_cog: 2 } },
+];
+function newDefense() {
+  const t = DEF_TEMAS[Math.floor(rnd() * DEF_TEMAS.length)];
+  const deck = {}; const ids = Object.keys(t.pool);
+  ids.forEach(id => { deck[id] = Math.max(1, t.pool[id] + rint(-1, 1)); });
+  const prog = Object.keys(camp.cleared).length;
+  return { leader: t.leader, text: t.text, hp: 10 + prog * 2 + rint(0, 3), deck, gold: rint(15, 25), multa: 20 };
+}
+function registerDefense(spec) { E.ENC.defesa = { name: 'Defesa: ' + spec.leader, tier: 'Defesa', leader: spec.leader, hp: spec.hp, hand: 3, rule: 'Invasores na guilda.', deck: spec.deck }; }
+function startDefense() {
+  const spec = camp.defense; registerDefense(spec);
+  st = E.newGame(camp.deck.disc, 'defesa', null, { deck: R.deckList(camp.deck) });
+  st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  st.ctx = { mode: 'defesa', camp: camp.id, day: camp.day, leader: spec.leader, hpStart: 30 };
+  saveCamp();
+  ui.screen = 'battle'; ui.mode = null; ui.info = null; ui.modal = null; ui.busy = false; ui.overClosed = false; render(); window.scrollTo(0, 0);
+}
+function defenseDone() {
+  const won = st.over === 'P'; const spec = camp.defense; st = null;
+  let txt, delta;
+  if (won) { delta = spec.gold; camp.gold += delta; txt = `A guilda está a salvo. Os vizinhos agradecem com uma vaquinha: +${delta} de ouro.`; }
+  else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = `Os invasores fazem estrago antes de fugir. Conserto e multa da guarda: ${m} de ouro.`; }
+  hist({ k: 'defesa', leader: spec.leader, won, gold: delta });
+  camp.defense = null; camp.pending = camp.pending.filter(p => p.kind !== 'defesa');
+  saveCamp();
+  ui.scene = { kind: 'msg', title: won ? 'Defesa bem-sucedida' : 'A guilda foi saqueada', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
+/* Fim do dia */
+function endDay() {
+  const lines = [];
+  if (camp.building) {
+    const b = camp.building;
+    if (b.id === 'taverna') { camp.fac.taverna = 'ativa'; lines.push('A taverna está limpa e aberta de novo. Já tem gente procurando trabalho.'); hist({ k: 'obra', id: 'taverna' }); }
+    camp.building = null;
+  }
+  camp.advs.forEach(a => {
+    if (a.status === 'ferido') { a.days -= 1; if (a.days <= 0) { a.status = 'livre'; lines.push(`${a.name} se recuperou e está ${a.g === 'f' ? 'pronta' : 'pronto'} para outra.`); } }
+    else if (a.status === 'missao') {
+      a.days -= 1;
+      if (a.days <= 0) {
+        const m = camp.missions.find(x => x.id === a.mission);
+        const ok = m && rnd() < successChance(a, m);
+        if (m && ok) {
+          camp.gold += m.gold; let extra = '';
+          if (m.card) { const c = R.treasureCard(rnd, camp.deck.disc); addCards([c]); extra = ` e trouxe a carta ${E.DEF[c].name}`; }
+          a.xp += 1; let up = '';
+          if (a.xp >= a.lvl * 2 && a.lvl < 5) { a.lvl += 1; a.xp = 0; up = ` ${a.name} subiu para o nível ${a.lvl}.`; }
+          lines.push(`${a.name} concluiu "${m.title}": +${m.gold} de ouro${extra}.${up}`);
+          hist({ k: 'missao', adv: a.name, title: m.title, ok: true, gold: m.gold });
+          a.status = 'livre';
+        } else {
+          lines.push(`${a.name} falhou em "${m ? m.title : 'uma missão'}" e volta sem nada. Precisa de 1 dia para se recuperar.`);
+          hist({ k: 'missao', adv: a.name, title: m ? m.title : '', ok: false });
+          a.status = 'ferido'; a.days = 1;
+        }
+        a.mission = null;
+        if (m) camp.missions = camp.missions.filter(x => x.id !== m.id);
+      }
+    }
+  });
+  camp.day += 1; camp.acts = {};
+  refreshBoard();
+  if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader }); }
+  hist({ k: 'dia', day: camp.day });
+  saveCamp();
+  ui.scene = { kind: 'dia', lines }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
+/* Telas da guilda */
+function guildStatus() {
+  const a = camp.acts;
+  return `<div class="dia-acoes"><span class="linha">Ações de hoje:</span>${Object.entries(ACT_LABEL).map(([k, l]) => `<span class="acao ${a[k] ? 'usada' : ''}" title="${a[k] ? 'Já feito hoje' : 'Disponível hoje'}">${esc(l)}${a[k] ? ': feito' : ''}</span>`).join('')}</div>`;
+}
+function pendingScene() {
+  const p = camp.pending[0]; if (!p) return null;
+  if (p.kind === 'primeiro-aventureiro') return { kind: 'primeiro-aventureiro' };
+  if (p.kind === 'sugestao-taverna') return { kind: 'sugestao-taverna' };
+  if (p.kind === 'defesa' && camp.defense) return { kind: 'defesa' };
+  camp.pending.shift(); saveCamp(); return pendingScene();
+}
+function guildScene(sc) {
+  if (sc.kind === 'primeiro-aventureiro') {
+    return `${felixArt('guilda')}<h2>Alguém bate à porta</h2><p>Você mal tirou a poeira da dungeon das botas quando a porta da guilda range. É Brisa, uma batedora de mochila remendada e olhar curioso.</p><div class="fala"><span class="quem">Brisa</span><p>Ouvi dizer que o Dragão Amarelo voltou a descer. Se a guilda está aberta, eu quero trabalho. Sei achar coisas e sei voltar viva. Na maioria das vezes.</p></div><div class="fala"><span class="quem">Felix</span><p>Ela fala demais, mas aceita pagamento atrasado. Contrata.</p></div><p class="intro-dica">Aventureiros não lutam com você: eles cumprem missões de clientes e do governo pelo Quadro de Missões e trazem ouro. Personagem provisória: o primeiro aventureiro ainda vai ser definido.</p><div class="opcoes"><button class="botao principal" data-act="g-hire-first">Contratar Brisa</button></div>`;
+  }
+  if (sc.kind === 'sugestao-taverna') {
+    return `${felixArt('guilda')}<h2>Uma ideia do Felix</h2><div class="fala"><span class="quem">Felix</span><p>Uma aventureira não faz uma guilda. Nos fundos tem a velha taverna, onde o Ergos recebia gente de toda parte. Se alguém tirasse as teias, os aventureiros voltariam a aparecer.</p><p>Alguém. Não eu. Eu tenho asas, não vassoura.</p></div><p class="intro-dica">O menu de Instalações está liberado. Fazer faxina na taverna custa só o dia de trabalho de obra.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-taverna">Abrir as Instalações</button><button class="botao" data-act="g-ok-pend">Depois</button></div>`;
+  }
+  if (sc.kind === 'defesa') {
+    const d = camp.defense;
+    return `<h2>Invasão na guilda!</h2><p>${esc(d.text)} À frente deles, ${esc(d.leader)} (${d.hp} de Vida).</p><p class="intro-dica">Defesas não gastam ações do dia. Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend">Defender a guilda</button></div>`;
+  }
+  if (sc.kind === 'dia') {
+    return `<h2>Dia ${camp.day}</h2>${sc.lines.length ? sc.lines.map(l => `<p>${esc(l)}</p>`).join('') : '<p>Um dia tranquilo na guilda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Continuar</button></div>`;
+  }
+  return null;
+}
+function renderQuadro() {
+  const livres = camp.advs.filter(a => a.status === 'livre');
+  const advRow = a => `<li class="adv"><b>${esc(a.name)}</b> <span class="linha">${esc(advClass(a))}, nível ${a.lvl}</span> <span class="estado-adv">${a.status === 'livre' ? 'Disponível' : a.status === 'missao' ? `Em missão (${a.days} dia${a.days === 1 ? '' : 's'})` : 'Se recuperando'}</span></li>`;
+  const mis = camp.missions.filter(m => !m.taken).map(m => {
+    const opts = livres.slice().sort((x, y) => successChance(y, m) - successChance(x, m)).map(a => `<option value="${a.id}">${esc(a.name)} (${esc(advClass(a))} ${a.lvl}): ${Math.round(successChance(a, m) * 100)}%</option>`).join('');
+    return `<li class="missao"><div><b>${esc(m.title)}</b><p class="linha">Dificuldade ${m.diff} · ${m.days} dia${m.days === 1 ? '' : 's'} · ${esc(TAG_NAME[m.tag])} · ${m.gold} de ouro${m.card ? ' + uma carta' : ''}</p></div>
+      <div class="missao-acao">${livres.length ? `<label class="sr" for="m-${m.id}">Aventureiro</label><select id="m-${m.id}">${opts}</select><button class="botao" data-act="g-dispatch" data-mid="${m.id}">Despachar</button>` : '<span class="linha">Ninguém disponível</span>'}</div></li>`;
+  }).join('');
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Quadro de Missões</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro</p></header>
+  <section class="cena larga guilda-tela">
+    <h2>Pedidos</h2><ul class="lista-missoes">${mis || '<li class="vazio">Nenhum pedido novo. Volte amanhã.</li>'}</ul>
+    <p class="intro-dica">A chance de sucesso cresce com o nível e quando a especialidade bate com o pedido (Guerreiro: escolta, Batedor: busca, Mago: arcano, Clérigo: cura). Falha: volta sem nada e passa 1 dia se recuperando.</p>
+    <h2>Aventureiros (${camp.advs.length}/${ADV_MAX})</h2><ul class="lista-adv">${camp.advs.map(advRow).join('')}</ul>
+    <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div>
+  </section>`;
+}
+function renderInstalacoes() {
+  const row = (id) => {
+    const f = FAC[id]; const s = camp.fac[id];
+    let act = '';
+    if (id === 'taverna' && s === 'suja') act = camp.building ? '<span class="linha">Faxina em andamento: fica pronta ao fim do dia.</span>' : `<button class="botao" data-act="g-build-taverna" ${camp.acts.construir ? 'disabled' : ''}>Fazer faxina na taverna (1 dia de trabalho)</button>`;
+    else if (id === 'taverna' && s === 'ativa') act = '<button class="botao" data-act="g-taverna">Entrar</button>';
+    else if (id === 'quadro' && s === 'ativo') act = '<button class="botao" data-act="g-quadro">Abrir</button>';
+    else if (f.lock) act = `<span class="linha">${esc(f.lock)}</span>`;
+    const estado = { ativo: 'Ativo', ativa: 'Ativa', suja: 'Abandonada', bloq: 'Bloqueada' }[s] || s;
+    return `<li class="instalacao ${s}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${estado}</span><p class="linha">${esc(f.desc)}</p></div><div>${act}</div></li>`;
+  };
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Instalações</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${camp.acts.construir ? 'obra de hoje já feita' : 'obra de hoje disponível'}</p></header>
+  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'treino', 'lab', 'ferraria'].map(row).join('')}</ul>
+  <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+}
+function renderTaverna() {
+  const full = camp.advs.length >= ADV_MAX;
+  const cards = camp.recruits.map((a, i) => { const price = HIRE_BASE + 15 * (a.lvl - 1); return `<li class="adv"><b>${esc(a.name)}</b> <span class="linha">${esc(advClass(a))}, nível ${a.lvl}</span><button class="botao" data-act="g-hire" data-idx="${i}" ${full || camp.gold < price ? 'disabled' : ''}>Contratar (${price} de ouro)</button></li>`; }).join('');
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Taverna</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro</p></header>
+  <section class="cena larga guilda-tela"><p>O cheiro de cerveja velha voltou, o que Felix considera progresso. Hoje, procurando trabalho:</p>
+  <ul class="lista-adv">${cards || '<li class="vazio">Ninguém hoje. Volte amanhã.</li>'}</ul>
+  <p class="intro-dica">${full ? `A guilda está cheia (${ADV_MAX} aventureiros).` : 'Os candidatos mudam a cada dia.'} Aventureiros gerados ao acaso, provisórios. No jogo final, contratar envolve batalha social.</p>
+  <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+}
+function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
+function renderCidade() {
+  const v = camp.acts.npc;
+  const npc = (id, name, role) => `<li class="npc ${v === id ? 'visitando' : ''}"><div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}" ${v && v !== id ? 'disabled' : ''}>${v === id ? 'Voltar a falar' : 'Visitar'}</button></li>`;
+  const mestres = Object.entries(MESTRES).map(([d, n]) => npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`)).join('');
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${v ? 'visita de hoje já usada' : 'uma visita por dia'}</p></header>
+  <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
+  <h2>Outros</h2><ul class="lista-npc">${npc('copias', 'Comprador de cópias', 'Compra as cópias que passam de 2 (o deck só aceita 2). Papel provisório: pode virar outro NPC ou outra mecânica.')}</ul>
+  <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+}
+function renderNpc() {
+  const id = ui.npc; let body = '';
+  if (id.startsWith('mestre-')) {
+    const d = id.slice(7);
+    body = `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p><p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
+      <div class="opcoes"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button></div>`;
+  } else {
+    const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
+    body = `<h2>Comprador de cópias</h2><p class="linha">Papel provisório.</p><p>${ex.length ? 'Cópias que passam de 2 na sua coleção:' : 'Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.'}</p>
+      ${ex.length ? `<ul class="lista-npc">${ex.map(x => `<li class="npc"><div><b>${esc(E.DEF[x.id].name)}</b> ${rarTag(x.id)}<p class="linha">${x.extra} cópia${x.extra === 1 ? '' : 's'} extra · ${x.value} de ouro cada</p></div><button class="botao" data-act="g-sell" data-cid="${x.id}">Vender 1</button></li>`).join('')}</ul>
+      <div class="opcoes"><button class="botao principal" data-act="g-sell-all">Vender todas (+${total} de ouro)</button></div>` : ''}`;
+  }
+  $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${camp.gold} de ouro</p>${body}<div class="linha-logs"><button class="botao" data-act="g-cidade">Voltar à cidade</button></div></section>`;
+}
+async function guildClick(act, ds) {
+  if (act === 'g-ok-pend') { camp.pending.shift(); saveCamp(); ui.screen = 'home'; render(); return true; }
+  if (act === 'g-hire-first') {
+    camp.advs.push(newAdv({ name: 'Brisa', g: 'f', cls: 'batedor', lvl: 1 }));
+    camp.flags.firstAdv = true; camp.fac.quadro = 'ativo'; camp.pending.shift();
+    camp.pending.unshift({ kind: 'sugestao-taverna' });
+    refreshBoard(); hist({ k: 'aventureiro', name: 'Brisa', first: true }); saveCamp();
+    ui.screen = 'home'; render(); toast('Brisa entrou para a guilda. O Quadro de Missões está liberado.'); return true;
+  }
+  if (act === 'g-ok-taverna') { camp.pending.shift(); camp.flags.facilities = true; if (camp.fac.taverna === 'bloq') camp.fac.taverna = 'suja'; saveCamp(); ui.screen = 'instalacoes'; render(); return true; }
+  if (act === 'g-defend') { startDefense(); return true; }
+  if (act === 'g-end-day') {
+    if (camp.run) return true;
+    const c = await choose('Encerrar o dia', `Encerrar o dia ${camp.day}? Missões avançam, obras terminam e pode acontecer alguma coisa durante a noite.${!camp.acts.descer ? ' Você ainda não desceu hoje.' : ''}`, [{ v: 'sim', label: 'Encerrar o dia' }]);
+    if (c === 'sim') endDay(); return true;
+  }
+  if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-taverna') { ui.screen = 'taverna'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-cidade') { ui.screen = 'cidade'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-build-taverna') {
+    if (camp.acts.construir || camp.building) return true;
+    camp.acts.construir = true; camp.building = { id: 'taverna' }; hist({ k: 'obra-inicio', id: 'taverna' }); saveCamp(); render(); toast('Mãos à obra: a taverna fica pronta ao fim do dia.'); return true;
+  }
+  if (act === 'g-dispatch') {
+    const m = camp.missions.find(x => x.id === ds.mid); const sel = $(`#m-${ds.mid}`); const a = sel && camp.advs.find(x => x.id === sel.value);
+    if (!m || !a || a.status !== 'livre') return true;
+    a.status = 'missao'; a.mission = m.id; a.days = m.days; m.taken = true; camp.acts.despachar = true;
+    hist({ k: 'despacho', adv: a.name, title: m.title, chance: successChance(a, m) }); saveCamp(); render(); toast(`${a.name} partiu: "${m.title}".`); return true;
+  }
+  if (act === 'g-hire') {
+    const a = camp.recruits[+ds.idx]; if (!a) return true; const price = HIRE_BASE + 15 * (a.lvl - 1);
+    if (camp.gold < price || camp.advs.length >= ADV_MAX) return true;
+    camp.gold -= price; camp.advs.push(a); camp.recruits.splice(+ds.idx, 1); hist({ k: 'aventureiro', name: a.name, cls: a.cls, lvl: a.lvl, price }); saveCamp(); render(); toast(`${a.name} entrou para a guilda.`); return true;
+  }
+  if (act === 'g-visit') {
+    if (camp.acts.npc && camp.acts.npc !== ds.npc) { toast('A visita de hoje já foi usada.'); return true; }
+    if (!camp.acts.npc) { camp.acts.npc = ds.npc; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
+    ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
+  }
+  if (act === 'g-buy') {
+    const d = ds.dd; if (camp.gold < BOOSTER_PRECO) return true;
+    camp.gold -= BOOSTER_PRECO; const cards = R.openDiscPack(rnd, d, camp.collection); addCards(cards);
+    hist({ k: 'booster', type: 'mestre-' + d, cards, price: BOOSTER_PRECO }); saveCamp();
+    ui.scene = { kind: 'booster', type: d, cards, back: 'npc' }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return true;
+  }
+  if (act === 'g-sell' || act === 'g-sell-all') {
+    const ex = excessCopies().filter(x => act === 'g-sell-all' || x.id === ds.cid); let got = 0;
+    ex.forEach(x => { const n = act === 'g-sell-all' ? x.extra : 1; camp.collection[x.id] -= n; got += n * x.value; });
+    camp.gold += got; hist({ k: 'venda', cards: ex.map(x => x.id), gold: got }); saveCamp(); render(); toast(`+${got} de ouro.`); return true;
+  }
+  return false;
+}
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
+  ensureGuild();
+  const ps = pendingScene(); if (ps) { ui.scene = ps; ui.screen = 'scene'; renderScene(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
   const next = Math.min(camp.floor, 5);
   const allDone = camp.cleared[5];
   const floors = [1, 2, 3, 4, 5].map(f => {
     const done = camp.cleared[f]; const cur = !done && f === camp.floor;
-    return `<div class="andar ${done ? 'feito' : cur ? 'atual' : 'bloq'}"><b>${f}</b><span>${done ? 'Concluído' : cur ? 'Próximo' : 'Bloqueado'}</span>${done ? `<button class="botao discreto" data-floor="${f}" data-revisit="1">Revisitar</button>` : ''}</div>`;
+    return `<div class="andar ${done ? 'feito' : cur ? 'atual' : 'bloq'}"><b>${f}</b><span>${done ? 'Concluído' : cur ? 'Próximo' : 'Bloqueado'}</span>${done ? `<button class="botao discreto" data-floor="${f}" data-revisit="1" ${camp.acts.descer || camp.run ? 'disabled' : ''}>Revisitar</button>` : ''}</div>`;
   }).join('');
   const mainBtn = camp.run ? `<button class="botao principal" data-act="continue-run">Continuar descida (andar ${camp.run.floor})</button>`
     : allDone ? `<p class="destaque">Grupo 1 concluído: Ergos não estava nas Grutas. O caminho segue mais fundo.</p>`
+    : camp.acts.descer ? '<button class="botao principal" disabled>Você já desceu hoje</button>'
     : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>Descer ao andar ${next}</button>`;
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p></header>
     <section class="painel-camp">
-      <p class="camp-linha">Dia ${camp.day}. Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'}. Coleção: ${collectionSize()} cartas.</p>
+      <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
+      ${guildStatus()}
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run ? 'disabled' : ''}>Ir à cidade</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">Quadro de Missões</button>` : ''}${camp.flags.facilities ? '<button class="botao" data-act="g-instalacoes">Instalações</button>' : ''}${camp.fac.taverna === 'ativa' ? '<button class="botao" data-act="g-taverna">Taverna</button>' : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>Encerrar o dia</button></div>
       <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>Editar deck</button><button class="botao" data-act="camp-notes">Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">Batalha avulsa</button><button class="botao" data-act="to-title">Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
@@ -2012,6 +2339,7 @@ function renderMap() {
     <section class="painel-camp mapa-topo">
       <span class="voce-vida"><b>${run.hp}</b><span class="conta">de 30</span><span class="barra"><i style="width:${Math.round(100 * run.hp / 30)}%"></i></span></span>
       <span title="${esc(run.mochila.map(id => E.DEF[id].name).join(', '))}">Mochila: ${run.mochila.length} carta${run.mochila.length === 1 ? '' : 's'}</span>
+      <span class="ouro">Ouro na descida: ${run.gold || 0}</span>
       ${bonus.length ? `<span class="destaque">${esc(bonus.join('; '))}</span>` : ''}
       <button class="botao" data-act="run-giveup">Desistir da descida</button>
     </section>
@@ -2038,12 +2366,15 @@ function renderScene() {
       <div class="opcoes"><button class="botao principal disc-${camp.deck.disc}" data-pack="${camp.deck.disc}">Booster de ${esc(DISC_NAME[camp.deck.disc])}</button><button class="botao" data-pack="geral">Booster Geral</button></div>
       <p class="intro">Cada booster tem 5 cartas: 3 Comuns, 1 Incomum e 1 Incomum ou Rara. O Geral pode trazer qualquer Disciplina ou neutra.</p>`;
   } else if (sc.kind === 'booster') {
-    body = `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2><div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : 'Nova')).join('')}</div><p class="destaque">As cartas já estão na sua coleção.</p><div class="opcoes"><button class="botao principal" data-act="home">Voltar à guilda</button><button class="botao" data-act="deck-edit">Editar deck</button></div>`;
+    const intro = sc.type === 'andar' ? `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Ouro das lutas: ${sc.gold}.</p><h3>Booster do andar</h3><p class="intro-dica">2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.</p>` : `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2>`;
+    const back = sc.back === 'npc' ? `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">Voltar ao mestre</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>';
+    body = `${intro}<div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : 'Nova')).join('')}</div><p class="destaque">As cartas já estão na sua coleção.</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">Editar deck</button></div>`;
   } else if (sc.kind === 'msg') {
     body = `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="home">Voltar à guilda</button></div>`;
   } else if (sc.kind === 'notes') {
     body = `<h2>Notas de Ergos</h2>${camp.notes.length ? camp.notes.slice().sort().map(f => `<p class="linha">Andar ${f}</p><blockquote class="nota">${esc(R.NOTES[f])}</blockquote>`).join('') : '<p>Nenhuma nota ainda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Voltar</button></div>`;
   }
+  const gsc = guildScene(sc); if (gsc) body = gsc;
   const vida = camp && camp.run && ['event', 'camp', 'nota', 'treasure', 'elite'].includes(sc.kind) ? `<p class="vida-cena voce-vida"><b>${camp.run.hp}</b><span class="conta">de 30 de Vida</span><span class="barra"><i style="width:${Math.round(100 * camp.run.hp / 30)}%"></i></span></p>` : '';
   $('#app').innerHTML = `<section class="cena">${vida}${body}</section>`;
 }
@@ -2054,12 +2385,19 @@ function renderScreen() {
   else if (ui.screen === 'avulsa') renderSetup();
   else if (ui.screen === 'deck' && camp) renderDeck();
   else if (ui.screen === 'credits') renderCredits();
+  else if (ui.screen === 'quadro' && camp) renderQuadro();
+  else if (ui.screen === 'instalacoes' && camp) renderInstalacoes();
+  else if (ui.screen === 'taverna' && camp) renderTaverna();
+  else if (ui.screen === 'cidade' && camp) renderCidade();
+  else if (ui.screen === 'npc' && camp && ui.npc) renderNpc();
   else if (ui.screen === 'map' && camp && camp.run) renderMap();
   else if (ui.screen === 'scene' && ui.scene) renderScene();
   else { ui.screen = 'home'; renderHome(); }
 }
 async function runClick(ds) {
   const act = ds.act;
+  if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
+  if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (ds.newdisc) { ui.newDisc = ds.newdisc; render(); return true; }
   if (act === 'camp-start') { if (ui.newDisc) { newCampaign(ui.newDisc); ui.screen = 'home'; render(); } return true; }
   if (act === 'camp-reset') { const c = await choose('Nova campanha', 'Apagar a campanha atual (coleção, deck e progresso)? Os logs de partida continuam guardados.', [{ v: 'sim', label: 'Apagar e recomeçar' }]); if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.newDisc = null; ui.screen = 'home'; render(); } return true; }
@@ -2330,6 +2668,7 @@ document.addEventListener('keydown', ev => {
   }
 });
 
+if (camp) { ensureGuild(); saveCamp(); }
 if (typeof IMG !== 'undefined') for (const [k, v] of Object.entries(IMG)) document.documentElement.style.setProperty('--img-' + k, `url("${v}")`);
 render();
 })();

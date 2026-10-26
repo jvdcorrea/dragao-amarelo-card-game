@@ -355,3 +355,24 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .titulo-tela.com-arte .titulo-rodape { color: #b8b3a6; margin-top: 18px; }
 @media (max-width: 600px) { .titulo-tela.com-arte h1 { font-size: clamp(2.4rem, 12vw, 3.2rem); } .titulo-tela.com-arte .sub { font-size: 1.1rem; } }
 .intro-arte { width: 100%; aspect-ratio: 11 / 6; max-height: 300px; border-radius: 10px; margin: 0 0 14px; background: var(--img-felix) 40% 52% / cover no-repeat; box-shadow: 0 2px 8px var(--sombra); }
+/* Guilda: dia, ouro e telas de gestão */
+.ouro { color: var(--ouro); }
+.dia-acoes { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.dia-acoes .acao { font-size: .82rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.dia-acoes .acao.usada { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.guilda-botoes { margin-top: 8px; }
+.botao.principal-2 { margin-left: auto; border-color: var(--ouro-vivo); font-weight: 700; }
+.cena.larga, .guilda-tela { max-width: 980px; }
+.lista-missoes, .lista-adv, .lista-fac, .lista-npc { list-style: none; padding: 0; margin: 6px 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.lista-missoes li, .lista-adv li, .lista-fac li, .lista-npc li { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); }
+.lista-missoes li > div:first-child, .lista-fac li > div:first-child, .lista-npc li > div:first-child { flex: 1 1 260px; }
+.lista-missoes p, .lista-fac p, .lista-npc p { margin: 2px 0 0; }
+.missao-acao { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.missao-acao select { max-width: 260px; padding: 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.lista-adv .estado-adv { margin-left: auto; color: var(--muted); font-size: .9rem; }
+.selo-fac { font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.instalacao.ativo .selo-fac, .instalacao.ativa .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
+.instalacao.suja .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
+.instalacao.bloq { opacity: .75; }
+.npc.visitando { border-color: var(--ouro-vivo); }
+.lista-adv li.vazio, .lista-missoes li.vazio { color: var(--muted); justify-content: flex-start; }

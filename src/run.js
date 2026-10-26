@@ -50,6 +50,23 @@ function openPack(rng, type) {
   const slots = ['C', 'C', 'C', 'I', rng() < 0.35 ? 'R' : 'I'];
   return slots.map(r => cardFrom(rng, groups, r));
 }
+/* Escolha com peso: cartas que o jogador ainda não tem valem o dobro. */
+function weightedFrom(rng, groups, rar, coll) {
+  let cands = [];
+  groups.forEach(g => { cands = cands.concat(poolOf(g).filter(id => RARITY[id] === rar)); });
+  if (!cands.length) groups.forEach(g => { cands = cands.concat(poolOf(g)); });
+  if (!coll) return pick(rng, cands);
+  const w = cands.map(id => (coll[id] ? 1 : 2)); let r = rng() * w.reduce((s, x) => s + x, 0);
+  for (let i = 0; i < cands.length; i++) { r -= w[i]; if (r < 0) return cands[i]; }
+  return cands[cands.length - 1];
+}
+/* Booster do andar: geral, com 2 cartas garantidas da Disciplina do deck (1 Comum e a vaga Incomum/Rara). */
+function openFloorPack(rng, disc, coll) {
+  const all = DISCS.concat(['neutra']); const top = rng() < 0.35 ? 'R' : 'I';
+  return [weightedFrom(rng, [disc], 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'I', coll), weightedFrom(rng, [disc], top, coll)];
+}
+/* Booster de Mestre: 5 cartas da Disciplina. */
+function openDiscPack(rng, disc, coll) { const top = rng() < 0.35 ? 'R' : 'I'; return ['C', 'C', 'C', 'I', top].map(rr => weightedFrom(rng, [disc], rr, coll)); }
 function eliteChoices(rng, disc) { return [0, 1, 2].map(() => cardFrom(rng, [disc, 'neutra'], rng() < 0.3 ? 'R' : 'I')); }
 function treasureCard(rng, disc) { return cardFrom(rng, [disc, 'neutra'], rollRarity(rng, { C: 0.55, I: 0.35 })); }
 
@@ -157,7 +174,7 @@ const NOTES = {
   5: 'O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.',
 };
 
-const RunLib = { RAR, RARITY, DISCS, poolOf, openPack, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
+const RunLib = { RAR, RARITY, DISCS, poolOf, openPack, openFloorPack, openDiscPack, weightedFrom, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
 if (typeof module !== 'undefined' && module.exports) module.exports = RunLib;
 else root.RunLib = RunLib;
 })(typeof window !== 'undefined' ? window : globalThis);
