@@ -398,3 +398,14 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .narra { font-style: italic; color: var(--muted); margin: 8px 0 0; }
 .lista-npc li > div.npc-thumb { flex: 0 0 58px; width: 58px; height: 58px; }
 .guilda-hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; }
+
+/* Códigos e menu de testes */
+.cheat-codigo { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cheat-codigo input, .cheat-linha input, .cheat-linha select { padding: 7px 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.cheat-codigo input { width: 210px; }
+.cheat-linha { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+.cheat-linha label { min-width: 170px; }
+.cheat-linha input[type=number] { width: 110px; }
+.cheat-linha select { max-width: 100%; }
+.cheat-check { display: flex; gap: 8px; align-items: center; min-width: 0 !important; }
+.cheats h2 { margin-top: 18px; }

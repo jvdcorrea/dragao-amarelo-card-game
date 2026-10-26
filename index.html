@@ -410,6 +410,17 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .lista-npc li > div.npc-thumb { flex: 0 0 58px; width: 58px; height: 58px; }
 .guilda-hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; }
 
+/* Códigos e menu de testes */
+.cheat-codigo { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cheat-codigo input, .cheat-linha input, .cheat-linha select { padding: 7px 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.cheat-codigo input { width: 210px; }
+.cheat-linha { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+.cheat-linha label { min-width: 170px; }
+.cheat-linha input[type=number] { width: 110px; }
+.cheat-linha select { max-width: 100%; }
+.cheat-check { display: flex; gap: 8px; align-items: center; min-width: 0 !important; }
+.cheats h2 { margin-top: 18px; }
+
 </style>
 </head>
 <body>
@@ -1477,7 +1488,7 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JS
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
 const lsDel = k => { try { localStorage.removeItem(k); } catch (e) { /* sem armazenamento */ } };
 function gameRecord(result) {
-  return { id: st.gameId, player: ui.nick || '', rules: RULES, startedAt: new Date(st.t0).toISOString(), endedAt: new Date().toISOString(), result, disc: st.disc, enc: st.encId, seed: st.seed, mulligans: st.mulligans, turns: [E.S(st, 'P').turnCount, E.S(st, 'E').turnCount], hp: [E.S(st, 'P').leader.hp, E.S(st, 'E').leader.hp], events: st.events, log: st.log, ctx: st.ctx || { mode: 'avulsa' } };
+  return { cheat: (st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') && camp && camp.cheatUsed) ? true : undefined, id: st.gameId, player: ui.nick || '', rules: RULES, startedAt: new Date(st.t0).toISOString(), endedAt: new Date().toISOString(), result, disc: st.disc, enc: st.encId, seed: st.seed, mulligans: st.mulligans, turns: [E.S(st, 'P').turnCount, E.S(st, 'E').turnCount], hp: [E.S(st, 'P').leader.hp, E.S(st, 'E').leader.hp], events: st.events, log: st.log, ctx: st.ctx || { mode: 'avulsa' } };
 }
 function pushGame(r) { const games = lsGet(LS_GAMES, []); games.push(r); while (!lsSet(LS_GAMES, games) && games.length > 1) games.shift(); }
 function finalizeGame(result) {
@@ -1522,7 +1533,7 @@ async function exportLogs(scope) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
@@ -1778,7 +1789,7 @@ function overPanel() {
 function modalHtml() {
   const m = ui.modal;
   if (m.kind === 'export-menu') {
-    return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="em-t"><h2 id="em-t">Exportar log</h2><p>O arquivo sai compactado em .zip, cerca de 8 vezes menor. No celular, abre o menu de compartilhar ou salvar.</p><div class="opcoes"><button class="botao principal" data-act="export-novas" ${m.novas ? '' : 'disabled'}>Só as novas (${m.novas})</button><button class="botao" data-act="export-tudo" ${m.all ? '' : 'disabled'}>Tudo (${m.all})</button><button class="botao" data-act="close-modal">Cancelar</button></div><p class="intro">"Novas" são as partidas terminadas depois da última exportação.</p></div></div>`;
+    return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="em-t"><h2 id="em-t">Exportar log</h2><p>O arquivo sai compactado em .zip, cerca de 8 vezes menor. No celular, abre o menu de compartilhar ou salvar.</p><div class="opcoes"><button class="botao principal" data-act="export-novas" ${m.novas ? '' : 'disabled'}>Só as novas (${m.novas})</button><button class="botao" data-act="export-tudo" ${m.all ? '' : 'disabled'}>Tudo (${m.all})</button><button class="botao" data-act="close-modal">Cancelar</button></div><p class="intro">“Novas” são as partidas terminadas depois da última exportação.</p></div></div>`;
   }
   if (m.kind === 'export') {
     return `<div class="veu"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="ex-t"><h2 id="ex-t">Exportar log</h2><p>O download não está disponível aqui. Copie o conteúdo abaixo (${m.count} partida${m.count === 1 ? '' : 's'}) e salve como ${esc(m.name)}.</p><textarea class="export-txt" readonly>${esc(m.json)}</textarea><div class="opcoes"><button class="botao principal" data-act="copy-log">Copiar</button><button class="botao" data-act="close-modal">Fechar</button></div></div></div>`;
@@ -1798,7 +1809,7 @@ const R = window.RunLib;
 const LS_CAMP = 'dragao-amarelo-campanha-v1';
 let camp = lsGet(LS_CAMP, null);
 ui.screen = 'title'; ui.deckFilter = 'disc'; ui.scene = null; ui.newDisc = null;
-const saveCamp = () => { if (camp) lsSet(LS_CAMP, camp); };
+const saveCamp = () => { if (!camp) return; if (typeof cheats !== 'undefined' && cheats.unlimited && camp.acts) camp.acts = {}; lsSet(LS_CAMP, camp); };
 function mkRng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const rnd = Math.random;
 function hist(ev) { if (!camp) return; ev.day = camp.day; ev.t = new Date().toISOString(); (camp.history = camp.history || []).push(ev); }
@@ -2024,14 +2035,15 @@ function defenseDone() {
   ui.scene = { kind: 'msg', title: won ? 'Defesa bem-sucedida' : 'A guilda foi saqueada', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 /* Fim do dia */
-function endDay() {
-  const lines = [];
+function finishBuilding(lines) {
   if (camp.building) {
     const b = camp.building;
     if (b.id === 'alojamento') { camp.fac.alojamento = b.level; lines.push(`O alojamento ganhou mais quartos (nível ${b.level}). Agora cabem ${advMax()} aventureiros na guilda.`); hist({ k: 'obra', id: 'alojamento', level: b.level }); }
     if (b.id === 'taverna') { camp.fac.taverna = 'ativa'; lines.push('A taverna está limpa e aberta de novo. Já tem gente procurando trabalho.'); hist({ k: 'obra', id: 'taverna' }); }
     camp.building = null;
   }
+}
+function processAdvs(lines) {
   camp.advs.forEach(a => {
     if (a.status === 'ferido') { a.days -= 1; if (a.days <= 0) { a.status = 'livre'; lines.push(`${a.name} se recuperou e está ${a.g === 'f' ? 'pronta' : 'pronto'} para outra.`); } }
     else if (a.status === 'missao') {
@@ -2044,11 +2056,11 @@ function endDay() {
           if (m.card) { const c = R.treasureCard(rnd, camp.deck.disc); addCards([c]); extra = ` e trouxe a carta ${E.DEF[c].name}`; }
           a.xp += 1; let up = '';
           if (a.xp >= a.lvl * 2 && a.lvl < 5) { a.lvl += 1; a.xp = 0; up = ` ${a.name} subiu para o nível ${a.lvl}.`; }
-          lines.push(`${a.name} concluiu "${m.title}": +${m.gold} de ouro${extra}.${up}`);
+          lines.push(`${a.name} concluiu “${m.title}”: +${m.gold} de ouro${extra}.${up}`);
           hist({ k: 'missao', adv: a.name, title: m.title, ok: true, gold: m.gold });
           a.status = 'livre';
         } else {
-          lines.push(`${a.name} falhou em "${m ? m.title : 'uma missão'}" e volta sem nada. Precisa de 1 dia para se recuperar.`);
+          lines.push(`${a.name} falhou em “${m ? m.title : 'uma missão'}” e volta sem nada. Precisa de 1 dia para se recuperar.`);
           hist({ k: 'missao', adv: a.name, title: m ? m.title : '', ok: false });
           a.status = 'ferido'; a.days = 1;
         }
@@ -2057,6 +2069,10 @@ function endDay() {
       }
     }
   });
+}
+function endDay() {
+  const lines = [];
+  finishBuilding(lines); processAdvs(lines);
   camp.day += 1; camp.acts = {};
   refreshBoard();
   if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader }); }
@@ -2247,7 +2263,7 @@ async function guildClick(act, ds) {
     const m = camp.missions.find(x => x.id === ds.mid); const sel = $(`#m-${ds.mid}`); const a = sel && camp.advs.find(x => x.id === sel.value);
     if (!m || !a || a.status !== 'livre') return true;
     a.status = 'missao'; a.mission = m.id; a.days = m.days; m.taken = true; camp.acts.despachar = true;
-    hist({ k: 'despacho', adv: a.name, title: m.title, chance: successChance(a, m) }); saveCamp(); render(); toast(`${a.name} partiu: "${m.title}".`); return true;
+    hist({ k: 'despacho', adv: a.name, title: m.title, chance: successChance(a, m) }); saveCamp(); render(); toast(`${a.name} partiu: “${m.title}”.`); return true;
   }
   if (act === 'g-hire') {
     const a = camp.recruits[+ds.idx]; if (!a) return true; const price = HIRE_BASE + 15 * (a.lvl - 1);
@@ -2379,13 +2395,90 @@ function renderTitle() {
     <p class="titulo-rodape">Protótipo, ${esc(RULES)}</p>
   </section>`;
 }
+/* ===== Códigos secretos e menu de testes ===== */
+const LS_CHEAT = 'dragao-amarelo-cheats-v1';
+const CODES = { sanerionTestMode1337: 'testes' };
+var cheats = lsGet(LS_CHEAT, { unlocked: false, unlimited: false });
+function saveCheats() { lsSet(LS_CHEAT, cheats); }
+function markCheat(what) { if (!camp) return; camp.cheatUsed = true; hist({ k: 'cheat', what }); saveCamp(); }
+function useCode(raw) {
+  const code = (raw || '').trim();
+  const hit = Object.keys(CODES).find(k => k.toLowerCase() === code.toLowerCase());
+  if (!hit) { toast('Código inválido.'); return; }
+  if (CODES[hit] === 'testes') { cheats.unlocked = true; saveCheats(); toast('Modo de testes liberado.'); ui.screen = 'cheats'; render(); window.scrollTo(0, 0); }
+}
+function playerCards() { return Object.keys(R.RARITY).sort((a, b) => ((E.DEF[a].disc || 'neutra').localeCompare(E.DEF[b].disc || 'neutra')) || E.DEF[a].name.localeCompare(E.DEF[b].name)); }
+function renderCheats() {
+  const num = (id, val, act, label, extra) => `<div class="cheat-linha"><label for="${id}">${label}</label><input id="${id}" type="number" value="${val}" ${extra || ''}><button class="botao" data-act="${act}">Aplicar</button></div>`;
+  const btn = (act, label, dis) => `<button class="botao" data-act="${act}" ${dis ? 'disabled' : ''}>${label}</button>`;
+  let body;
+  if (!camp) body = '<p>Não há campanha salva. Comece uma campanha para usar os testes de guilda e coleção.</p>';
+  else {
+    ensureGuild();
+    const opts = playerCards().map(id => `<option value="${id}" ${ui.chCard === id ? 'selected' : ''}>${esc(DISC_NAME[E.DEF[id].disc || 'neutra'] || 'Neutra')} · ${esc(E.DEF[id].name)} (${camp.collection[id] || 0})</option>`).join('');
+    const nCleared = Object.keys(camp.cleared).length;
+    body = `<h2>Valores</h2>
+      ${num('ch-gold', camp.gold, 'ch-gold', 'Ouro')}
+      ${num('ch-day', camp.day, 'ch-day', 'Dia', 'min="1"')}
+      <div class="cheat-linha"><label for="ch-floor">Andares concluídos</label><select id="ch-floor">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${n === nCleared ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-floor">Aplicar</button></div>
+      ${camp.run ? num('ch-hp', camp.run.hp, 'ch-hp', 'Vida na descida', 'min="1" max="30"') : ''}
+      <div class="cheat-linha"><label for="ch-aloj">Nível do Alojamento</label><select id="ch-aloj">${[0, 1, 2, 3].map(n => `<option value="${n}" ${n === (camp.fac.alojamento || 0) ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-aloj">Aplicar</button></div>
+      <div class="cheat-linha"><label for="ch-card">Carta</label><select id="ch-card">${opts}</select><button class="botao" data-act="ch-card-add">+1</button><button class="botao" data-act="ch-card-rem">−1</button></div>
+      <div class="linha-logs">${btn('ch-all-cards', 'Coleção completa (2 de cada)')}</div>
+      <h2>Ações do dia</h2>
+      <div class="cheat-linha"><label class="cheat-check"><input type="checkbox" data-act="ch-unlimited" ${cheats.unlimited ? 'checked' : ''}> Ações ilimitadas (descer, visita, despacho e obra não se gastam)</label></div>
+      <div class="linha-logs">${btn('ch-reset-acts', 'Restaurar as ações de hoje')}${btn('ch-end-day', 'Encerrar o dia agora', !!camp.run)}</div>
+      <h2>Eventos e guilda</h2>
+      <div class="linha-logs">${btn('ch-ev-adv', 'Chegada do primeiro aventureiro')}${btn('ch-ev-taverna', 'Sugestão da taverna')}${btn('ch-ev-def', 'Defesa agora', !!camp.run)}</div>
+      <div class="linha-logs">${btn('ch-unlock', 'Liberar Quadro, Instalações e Taverna')}${btn('ch-build-now', 'Concluir a obra agora', !camp.building)}${btn('ch-missions-now', 'Resolver missões agora', !camp.advs.some(a => a.status !== 'livre'))}</div>
+      <div class="linha-logs">${btn('ch-refresh', 'Novos pedidos e candidatos')}${btn('ch-free-adv', 'Aventureiro grátis')}${btn('ch-adv-up', 'Subir o nível dos aventureiros')}</div>
+      <p class="intro-dica">Tudo o que for feito aqui marca a campanha como “com testes” no log, para não misturar com partidas normais na análise.</p>`;
+  }
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Menu de testes</h1><p class="sub">${camp ? `Dia ${camp.day} · ${camp.gold} de ouro${camp.cheatUsed ? ' · campanha com testes' : ''}` : 'Sem campanha'}</p></header>
+  <section class="cena larga config cheats">${body}
+  <div class="linha-logs">${camp ? '<button class="botao principal" data-act="home">Ir para a guilda</button>' : ''}<button class="botao" data-act="settings">Configurações</button><button class="botao" data-act="ch-lock">Desativar modo de testes</button></div></section>`;
+}
+async function cheatClick(act) {
+  const val = id => { const el = $('#' + id); return el ? el.value : null; };
+  const done = (msg, what) => { markCheat(what || act); render(); toast(msg); return true; };
+  if (act === 'ch-lock') { cheats = { unlocked: false, unlimited: false }; saveCheats(); ui.screen = 'settings'; render(); toast('Modo de testes desativado.'); return true; }
+  if (act === 'ch-unlimited') { cheats.unlimited = !cheats.unlimited; saveCheats(); if (cheats.unlimited && camp) { camp.acts = {}; markCheat('ações ilimitadas'); } render(); toast(cheats.unlimited ? 'Ações ilimitadas ligadas.' : 'Ações ilimitadas desligadas.'); return true; }
+  if (!camp) return true;
+  ensureGuild();
+  if (act === 'ch-gold') { camp.gold = Math.max(0, Math.floor(+val('ch-gold') || 0)); return done(`Ouro: ${camp.gold}.`, 'ouro'); }
+  if (act === 'ch-day') { camp.day = Math.max(1, Math.floor(+val('ch-day') || 1)); return done(`Dia: ${camp.day}.`, 'dia'); }
+  if (act === 'ch-hp' && camp.run) { camp.run.hp = Math.max(1, Math.min(30, Math.floor(+val('ch-hp') || 1))); return done(`Vida na descida: ${camp.run.hp}.`, 'vida'); }
+  if (act === 'ch-floor') { const n = +val('ch-floor'); camp.cleared = {}; for (let f = 1; f <= n; f++) camp.cleared[f] = true; camp.floor = n + 1; return done(`Andares concluídos: ${n}.`, 'andares'); }
+  if (act === 'ch-aloj') { camp.fac.alojamento = +val('ch-aloj'); return done(`Alojamento no nível ${camp.fac.alojamento}: cabem ${advMax()} aventureiros.`, 'alojamento'); }
+  if (act === 'ch-card-add' || act === 'ch-card-rem') {
+    const id = val('ch-card'); ui.chCard = id; const d = act === 'ch-card-add' ? 1 : -1;
+    camp.collection[id] = Math.max(0, (camp.collection[id] || 0) + d); if (!camp.collection[id]) delete camp.collection[id];
+    if (camp.deck.cards[id] > (camp.collection[id] || 0)) { if (camp.collection[id]) camp.deck.cards[id] = camp.collection[id]; else delete camp.deck.cards[id]; }
+    markCheat('carta'); toast(`${E.DEF[id].name}: ${camp.collection[id] || 0} na coleção.`); return true;
+  }
+  if (act === 'ch-all-cards') { playerCards().forEach(id => { camp.collection[id] = Math.max(2, camp.collection[id] || 0); }); return done('Coleção completa: 2 de cada carta.', 'colecao'); }
+  if (act === 'ch-reset-acts') { camp.acts = {}; return done('Ações de hoje restauradas.', 'acoes'); }
+  if (act === 'ch-end-day') { if (camp.run) return true; markCheat('encerrar dia'); endDay(); return true; }
+  if (act === 'ch-ev-adv') { camp.flags.firstAdv = false; camp.pending = camp.pending.filter(p => p.kind !== 'primeiro-aventureiro'); camp.pending.unshift({ kind: 'primeiro-aventureiro' }); markCheat('evento aventureiro'); ui.screen = 'home'; render(); return true; }
+  if (act === 'ch-ev-taverna') { camp.pending = camp.pending.filter(p => p.kind !== 'sugestao-taverna'); camp.pending.unshift({ kind: 'sugestao-taverna' }); markCheat('evento taverna'); ui.screen = 'home'; render(); return true; }
+  if (act === 'ch-ev-def') { if (camp.run) return true; camp.defense = newDefense(); camp.pending = camp.pending.filter(p => p.kind !== 'defesa'); camp.pending.unshift({ kind: 'defesa' }); markCheat('evento defesa'); ui.screen = 'home'; render(); return true; }
+  if (act === 'ch-unlock') { camp.flags.firstAdv = true; camp.flags.facilities = true; camp.fac.quadro = 'ativo'; if (camp.fac.taverna !== 'ativa') { camp.fac.taverna = 'ativa'; camp.recruits = []; } camp.pending = camp.pending.filter(p => p.kind === 'defesa'); refreshBoard(); return done('Quadro, Instalações e Taverna liberados.', 'liberar guilda'); }
+  if (act === 'ch-build-now') { const lines = []; finishBuilding(lines); markCheat('obra agora'); ui.scene = { kind: 'msg', title: 'Obra concluída', text: lines.join(' ') || 'Nenhuma obra em andamento.' }; ui.screen = 'scene'; render(); return true; }
+  if (act === 'ch-missions-now') { camp.advs.forEach(a => { if (a.status !== 'livre') a.days = 1; }); const lines = []; processAdvs(lines); markCheat('missões agora'); ui.scene = { kind: 'msg', title: 'Missões resolvidas', text: lines.join(' ') || 'Ninguém estava fora.' }; ui.screen = 'scene'; render(); return true; }
+  if (act === 'ch-refresh') { camp.missions = camp.missions.filter(m => m.taken); if (camp.fac.taverna === 'ativa') camp.recruits = []; refreshBoard(); return done('Novos pedidos e candidatos.', 'renovar'); }
+  if (act === 'ch-free-adv') { const a = newAdv(); camp.advs.push(a); return done(`${a.name} (${advClass(a)}) entrou para a guilda.`, 'aventureiro grátis'); }
+  if (act === 'ch-adv-up') { camp.advs.forEach(a => { if (a.lvl < 5) { a.lvl += 1; a.xp = 0; } }); return done('Todos os aventureiros subiram um nível.', 'nível aventureiros'); }
+  return false;
+}
 function renderSettings() {
   $('#app').innerHTML = `<header class="abertura"><h1>Configurações</h1></header>
   <section class="cena config">
     <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
+    <div class="config-item"><div><h2>Códigos secretos</h2><p>${cheats.unlocked ? 'Modo de testes liberado.' : 'Tem um código? Digite aqui.'}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">Código</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código"><button class="botao" data-act="code">Usar</button>${cheats.unlocked ? '<button class="botao" data-act="cheats">Menu de testes</button>' : ''}</div></div>
     <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
   </section>`;
+  const ci = $('#codigo'); if (ci) ci.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); useCode(ci.value); } });
 }
 function renderDeck() {
   const deck = camp.deck, coll = camp.collection;
@@ -2474,12 +2567,13 @@ function renderScene() {
   }
   const gsc = guildScene(sc); if (gsc) body = gsc;
   const vida = camp && camp.run && ['event', 'camp', 'nota', 'treasure', 'elite'].includes(sc.kind) ? `<p class="vida-cena voce-vida"><b>${camp.run.hp}</b><span class="conta">de 30 de Vida</span><span class="barra"><i style="width:${Math.round(100 * camp.run.hp / 30)}%"></i></span></p>` : '';
-  $('#app').innerHTML = `<section class="cena">${vida}${body}</section>`;
+  $('#app').innerHTML = `${camp && !camp.run ? gearBtn() : ''}<section class="cena">${vida}${body}</section>`;
 }
 function renderScreen() {
   if (ui.screen === 'title') renderTitle();
   else if (ui.screen === 'intro' && ui.intro) renderIntro();
   else if (ui.screen === 'settings') renderSettings();
+  else if (ui.screen === 'cheats' && cheats.unlocked) renderCheats();
   else if (ui.screen === 'avulsa') renderSetup();
   else if (ui.screen === 'deck' && camp) renderDeck();
   else if (ui.screen === 'credits') renderCredits();
@@ -2496,6 +2590,9 @@ async function runClick(ds) {
   const act = ds.act;
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
+  if (act === 'code') { useCode(($('#codigo') || {}).value); return true; }
+  if (act === 'cheats') { if (cheats.unlocked) { ui.screen = 'cheats'; render(); window.scrollTo(0, 0); } return true; }
+  if (act && act.startsWith('ch-') && cheats.unlocked && await cheatClick(act)) return true;
   if (ds.newdisc) { ui.newDisc = ds.newdisc; render(); return true; }
   if (act === 'camp-start') { if (ui.newDisc) { newCampaign(ui.newDisc); ui.screen = 'home'; render(); } return true; }
   if (act === 'camp-reset') { const c = await choose('Nova campanha', 'Apagar a campanha atual (coleção, deck e progresso)? Os logs de partida continuam guardados.', [{ v: 'sim', label: 'Apagar e recomeçar' }]); if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.newDisc = null; ui.screen = 'home'; render(); } return true; }

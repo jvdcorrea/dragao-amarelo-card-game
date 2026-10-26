@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.46 · rascunho para editar*
+*Documento de design preliminar · v0.47 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -391,6 +391,7 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
   - **Mikeus, mestre de Temporal Warfare:** grande guerreiro do passado e do futuro, vive nesta era para treinar guerreiros para um conflito que ainda vai acontecer; não dá detalhes, para evitar paradoxos.
   - Draconic Primalism e Space Wizardry: mestres ainda a definir.
+- **Códigos secretos e modo de testes (P77):** as Configurações têm um campo de códigos. Um código de desenvolvedor libera o Menu de testes: alterar ouro, dia, andares concluídos, vida na descida, nível do Alojamento e cartas da coleção; ações do dia ilimitadas; encerrar o dia; disparar eventos (primeiro aventureiro, sugestão da taverna, defesa); liberar a guilda; concluir obras e missões na hora; renovar pedidos e candidatos; aventureiro grátis e subir níveis. Qualquer uso marca a campanha como “com testes”, e as partidas dela saem no log com `cheat: true`.
 - **Sala de guerra:** a ilustração da sala de guerra (mesa com mapa, lareira e Felix na poltrona) é o cabeçalho da tela da guilda.
 
 **Boosters (P59, revisto em P67):** ao concluir um andar pela primeira vez, o jogador ganha o booster do andar: um booster geral (3 Comuns, 1 Incomum, 1 Incomum ou Rara) em que 2 cartas são garantidas da Disciplina do deck (1 Comum e a vaga Incomum ou Rara); as outras 3 podem vir de qualquer Disciplina ou das básicas. Cartas que o jogador ainda não tem têm o dobro de chance, mas repetidas continuam possíveis. Boosters só de uma Disciplina ficam com os Mestres (P73). Revisitas não dão cartas (P20).

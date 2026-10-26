@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.46*
+*Atualizada em 26/10/2026 · acompanha o design v0.47*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -37,6 +37,8 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 9. **[~] Mestres na cidade** (P73, P74). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia. Quatro já têm retrato e diálogo: Chrome (Magitech), Gun'Liao (Holy Shadowmancy), Charles Goodwich (Necrodança) e Mikeus (Temporal Warfare).
    - *Falta:* os Mestres de Draconic Primalism e de Space Wizardry, e aprender Disciplinas novas com eles (P29).
+
+**[x] Códigos secretos e Menu de testes** (P77), nas Configurações. Partidas de campanhas com testes saem marcadas no log.
 
 **[x] Estrutura de base** (P68): o dia com as quatro ações (descer, visita, despacho, obra, uma vez cada) e o botão "Encerrar o dia". Descer não passa mais o dia sozinho.
 
