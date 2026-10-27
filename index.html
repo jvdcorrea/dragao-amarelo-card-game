@@ -2193,6 +2193,7 @@ const MESTRE_INFO = {
       { id: 'a', label: 'Que? Como assim?', reply: ['O seu bolso está emitindo três frequências arcanas diferentes. Eu só juntei dois com dois. Lógica simples.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
       { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Vamos ver se você tem a mesma iniciativa para os negócios. Tudo que você vê aqui é Magitech da mais alta qualidade, certamente investir em equipamento de qualidade é mais atraente que meu rostinho lindo, não?'] },
       { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. Se lembrar de falar por favor e obrigado, mais justo ainda.'] },
+      { id: 'd', requires: 'a', label: 'Quero minha consulta grátis', reply: ['Quem está sintonizado com um baralho como esse e sabe usá-lo é chamado de Cartomante. A comunidade mágica ainda discute se a Cartomancia é ou não uma Disciplina, mas, sinceramente, esses detalhes pouco me importam. O que importa é que um Cartomante pode usar as propriedades do baralho como alavanca para manifestar poderes mágicos com facilidade, e até se sintonizar com uma Disciplina. Eu recomendaria a Magitech, a melhor de todas, obviamente. Há registros de Cartomantes que dominaram mais de uma Disciplina no passado, mas nada que possamos confirmar. Cartomantes já são raros por natureza; os excepcionais são ainda mais raros, e por isso mesmo difíceis de documentar.', 'Por enquanto, foque em equilibrar os custos das cartas para não perder um turno sem fazer nada, depois pense em fazer uma sinergia em suas cartas. Não tenha medo de experimentar cartas diferentes e veja o que funciona melhor.'] },
     ] },
   holy: { name: "Gun'Liao", title: 'mestre do Holy Shadowmancy', img: 'gunliao', pos: '45% 35%', face: '46% 20%',
     place: 'No terraço da catedral, entre gárgulas e vitrais de anjos, um homem de escamas no rosto e olhos amarelos segura um cajado de serpente alada. Ele sorri antes de você chegar perto, como se já esperasse a visita.',
@@ -2278,7 +2279,7 @@ function renderNpc() {
     if (mi) {
       const used = camp.flags.once || {}; const saidSet = new Set(((camp.flags.said || {})[id]) || []);
       const log = ((ui.talkLogs || {})[id]) || [];
-      const opts = mi.opts.filter(o => !(o.once && used[o.once]));
+      const opts = mi.opts.filter(o => !(o.once && used[o.once]) && (!o.requires || saidSet.has(o.requires)));
       if (mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
       const novas = opts.filter(o => !saidSet.has(o.id)), feitas = opts.filter(o => saidSet.has(o.id));
       const bt = o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`;

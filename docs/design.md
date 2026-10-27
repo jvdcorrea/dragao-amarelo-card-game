@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.50 · rascunho para editar*
+*Documento de design preliminar · v0.51 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -394,7 +394,7 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
   - **Gun'Liao:** Tsubaki, batedora ninja que aparece como se estivesse ali desde sempre.
   - **Yaven:** indica alguém da turma dele (aventureiro aleatório, provisório).
   - Mestres ainda sem personagem dão um aventureiro aleatório automaticamente na primeira compra.
-  - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
+  - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece. Depois de "Que? Como assim?", libera "Quero minha consulta grátis": ela explica o que é um **Cartomante** (P80), quem se sintoniza com um baralho como o do protagonista e usa as propriedades dele como alavanca para manifestar magia e se sintonizar com uma Disciplina. A comunidade mágica ainda discute se a Cartomancia é uma Disciplina; há registros não confirmados de Cartomantes que dominaram mais de uma, e os excepcionais são raros e mal documentados. Ela fecha com uma dica de jogo: equilibrar os custos para não perder turnos e depois buscar sinergias.
   - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
   - **Mikeus, mestre de Temporal Warfare:** grande guerreiro do passado e do futuro, vive nesta era para treinar guerreiros para um conflito que ainda vai acontecer; não dá detalhes, para evitar paradoxos.

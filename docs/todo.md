@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.50*
+*Atualizada em 26/10/2026 · acompanha o design v0.51*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
