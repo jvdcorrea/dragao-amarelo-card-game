@@ -430,6 +430,17 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .falas-feitas summary { cursor: pointer; font-weight: 700; color: var(--muted); padding: 4px 0; }
 .falas-feitas[open] summary { margin-bottom: 6px; }
 .opcoes.dialogo { flex-direction: column; align-items: flex-start; }
+/* Ilustrações inteiras, sem corte */
+.intro-arte { max-height: none; aspect-ratio: 11 / 6; background-size: cover; background-position: center; }
+.npc-arte { max-height: none; aspect-ratio: 11 / 6; background-size: cover; background-position: center !important; }
+.guilda-hero { aspect-ratio: 11 / 6; min-height: 0; max-width: 980px; margin: 0 auto 14px; background-position: center; background-size: cover; }
+.titulo-fundo { background: #0b0d16; overflow: hidden; }
+.titulo-fundo::before { content: ""; position: absolute; inset: -40px; background: var(--img-guilda) center / cover no-repeat; filter: blur(22px) brightness(.5); }
+.titulo-fundo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 10, 20, 0) 58%, rgba(8, 10, 20, .88) 100%), var(--img-guilda) center top / contain no-repeat; }
+@media (max-width: 700px) {
+  .titulo-fundo::after { background: linear-gradient(180deg, rgba(8, 10, 20, 0) 30%, rgba(8, 10, 20, .6) 100%), var(--img-guilda) center top / contain no-repeat; }
+  .titulo-tela.com-arte h1.sr { position: relative; z-index: 1; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; }
+}
 
 </style>
 </head>
@@ -1476,7 +1487,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.17/design-v0.43/inimigos-v0.10/proto-2026-10-25';
+const RULES = 'cartas-v0.17/design-v0.49/inimigos-v0.10/proto-2026-10-26';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {

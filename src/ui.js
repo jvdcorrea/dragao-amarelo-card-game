@@ -34,7 +34,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.17/design-v0.43/inimigos-v0.10/proto-2026-10-25';
+const RULES = 'cartas-v0.17/design-v0.49/inimigos-v0.10/proto-2026-10-26';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
