@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.49 · rascunho para editar*
+*Documento de design preliminar · v0.50 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -392,12 +392,14 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
   - **Charles Goodwich:** Matador, esqueleto batedor, "muito tímido em vida"; cumprimenta com "Buenos días, fuckboy."
   - **Chrome:** 9S, autômato arcano, cedido de graça para ela "fazer reconhecimento" na sua fonte de renda.
   - **Gun'Liao:** Tsubaki, batedora ninja que aparece como se estivesse ali desde sempre.
+  - **Yaven:** indica alguém da turma dele (aventureiro aleatório, provisório).
   - Mestres ainda sem personagem dão um aventureiro aleatório automaticamente na primeira compra.
   - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
   - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
   - **Mikeus, mestre de Temporal Warfare:** grande guerreiro do passado e do futuro, vive nesta era para treinar guerreiros para um conflito que ainda vai acontecer; não dá detalhes, para evitar paradoxos.
-  - Draconic Primalism e Space Wizardry: mestres ainda a definir.
+  - **Yaven, mestre de Space Wizardry:** corvídeo de corpo diminuto e energia enorme, um dos maiores especialistas em magia espacial; vive na biblioteca de astronomia. Da segunda visita em diante, cada visita traz uma curiosidade diferente sobre o espaço ou sobre os cosmonautas (os magos espaciais que exploram o cosmos), num ciclo de 12.
+  - Draconic Primalism: mestre ainda a definir.
 - **Códigos secretos e modo de testes (P77):** as Configurações têm um campo de códigos. Um código de desenvolvedor libera o Menu de testes: alterar ouro, dia, andares concluídos, vida na descida, nível do Alojamento e cartas da coleção; ações do dia ilimitadas; encerrar o dia; disparar eventos (primeiro aventureiro, sugestão da taverna, defesa); liberar a guilda; concluir obras e missões na hora; renovar pedidos e candidatos; aventureiro grátis e subir níveis. Qualquer uso marca a campanha como “com testes”, e as partidas dela saem no log com `cheat: true`.
 - **Sala de guerra:** a ilustração da sala de guerra (mesa com mapa, lareira e Felix na poltrona) é o cabeçalho da tela da guilda.
 

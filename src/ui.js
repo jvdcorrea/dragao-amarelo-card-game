@@ -772,6 +772,30 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Eu sou ambos um aprendiz e o fundador da disciplina do Temporal Warfare, então escute quando digo: Golpeie antes, volte depois. A vitória geralmente pertence a quem percebe o confronto antes.'] },
       { id: 'd', label: 'Melhor começar logo então, se você não tem tempo a perder, eu tenho menos ainda.', reply: ['>Mikeus aponta a lança para o dojo e, pela primeira vez, quase sorri.', 'Boa resposta. Foi a mesma que você me deu da outra vez.'] },
     ] },
+  space: { name: 'Yaven', title: 'mestre de Space Wizardry', img: 'yaven', pos: '50% 50%', face: '31% 36%',
+    place: 'Na biblioteca de astronomia, sob uma cúpula cheia de estrelas, um corvídeo de corpo diminuto e energia enorme fala sem parar sobre as últimas descobertas dele. Este é o famoso Yaven, um dos maiores especialistas em magia espacial.',
+    greet: 'Olá! Você também veio aprender sobre o universo? Você sabia que o universo tem quatorze bilhões de anos?',
+    greet2: 'Olá de novo! Venha, vamos estudar! {fato}',
+    facts: [
+      'Sabia que a luz do Sol leva uns oito minutos para chegar aqui? Toda vez que você olha para ele, está vendo o passado!',
+      'Sabia que um dia em Vênus dura mais que um ano em Vênus? Ele gira tão devagar que dá a volta no Sol antes de dar a volta em si mesmo!',
+      'Sabia que no espaço não existe som? O feitiço mais explosivo do mundo, lá fora, é a coisa mais silenciosa que você vai ver.',
+      'Sabia que a Lua se afasta da gente uns quatro centímetros por ano? Bem devagarinho. Acho que ela está tomando distância para alguma coisa.',
+      'Sabia que Saturno é tão pouco denso que boiaria numa banheira, se alguém achasse uma banheira grande o bastante? Os cosmonautas ainda procuram.',
+      'Sabia que uma colher de chá de estrela de nêutrons pesaria bilhões de toneladas? Eu tentei pesar uma vez. A balança não sobreviveu.',
+      'Sabia que Marte tem um vulcão, o Monte Olimpo, mais de duas vezes mais alto que a montanha mais alta daqui? Os cosmonautas usam ele de ponto de referência.',
+      'Sabia que Júpiter tem uma tempestade maior que o nosso mundo inteiro, girando há séculos? Os cosmonautas chamam de olho do gigante e nunca passam perto.',
+      'Sabia que o Sol leva uns duzentos e trinta milhões de anos para dar uma volta na galáxia? Desde que nasceu, ele só deu umas vinte voltas. Ainda é um filhote!',
+      'Sabia que os primeiros cosmonautas marcavam o próprio nome nas Cargas da Órbita? Quando os feitiços voltavam todos juntos, cada um sabia qual era o seu.',
+      'Sabia que Prever, para um cosmonauta, é só ler o céu antes de todo mundo? As estrelas contam o que vem aí para quem olha com calma.',
+      'Sabia que existem mais estrelas no universo do que grãos de areia em todas as praias do mundo? Pelas minhas contas, faltam umas três para eu terminar de catalogar.',
+    ],
+    indica: { reply: ['Tenho a pessoa certa! Gente da minha turma, que passa tanto tempo olhando para o céu que esquece de olhar para o chão. Um pouco de trabalho na guilda vai fazer bem!'], adv: null },
+    opts: [
+      { id: 'a', label: 'Eu quero mesmo é lançar feitiços poderosos', reply: ['Poderosos! Ótimo! E sabe de onde vem o poder de verdade? Da Órbita!', 'Cada feitiço que você lança dá uma Carga às cartas de Órbita na sua mão. Um Eclipse carregado varre o campo inteiro, e um Cometa Convocado chega quase de graça. Gravidade é paciência, e paciência acumula!'] },
+      { id: 'b', label: 'Quando eu aprendo a conjurar buracos negros?', reply: ['Buraco Negro! O meu favorito! Ele custa caro e destrói tudo que estiver em campo, inclusive o que é seu. Em troca, cada unidade engolida carrega as suas cartas de Órbita.', 'Regra número um dos cosmonautas: nunca conjure um dentro de casa. A minha antiga biblioteca que o diga.'] },
+      { id: 'c', label: 'Se a lua orbita a terra há tanto tempo, ela já deve ter acumulado uma carga gigantesca, não? Que tipo de magia será que ela vai lançar?', reply: ['Que pergunta maravilhosa! Eu calculei isso uma vez. Três noites seguidas, sem dormir.', 'Pelas minhas contas, a Lua já tem Cargas suficientes para um feitiço do tamanho do céu. A boa notícia é que ela é muito paciente. A má notícia é que ninguém sabe o que ela está esperando.'] },
+    ] },
 };
 function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
@@ -809,7 +833,7 @@ function renderNpc() {
         : e.t === 'narra' ? `<p class="narra">${fill(e.text)}</p>`
         : `<div class="fala"><span class="quem">${esc(e.name)}</span>${e.lines.map(l => `<p>${fill(l)}</p>`).join('')}</div>`;
       talk = `${mestreArt(d, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
-        <div class="dialogo-log"><div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet)}</p></div>${log.map(ent).join('')}</div>
+        <div class="dialogo-log"><div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill((((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet).replace('{fato}', mi.facts ? mi.facts[((camp.flags.facts || {})[id] || 0) % mi.facts.length] : ''))}</p></div>${log.map(ent).join('')}</div>
         ${novas.length ? `<div class="opcoes coluna dialogo">${novas.map(bt).join('')}</div>` : ''}
         ${feitas.length ? `<details class="falas-feitas"><summary>Falas já feitas (${feitas.length})</summary><div class="opcoes coluna dialogo">${feitas.map(bt).join('')}</div></details>` : ''}
         <h3>Treinamento</h3>`;
@@ -866,7 +890,7 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-visit') {
     if (!camp.cityTrip) { if (camp.acts.npc) { toast('Você já foi à cidade hoje.'); return true; } startCityTrip(); }
-    if (!camp.cityTrip.visited.includes(ds.npc)) { camp.cityTrip.visited.push(ds.npc); camp.flags.visits = camp.flags.visits || {}; camp.flags.visits[ds.npc] = (camp.flags.visits[ds.npc] || 0) + 1; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
+    if (!camp.cityTrip.visited.includes(ds.npc)) { camp.cityTrip.visited.push(ds.npc); camp.flags.visits = camp.flags.visits || {}; camp.flags.visits[ds.npc] = (camp.flags.visits[ds.npc] || 0) + 1; if (camp.flags.visits[ds.npc] > 2) { camp.flags.facts = camp.flags.facts || {}; camp.flags.facts[ds.npc] = (camp.flags.facts[ds.npc] || 0) + 1; } hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
     ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
   }
   if (act === 'g-talk') {
@@ -881,7 +905,7 @@ async function guildClick(act, ds) {
         ents.push({ t: 'fala', name: mi.name, lines: ind.reply }); if (ind.narra) ents.push({ t: 'narra', text: ind.narra });
         const a = newAdv(ind.adv); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true;
         ents.push({ t: 'narra', text: `${a.name} entra para a guilda: ${advClass(a)}, nível ${a.lvl}.` });
-        if (ind.adv.quote) ents.push({ t: 'fala', name: a.name, lines: [ind.adv.quote] });
+        if (ind.adv && ind.adv.quote) ents.push({ t: 'fala', name: a.name, lines: [ind.adv.quote] });
         hist({ k: 'aventureiro', name: a.name, from: ds.npc });
       }
     } else {
@@ -954,7 +978,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich e Mikeus (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus e Yaven (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>

@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.49*
+*Atualizada em 26/10/2026 · acompanha o design v0.50*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -35,9 +35,9 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 8. **[~] Defesas com inimigos aleatórios** (P72). A partir do dia 3, 20% de chance por noite. Os invasores são monstros do Buraco, em quatro temas com cartas do grupo 1. Vitória dá ouro; derrota custa até 20 de ouro.
    - *Falta:* ladrões (precisam de cartas humanas), defesas sociais, e Cofre ou vigias reduzindo a chance.
 
-9. **[~] Mestres na cidade** (P73, P74). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia. Quatro já têm retrato e diálogo: Chrome (Magitech), Gun'Liao (Holy Shadowmancy), Charles Goodwich (Necrodança) e Mikeus (Temporal Warfare).
+9. **[~] Mestres na cidade** (P73, P74). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia. Cinco já têm retrato e diálogo: Chrome (Magitech), Gun'Liao (Holy Shadowmancy), Charles Goodwich (Necrodança), Mikeus (Temporal Warfare) e Yaven (Space Wizardry).
    - **[x]** Ida à cidade conta só ao voltar; dentro dela, quantos Mestres quiser (P78). Diálogo como registro, com menu de falas já feitas (P78). Indicação de aventureiro depois de comprar um booster: Katya, Matador, 9S e Tsubaki (P79).
-   - *Falta:* os Mestres de Draconic Primalism e de Space Wizardry, e aprender Disciplinas novas com eles (P29).
+   - *Falta:* o Mestre de Draconic Primalism; o aventureiro que o Yaven indica (hoje aleatório); aprender Disciplinas novas com os Mestres (P29).
 
 **[x] Códigos secretos e Menu de testes** (P77), nas Configurações. Partidas de campanhas com testes saem marcadas no log.
 
