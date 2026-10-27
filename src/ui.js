@@ -774,6 +774,16 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Eu sou ambos um aprendiz e o fundador da disciplina do Temporal Warfare, então escute quando digo: Golpeie antes, volte depois. A vitória geralmente pertence a quem percebe o confronto antes.'] },
       { id: 'd', label: 'Melhor começar logo então, se você não tem tempo a perder, eu tenho menos ainda.', reply: ['>Mikeus aponta a lança para o dojo e, pela primeira vez, quase sorri.', 'Boa resposta. Foi a mesma que você me deu da outra vez.'] },
     ] },
+  draconic: { name: 'Ko', title: 'mestre de Draconic Primalism', img: 'ko', pos: '50% 50%', face: '50% 9%',
+    place: 'No bosque antigo, nos limites da cidade, a luz das estrelas atravessa as copas como se o céu tivesse descido para ver. Um grifo observa de um galho, e uma fera feita de luz estelar ronda as raízes. No meio da clareira, um ser dracônico de asas cheias de constelações espera de braços soltos. É Ko, viajante das estrelas, e ele olha para você como quem mede a força de alguém só de ver.',
+    greet: 'Hmm... Uma certa força de espírito. Mas ainda há muito espaço para crescer. O que você busca por aqui?',
+    greet2: 'Você voltou. Sinto que a sua força cresceu um pouco. Ótimo. Vamos ver até onde ela vai.',
+    indica: { reply: ['Tem alguém que me segue há dias pedindo para treinar comigo. Leve para a sua guilda. Trabalho também é treino.'], adv: null },
+    opts: [
+      { id: 'a', label: 'Eu busco a força para destruir meus inimigos', reply: ['Destruir? Hmm. Força que só serve para destruir acaba junto com o último inimigo.', 'Inimigos fortes são presentes. Não destrua todos: alguns você vai querer enfrentar de novo, quando estiver mais forte.', 'A força primal cresce como uma árvore. Raiz primeiro, depois tronco, depois as estrelas. Na Draconic Primalism você junta Cristais, um a um, até o dia em que tudo Desperta. Quando isso acontecer, seus inimigos vão perceber.'] },
+      { id: 'b', label: 'Eu gosto de dragões', reply: ['>Os olhos dele brilham, e as constelações das asas parecem acender junto.', 'Eu também! Dragão é a forma que a força escolhe quando cansa de ser pequena.', 'Comece pelos ovos. Todo dragão já foi um ovo que ninguém levou a sério.'] },
+      { id: 'c', label: 'Você está pelado?', reply: ['>Ko olha para baixo, para as próprias escamas, e pensa por um bom tempo.', 'Isto é a minha pele. Atravessei sete céus com ela. Roupa rasga no primeiro sopro de estrela.', 'Se isso te incomoda, eu posso... Não. Eu não tenho onde guardar uma calça.'] },
+    ] },
   space: { name: 'Yaven', title: 'mestre de Space Wizardry', img: 'yaven', pos: '50% 50%', face: '31% 36%',
     place: 'Na biblioteca de astronomia, sob uma cúpula cheia de estrelas, um corvídeo de corpo diminuto e energia enorme fala sem parar sobre as últimas descobertas dele. Este é o famoso Yaven, um dos maiores especialistas em magia espacial.',
     greet: 'Olá! Você também veio aprender sobre o universo? Você sabia que o universo tem quatorze bilhões de anos?',
@@ -980,7 +990,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus e Yaven (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>
