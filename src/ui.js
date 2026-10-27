@@ -516,7 +516,7 @@ function gearBtn() { return `<button class="engrenagem" data-act="settings" aria
 const GOLD = { batalha: [8, 12], elite: [20, 25], chefe: [50, 50] };
 const rint = (a, b) => a + Math.floor(rnd() * (b - a + 1));
 function goldFor(type) { const g = GOLD[type] || GOLD.batalha; return rint(g[0], g[1]); }
-const ACT_LABEL = { descer: 'Descer', npc: 'Visita na cidade', despachar: 'Despacho', construir: 'Obra' };
+const ACT_LABEL = { descer: 'Descer', npc: 'Ida à cidade', despachar: 'Despacho', construir: 'Obra' };
 const FAC = {
   quadro: { name: 'Quadro de Missões', desc: 'Pedidos de clientes e do governo. Despache aventureiros.' },
   taverna: { name: 'Taverna', desc: 'Onde aventureiros procuram trabalho. Contrate novos membros.' },
@@ -543,9 +543,11 @@ function newAdv(fixed) {
   const [name, g] = fixed ? [fixed.name, fixed.g] : (livres.length ? livres : NOMES)[Math.floor(rnd() * (livres.length || NOMES.length))];
   const cls = fixed ? fixed.cls : Object.keys(CLASSES)[Math.floor(rnd() * 4)];
   const lvl = fixed ? fixed.lvl : (rnd() < 0.7 ? 1 : 2);
-  return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, g, cls, lvl, xp: 0, status: 'livre', mission: null, days: 0 };
+  const a = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, g, cls, lvl, xp: 0, status: 'livre', mission: null, days: 0 };
+  if (fixed && fixed.title) a.title = fixed.title;
+  return a;
 }
-const advClass = a => CLASSES[a.cls][a.g];
+const advClass = a => a.title || CLASSES[a.cls][a.g];
 function newMission() {
   const [diff, tag, title] = MISSOES[Math.floor(rnd() * MISSOES.length)];
   return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), diff, tag, title, days: diff, gold: diff * 15 + rint(0, 10), card: diff >= 2 && rnd() < 0.35 };
@@ -645,7 +647,7 @@ function processAdvs(lines) {
 function endDay() {
   const lines = [];
   finishBuilding(lines); processAdvs(lines);
-  camp.day += 1; camp.acts = {};
+  camp.day += 1; camp.acts = {}; camp.cityTrip = null;
   refreshBoard();
   if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader }); }
   hist({ k: 'dia', day: camp.day });
@@ -733,6 +735,7 @@ const MESTRE_INFO = {
   tech: { name: 'Chrome', title: 'mestra do Magitech', img: 'chrome', pos: '72% 40%', face: '64% 18%',
     place: 'A vitrine da ACT, Magitech & Enchanted Innovations, pisca em roxo: engrenagens, frascos e um autômato que acena sozinho. Na porta, uma mulher de armadura e vestido, cajado de engrenagem na mão, mede você de cima a baixo com um sorriso de quem já calculou o seu preço.',
     greet: 'Isso é um baralho mágico no seu bolso ou está feliz em me ver?',
+    indica: { reply: ['Eu adoraria fazer reconhecimento na sua fonte de renda. Aqui, leve esse autômato de graça!'], adv: { name: '9S', g: 'm', cls: 'mago', lvl: 1, title: 'Autômato arcano', quote: 'Obrigado pela oportunidade de emprego. Você não irá se arrepender.' } },
     opts: [
       { id: 'a', label: 'Que? Como assim?', reply: ['O seu bolso está emitindo três frequências arcanas diferentes. Eu só juntei dois com dois. Lógica simples.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
       { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Vamos ver se você tem a mesma iniciativa para os negócios. Tudo que você vê aqui é Magitech da mais alta qualidade, certamente investir em equipamento de qualidade é mais atraente que meu rostinho lindo, não?'] },
@@ -742,6 +745,7 @@ const MESTRE_INFO = {
     place: 'No terraço da catedral, entre gárgulas e vitrais de anjos, um homem de escamas no rosto e olhos amarelos segura um cajado de serpente alada. Ele sorri antes de você chegar perto, como se já esperasse a visita.',
     greet: 'Saudações, meu cordeirinho. Interessado em aprender sobre os deuses e em que moeda eles negociam?',
     greet2: 'Luz e Liturgia. Sombra e Sangue. Bem-vindo novamente, meu cordeirinho.',
+    indica: { reply: ['Tsubaki.'], narra: 'Uma ninja aparece como se estivesse ali desde sempre.', adv: { name: 'Tsubaki', g: 'f', cls: 'batedor', lvl: 1, title: 'Batedora ninja' } },
     opts: [
       { id: 'a', label: 'Me ensine, mestre.', reply: ['Primeira lição: os deuses não são generosos. São justos. Cobram em fervor, em sacrifício, às vezes em silêncio. Pague o preço certo e até o céu assina contrato com você.', 'Segunda lição: Se alguém precisa pagar o preço em sangue, é melhor que seja um monstro, não acha? Há monstros no mundo todo, esperando para derramar o seu. Não permita.'] },
       { id: 'b', label: 'Você também ensina sobre o que habita as sombras? Achei que clérigos eram do bem!', reply: ['E somos. A luz precisa de quem caminhe onde ela não alcança.', 'Um monstro abatido em silêncio é uma oração surda, tão boa quanto uma peregrinação. Os deuses aceitam as duas, cordeirinho. E só um de nós precisa se sentir culpado. Deixe que eu absolvo toda sua culpa.'] },
@@ -751,6 +755,7 @@ const MESTRE_INFO = {
     place: 'As últimas notas ainda ecoam pela lona do Necro-Circus. A plateia pula no compasso, um-dois-três, um-dois-três, enquanto esqueletos de chapéu de plumas fecham o refrão com violino, alaúde e tambor, e cães e gatos espectrais correm pelo palco. É impossível não balançar a cabeça. Quando a música para, o vocalista desce, um lich de cabelo prateado com uma guitarra que ainda solta faíscas azuis, e acena para você.',
     greet: 'Saudações! Curtiu o show? Quer um autógrafo?',
     greet2: 'Bem-vindo novamente, guerreiro cartomante. Como posso ajudá-lo hoje?',
+    indica: { reply: ['Eu tenho um amigo que quer viajar mais pelo mundo. Ele era muito tímido em vida, ele disse!'], adv: { name: 'Matador', g: 'm', cls: 'batedor', lvl: 1, title: 'Esqueleto batedor', quote: 'Buenos días, fuckboy.' } },
     opts: [
       { id: 'a', label: 'Sim, por favor!', once: 'autografo', reply: ['>Ele rabisca o seu ingresso com um floreio e um sorriso de caveira: «Para {nome}, que tem ritmo. Charles G.»', 'Guarda bem. Daqui a uns trezentos anos isso vale uma fortuna. Confia, eu já vi acontecer.'] },
       { id: 'b', label: 'Ótimo show! Está contratando?', reply: ['Valeu! Quem sabe no dia do seu funeral, mas a gente valoriza quem saiba contar até três. Trate de aprender até lá, se ainda estiver interessado!', 'Necrodança é isso: o Compasso. Um, dois, três, e volta. A carta certa no tempo certo e a música faz o resto. Eu dou aula, se quiser. Não precisa morrer antes, juro.'] },
@@ -760,6 +765,7 @@ const MESTRE_INFO = {
     place: 'No pátio de um dojo, sob nuvens que parecem passar rápido demais, um guerreiro de armadura vermelha e gasta segura um elmo debaixo do braço. A lança dele brilha com runas que você não reconhece, e ele olha para você como quem reencontra um velho conhecido.',
     greet: 'Você. Nós lutaremos juntos no futuro. É melhor começarmos a treinar agora.',
     greet2: 'Chegou bem na hora do treinamento. Vamos.',
+    indica: { reply: ['E eu tenho uma aluna verde que poderia ter mais experiência. Katya, venha cá.'], adv: { name: 'Katya', g: 'f', cls: 'guerreiro', lvl: 1, title: 'Guerreira temporal', quote: 'Finalmente! Pode deixar comigo, chefe. Qualquer missão, a qualquer hora. Duas de uma vez, se precisar!' } },
     opts: [
       { id: 'a', label: 'Nós seremos amigos?', reply: ['>Ele fica em silêncio por um tempo longo.', 'Você vai salvar a minha vida duas vezes. Eu vou salvar a sua três. E você vai dizer que eu estou contando errado. Tire suas conclusões.'] },
       { id: 'b', label: 'O que vai acontecer no futuro?', reply: ['Não. Cada palavra que eu digo sobre aquilo muda alguma coisa, e eu já vi o que acontece quando muda demais.', 'Treine. É a única resposta que não cria paradoxo.'] },
@@ -769,11 +775,18 @@ const MESTRE_INFO = {
 };
 function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
+const INDICA_LABEL = 'Preciso de aventureiros pra me ajudar na guilda, pode me indicar alguém?';
+function startCityTrip() { if (!camp.cityTrip) { camp.cityTrip = { visited: [] }; ui.talkLogs = {}; saveCamp(); } }
+function finishCityTrip() {
+  if (!camp || !camp.cityTrip) return;
+  if (camp.cityTrip.visited.length) { camp.acts.npc = true; hist({ k: 'cidade', visited: camp.cityTrip.visited }); }
+  camp.cityTrip = null; ui.talkLogs = {}; saveCamp();
+}
 function renderCidade() {
-  const v = camp.acts.npc;
-  const npc = (id, name, role, thumb) => `<li class="npc ${v === id ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}" ${v && v !== id ? 'disabled' : ''}>${v === id ? 'Voltar a falar' : 'Visitar'}</button></li>`;
+  const vis = (camp.cityTrip && camp.cityTrip.visited) || [];
+  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? 'Voltar a falar' : 'Visitar'}</button></li>`;
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
-  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${v ? 'visita de hoje já usada' : 'uma visita por dia'}</p></header>
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
   <h2>Outros</h2><ul class="lista-npc">${npc('copias', 'Comprador de cópias', 'Compra as cópias que passam de 2 (o deck só aceita 2). Papel provisório: pode virar outro NPC ou outra mecânica.')}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
@@ -786,13 +799,19 @@ function renderNpc() {
     const fill = t => esc(t).replace(/\{nome\}/g, nome);
     let talk = '';
     if (mi) {
-      const used = (camp.flags.once || {});
-      const said = ui.talk && ui.talk.npc === id ? mi.opts.find(o => o.id === ui.talk.opt) : null;
-      const opts = mi.opts.filter(o => !(o.once && used[o.once] && !(said && said.id === o.id)) && !(said && said.id === o.id));
+      const used = camp.flags.once || {}; const saidSet = new Set(((camp.flags.said || {})[id]) || []);
+      const log = ((ui.talkLogs || {})[id]) || [];
+      const opts = mi.opts.filter(o => !(o.once && used[o.once]));
+      if (mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
+      const novas = opts.filter(o => !saidSet.has(o.id)), feitas = opts.filter(o => saidSet.has(o.id));
+      const bt = o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`;
+      const ent = e => e.t === 'voce' ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(e.text)}</p></div>`
+        : e.t === 'narra' ? `<p class="narra">${fill(e.text)}</p>`
+        : `<div class="fala"><span class="quem">${esc(e.name)}</span>${e.lines.map(l => `<p>${fill(l)}</p>`).join('')}</div>`;
       talk = `${mestreArt(d, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
-        <div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet)}</p></div>
-        ${said ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(said.label)}</p></div>${said.reply.filter(r => r[0] === '>').map(r => `<p class="narra">${fill(r.slice(1))}</p>`).join('')}<div class="fala"><span class="quem">${esc(mi.name)}</span>${said.reply.filter(r => r[0] !== '>').map(r => `<p>${fill(r)}</p>`).join('')}</div>` : ''}
-        ${opts.length ? `<div class="opcoes coluna dialogo">${opts.map(o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`).join('')}</div>` : ''}
+        <div class="dialogo-log"><div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill(((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet)}</p></div>${log.map(ent).join('')}</div>
+        ${novas.length ? `<div class="opcoes coluna dialogo">${novas.map(bt).join('')}</div>` : ''}
+        ${feitas.length ? `<details class="falas-feitas"><summary>Falas já feitas (${feitas.length})</summary><div class="opcoes coluna dialogo">${feitas.map(bt).join('')}</div></details>` : ''}
         <h3>Treinamento</h3>`;
     }
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
@@ -824,7 +843,7 @@ async function guildClick(act, ds) {
   if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-taverna') { ui.screen = 'taverna'; render(); window.scrollTo(0, 0); return true; }
-  if (act === 'g-cidade') { ui.screen = 'cidade'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-cidade') { if (!camp.cityTrip && camp.acts.npc) { toast('Você já foi à cidade hoje.'); return true; } startCityTrip(); ui.screen = 'cidade'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-build-taverna') {
     if (camp.acts.construir || camp.building) return true;
     camp.acts.construir = true; camp.building = { id: 'taverna' }; hist({ k: 'obra-inicio', id: 'taverna' }); saveCamp(); render(); toast('Mãos à obra: a taverna fica pronta ao fim do dia.'); return true;
@@ -846,20 +865,42 @@ async function guildClick(act, ds) {
     camp.gold -= price; camp.advs.push(a); camp.recruits.splice(+ds.idx, 1); hist({ k: 'aventureiro', name: a.name, cls: a.cls, lvl: a.lvl, price }); saveCamp(); render(); toast(`${a.name} entrou para a guilda.`); return true;
   }
   if (act === 'g-visit') {
-    if (camp.acts.npc && camp.acts.npc !== ds.npc) { toast('A visita de hoje já foi usada.'); return true; }
-    if (camp.acts.npc !== ds.npc) { camp.flags.visits = camp.flags.visits || {}; camp.flags.visits[ds.npc] = (camp.flags.visits[ds.npc] || 0) + 1; camp.acts.npc = ds.npc; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
-    if (ui.npc !== ds.npc) ui.talk = null;
+    if (!camp.cityTrip) { if (camp.acts.npc) { toast('Você já foi à cidade hoje.'); return true; } startCityTrip(); }
+    if (!camp.cityTrip.visited.includes(ds.npc)) { camp.cityTrip.visited.push(ds.npc); camp.flags.visits = camp.flags.visits || {}; camp.flags.visits[ds.npc] = (camp.flags.visits[ds.npc] || 0) + 1; hist({ k: 'visita', npc: ds.npc }); saveCamp(); }
     ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
   }
   if (act === 'g-talk') {
-    const d = ds.npc.slice(7); const mi = MESTRE_INFO[d]; const o = mi && mi.opts.find(x => x.id === ds.opt); if (!o) return true;
+    const d = ds.npc.slice(7); const mi = MESTRE_INFO[d]; if (!mi) return true;
+    const o = ds.opt === 'indica' ? { id: 'indica', label: INDICA_LABEL } : mi.opts.find(x => x.id === ds.opt); if (!o) return true;
     if (o.once) { camp.flags.once = camp.flags.once || {}; if (camp.flags.once[o.once]) return true; camp.flags.once[o.once] = true; }
-    ui.talk = { npc: ds.npc, opt: o.id }; hist({ k: 'dialogo', npc: ds.npc, opt: o.id }); saveCamp(); render(); return true;
+    const ents = [{ t: 'voce', text: o.label }];
+    if (o.id === 'indica') {
+      const ind = mi.indica;
+      if (camp.advs.length >= advMax()) ents.push({ t: 'narra', text: 'A guilda está cheia: não há onde acomodar mais ninguém. Amplie o Alojamento e volte a pedir.' });
+      else {
+        ents.push({ t: 'fala', name: mi.name, lines: ind.reply }); if (ind.narra) ents.push({ t: 'narra', text: ind.narra });
+        const a = newAdv(ind.adv); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true;
+        ents.push({ t: 'narra', text: `${a.name} entra para a guilda: ${advClass(a)}, nível ${a.lvl}.` });
+        if (ind.adv.quote) ents.push({ t: 'fala', name: a.name, lines: [ind.adv.quote] });
+        hist({ k: 'aventureiro', name: a.name, from: ds.npc });
+      }
+    } else {
+      o.reply.filter(r => r[0] === '>').forEach(r => ents.push({ t: 'narra', text: r.slice(1) }));
+      const ls = o.reply.filter(r => r[0] !== '>'); if (ls.length) ents.push({ t: 'fala', name: mi.name, lines: ls });
+    }
+    ui.talkLogs = ui.talkLogs || {}; (ui.talkLogs[ds.npc] = ui.talkLogs[ds.npc] || []).push(...ents);
+    if (o.id !== 'indica' || (camp.flags.indicou || {})[d]) { camp.flags.said = camp.flags.said || {}; const arr = camp.flags.said[ds.npc] = camp.flags.said[ds.npc] || []; if (!arr.includes(o.id)) arr.push(o.id); }
+    hist({ k: 'dialogo', npc: ds.npc, opt: o.id }); saveCamp(); render();
+    const last = document.querySelector('.dialogo-log > :last-child'); if (last) last.scrollIntoView({ block: 'nearest' });
+    return true;
   }
   if (act === 'g-buy') {
     const d = ds.dd; if (camp.gold < BOOSTER_PRECO) return true;
     camp.gold -= BOOSTER_PRECO; const cards = R.openDiscPack(rnd, d, camp.collection); addCards(cards);
-    hist({ k: 'booster', type: 'mestre-' + d, cards, price: BOOSTER_PRECO }); saveCamp();
+    hist({ k: 'booster', type: 'mestre-' + d, cards, price: BOOSTER_PRECO });
+    camp.flags.bought = camp.flags.bought || {}; camp.flags.bought[d] = true;
+    if (!MESTRE_INFO[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d] && camp.advs.length < advMax()) { const a = newAdv(); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true; hist({ k: 'aventureiro', name: a.name, from: 'mestre-' + d }); setTimeout(() => toast(`O mestre indicou ${a.name} (${advClass(a)}) para a guilda.`), 50); }
+    saveCamp();
     ui.scene = { kind: 'booster', type: d, cards, back: 'npc' }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return true;
   }
   if (act === 'g-sell' || act === 'g-sell-all') {
@@ -872,7 +913,7 @@ async function guildClick(act, ds) {
 const bi = k => iconSvg(typeof ART !== 'undefined' ? ART.ui[k] : null, 'ico-btn');
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
-  ensureGuild();
+  ensureGuild(); finishCityTrip();
   const ps = pendingScene(); if (ps) { ui.scene = ps; ui.screen = 'scene'; renderScene(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
   const next = Math.min(camp.floor, 5);
@@ -892,7 +933,7 @@ function renderHome() {
       ${guildStatus()}
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run ? 'disabled' : ''}>${bi('cidade')}Ir à cidade</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
       <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
     ${logsHtml()}`;

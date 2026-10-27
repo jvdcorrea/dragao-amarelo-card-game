@@ -412,3 +412,10 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .prever-lista .carta .marca.nova { color: var(--d-draconic); }
 .prever-lista .carta .marca.tem1 { color: var(--muted); }
 .prever-lista .carta .marca.repetida { color: var(--vida); }
+
+/* Diálogo com registro */
+.dialogo-log { display: flex; flex-direction: column; gap: 2px; }
+.falas-feitas { margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; background: var(--surface); }
+.falas-feitas summary { cursor: pointer; font-weight: 700; color: var(--muted); padding: 4px 0; }
+.falas-feitas[open] summary { margin-bottom: 6px; }
+.opcoes.dialogo { flex-direction: column; align-items: flex-start; }

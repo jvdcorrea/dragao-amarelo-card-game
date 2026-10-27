@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.48 · rascunho para editar*
+*Documento de design preliminar · v0.49 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -379,13 +379,20 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 
 Primeira versão jogável do gerenciamento. Os números são provisórios e as decisões marcadas como placeholder estão na lista de tarefas (`dragao-amarelo-todo.md`).
 
-- **Dia e ações (P68, aplica P4 e P34):** cada ação importante vale uma vez por dia: descer, uma visita na cidade, despachar missões e uma obra. Descer não passa mais o dia; o dia só avança em "Encerrar o dia", que resolve missões, recuperação, obras e a chance de defesa. Campanhas novas começam no dia 1.
+- **Dia e ações (P68, aplica P4 e P34):** cada ação importante vale uma vez por dia: descer, uma ida à cidade, despachar missões e uma obra. Descer não passa mais o dia; o dia só avança em "Encerrar o dia", que resolve missões, recuperação, obras e a chance de defesa. Campanhas novas começam no dia 1.
 - **Ouro (P69):** cada luta vencida dá ouro (Batalha 8 a 12, Elite 20 a 25, Chefe 50), inclusive em revisitas. O ouro vai direto para o cofre da guilda e não se perde numa derrota, ao contrário da mochila.
 - **Aventureiros e missões (P70, aplica P19, P22, P25):** na primeira volta de uma descida, uma aventureira bate à porta (Brisa, batedora, placeholder) e o Quadro de Missões é liberado. Cada aventureiro tem classe (Guerreiro, Batedor, Mago, Clérigo), nível e especialidade; missões têm dificuldade 1 a 3, duração em dias, ouro e às vezes uma carta. Chance de sucesso: 60% + 15% × (nível + 1 se a especialidade bate − dificuldade), entre 20% e 95%. Falha: volta sem nada e passa 1 dia se recuperando. Sucesso dá experiência; o nível sobe a cada (nível × 2) sucessos. Até 4 aventureiros, ampliável pelo Alojamento.
 - **Instalações (P71):** depois da primeira aventureira, Felix sugere reabrir a taverna e o menu de Instalações é liberado. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia; a Taverna oferece 3 candidatos gerados ao acaso por dia (placeholder; no jogo final, contratar envolve batalha social), por 25 de ouro mais 15 por nível acima de 1. O **Alojamento** (P76) amplia o limite de aventureiros: começa em 4 e cada nível abre mais 2, até 10; custa 60, 120 e 200 de ouro por nível, usa a obra do dia e exige a Taverna aberta. Área de treinamento, Laboratório arcano e Ferraria aparecem bloqueadas, à espera de um NPC que as libere.
 - **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão por monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos). Não gasta ação; vitória dá 15 a 25 de ouro, derrota custa até 20 de ouro.
-- **Cidade (P73):** uma visita por dia. Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
+- **Cidade (P73, revisto em P78):** uma ida por dia; dentro dela, o jogador visita quantos Mestres e NPCs quiser, e a ação só é gasta ao voltar para a guilda (sair sem visitar ninguém não gasta). Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. Um comprador provisório paga pelas cópias que passam de 2 (Comum 5, Incomum 12, Rara 30 de ouro); o papel dele ainda pode virar outro NPC ou outra mecânica.
 - **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez). Da segunda visita em diante, Gun'Liao, Charles e Mikeus cumprimentam com outra fala. A parte de compra da tela de cada Mestre se chama Treinamento.
+- **Diálogo como registro (P78):** cada fala escolhida fica na tela, em sequência, registrando a conversa da ida. Falas ainda não feitas aparecem como botões; as já feitas vão para um menu recolhível "Falas já feitas", de onde podem ser repetidas.
+- **Indicação de aventureiro (P79):** depois de comprar um booster de um Mestre (e com a guilda já recebendo aventureiros), aparece a fala "Preciso de aventureiros pra me ajudar na guilda, pode me indicar alguém?". Cada Mestre indica uma vez, se houver vaga; com a guilda cheia, a fala continua disponível.
+  - **Mikeus:** Katya, guerreira temporal, aluna verde e animada (spunky go-getter).
+  - **Charles Goodwich:** Matador, esqueleto batedor, "muito tímido em vida"; cumprimenta com "Buenos días, fuckboy."
+  - **Chrome:** 9S, autômato arcano, cedido de graça para ela "fazer reconhecimento" na sua fonte de renda.
+  - **Gun'Liao:** Tsubaki, batedora ninja que aparece como se estivesse ali desde sempre.
+  - Mestres ainda sem personagem dão um aventureiro aleatório automaticamente na primeira compra.
   - **Chrome, mestra do Magitech:** dona da ACT, Magitech & Enchanted Innovations. Muito inteligente, rica, sempre atrás de oportunidades de negócio; flerta de brincadeira e gosta de ajudar quem agradece.
   - **Gun'Liao, mestre do Holy Shadowmancy:** acredita que os deuses podem ser "contratados" com fervor e sacrifício, e trata o assassinato de inimigos e monstros como ato sagrado pelo bem maior. O jogador deve sempre ficar na dúvida se ele é uma boa pessoa.
   - **Charles Goodwich, o bom lich, mestre da Necrodança:** arquimago milenar que achou a verdadeira paixão na música; líder da Goodwich's Spectral Gang, que toca no Necro-Circus. Gente boa e tranquilo, não acha nada disso grande coisa.
