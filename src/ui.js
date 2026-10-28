@@ -809,6 +809,19 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Se a lua orbita a terra há tanto tempo, ela já deve ter acumulado uma carga gigantesca, não? Que tipo de magia será que ela vai lançar?', reply: ['Que pergunta maravilhosa! Eu calculei isso uma vez. Três noites seguidas, sem dormir.', 'Pelas minhas contas, a Lua já tem Cargas suficientes para um feitiço do tamanho do céu. A boa notícia é que ela é muito paciente. A má notícia é que ninguém sabe o que ela está esperando.'] },
     ] },
 };
+const NPC_INFO = {
+  copias: { name: 'Lerael Vane', title: 'arquivista da Sociedade Mágica', img: 'lerael', pos: '50% 50%', face: '60% 26%',
+    place: 'No escritório do arquivo da Sociedade Mágica, entre prateleiras de frascos e livros rúnicos, uma elfa de óculos escreve com uma pena que brilha. O crachá diz Lerael Vane. Ela termina a frase antes de levantar os olhos, e as olheiras contam que esta não é a primeira noite em claro.',
+    greet: 'Boa noite. Lerael Vane, arquivista da Sociedade Mágica. Se trouxe cartas repetidas, a Sociedade as recebe cordialmente para fins de pesquisa arcana. Há um formulário. Na verdade, há três.',
+    greet2: 'Ah, você de novo. Que bom. Os formulários já estão preenchidos com o seu nome; só faltam as cartas.',
+    opts: [
+      { id: 'a', label: 'O que a Sociedade faz com as minhas cartas?', reply: ['Estudamos. Cada carta é um pequeno fenômeno mágico preso em papel, e as cópias permitem experimentos que um original não aguentaria.', 'Algumas são desmontadas, outras comparadas, uma ou outra pega fogo. Tudo devidamente registrado.'] },
+      { id: 'b', label: 'Você parece cansada.', reply: ['>Ela ajeita os óculos e toma um gole longo da caneca.', 'Estou ótima. Este é o meu rosto de quem está ótima.', 'A Sociedade recebe mais cartas do que tem arquivistas. É um bom problema. Para a Sociedade.'] },
+      { id: 'c', label: 'O que é a Sociedade Mágica?', reply: ['Uma reunião de magos que concordam em discordar, formalmente e por escrito.', 'Registramos Disciplinas, artefatos e fenômenos. Cartomantes também, quando aparecem. Faz tempo que não aparece nenhum.'] },
+    ] },
+};
+const npcInfo = id => id.startsWith('mestre-') ? MESTRE_INFO[id.slice(7)] : NPC_INFO[id];
+function npcArt(m, cls) { return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
 const INDICA_LABEL = 'Preciso de aventureiros pra me ajudar na guilda, pode me indicar alguém?';
@@ -824,8 +837,26 @@ function renderCidade() {
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
-  <h2>Outros</h2><ul class="lista-npc">${npc('copias', 'Comprador de cópias', 'Compra as cópias que passam de 2 (o deck só aceita 2). Papel provisório: pode virar outro NPC ou outra mecânica.')}</ul>
+  <h2>Sociedade Mágica</h2><ul class="lista-npc">${npc('copias', 'Lerael Vane, arquivista da Sociedade Mágica', 'Recebe cordialmente as cópias que passam de 2 (o deck só aceita 2), em troca de um honorário, para avançar as pesquisas arcanas.', npcArt(NPC_INFO.copias, 'npc-thumb'))}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+}
+function talkHtml(id, mi, d) {
+  const nome = esc((camp && camp.name) || 'você');
+  const fill = t => esc(t).replace(/\{nome\}/g, nome);
+      const used = camp.flags.once || {}; const saidSet = new Set(((camp.flags.said || {})[id]) || []);
+      const log = ((ui.talkLogs || {})[id]) || [];
+      const opts = mi.opts.filter(o => !(o.once && used[o.once]) && (!o.requires || saidSet.has(o.requires)));
+      if (d && mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
+      const novas = opts.filter(o => !saidSet.has(o.id)), feitas = opts.filter(o => saidSet.has(o.id));
+      const bt = o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`;
+      const ent = e => e.t === 'voce' ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(e.text)}</p></div>`
+        : e.t === 'narra' ? `<p class="narra">${fill(e.text)}</p>`
+        : `<div class="fala"><span class="quem">${esc(e.name)}</span>${e.lines.map(l => `<p>${fill(l)}</p>`).join('')}</div>`;
+      return `${npcArt(mi, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
+        <div class="dialogo-log"><div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill((((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet).replace('{fato}', mi.facts ? mi.facts[((camp.flags.facts || {})[id] || 0) % mi.facts.length] : ''))}</p></div>${log.map(ent).join('')}</div>
+        ${novas.length ? `<div class="opcoes coluna dialogo">${novas.map(bt).join('')}</div>` : ''}
+        ${feitas.length ? `<details class="falas-feitas"><summary>Falas já feitas (${feitas.length})</summary><div class="opcoes coluna dialogo">${feitas.map(bt).join('')}</div></details>` : ''}
+`;
 }
 function renderNpc() {
   const id = ui.npc; let body = '';
@@ -834,29 +865,14 @@ function renderNpc() {
     const nome = esc((camp && camp.name) || 'você');
     const fill = t => esc(t).replace(/\{nome\}/g, nome);
     let talk = '';
-    if (mi) {
-      const used = camp.flags.once || {}; const saidSet = new Set(((camp.flags.said || {})[id]) || []);
-      const log = ((ui.talkLogs || {})[id]) || [];
-      const opts = mi.opts.filter(o => !(o.once && used[o.once]) && (!o.requires || saidSet.has(o.requires)));
-      if (mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
-      const novas = opts.filter(o => !saidSet.has(o.id)), feitas = opts.filter(o => saidSet.has(o.id));
-      const bt = o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`;
-      const ent = e => e.t === 'voce' ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(e.text)}</p></div>`
-        : e.t === 'narra' ? `<p class="narra">${fill(e.text)}</p>`
-        : `<div class="fala"><span class="quem">${esc(e.name)}</span>${e.lines.map(l => `<p>${fill(l)}</p>`).join('')}</div>`;
-      talk = `${mestreArt(d, 'npc-arte')}<h2>${esc(mi.name)}</h2><p class="linha">${esc(mi.title[0].toUpperCase() + mi.title.slice(1))}</p><p>${esc(mi.place)}</p>
-        <div class="dialogo-log"><div class="fala"><span class="quem">${esc(mi.name)}</span><p>${fill((((camp.flags.visits || {})[id] || 0) > 1 && mi.greet2 ? mi.greet2 : mi.greet).replace('{fato}', mi.facts ? mi.facts[((camp.flags.facts || {})[id] || 0) % mi.facts.length] : ''))}</p></div>${log.map(ent).join('')}</div>
-        ${novas.length ? `<div class="opcoes coluna dialogo">${novas.map(bt).join('')}</div>` : ''}
-        ${feitas.length ? `<details class="falas-feitas"><summary>Falas já feitas (${feitas.length})</summary><div class="opcoes coluna dialogo">${feitas.map(bt).join('')}</div></details>` : ''}
-        <h3>Treinamento</h3>`;
-    }
+    if (mi) talk = talkHtml(id, mi, d) + '<h3>Treinamento</h3>';
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
       <div class="opcoes"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button></div>`;
   } else {
     const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
-    body = `<h2>Comprador de cópias</h2><p class="linha">Papel provisório.</p><p>${ex.length ? 'Cópias que passam de 2 na sua coleção:' : 'Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.'}</p>
-      ${ex.length ? `<ul class="lista-npc">${ex.map(x => `<li class="npc"><div><b>${esc(E.DEF[x.id].name)}</b> ${rarTag(x.id)}<p class="linha">${x.extra} cópia${x.extra === 1 ? '' : 's'} extra · ${x.value} de ouro cada</p></div><button class="botao" data-act="g-sell" data-cid="${x.id}">Vender 1</button></li>`).join('')}</ul>
-      <div class="opcoes"><button class="botao principal" data-act="g-sell-all">Vender todas (+${total} de ouro)</button></div>` : ''}`;
+    body = `${talkHtml(id, NPC_INFO.copias, null)}<h3>Arquivo</h3><p>${ex.length ? 'A Sociedade paga um honorário de pesquisa por cópia que passa de 2 na sua coleção (o deck só aceita 2):' : 'Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.'}</p>
+      ${ex.length ? `<ul class="lista-npc">${ex.map(x => `<li class="npc"><div><b>${esc(E.DEF[x.id].name)}</b> ${rarTag(x.id)}<p class="linha">${x.extra} cópia${x.extra === 1 ? '' : 's'} extra · ${x.value} de ouro cada</p></div><button class="botao" data-act="g-sell" data-cid="${x.id}">Entregar 1</button></li>`).join('')}</ul>
+      <div class="opcoes"><button class="botao principal" data-act="g-sell-all">Entregar todas (+${total} de ouro)</button></div>` : ''}`;
   }
   $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${camp.gold} de ouro</p>${body}<div class="linha-logs"><button class="botao" data-act="g-cidade">Voltar à cidade</button></div></section>`;
 }
@@ -906,7 +922,7 @@ async function guildClick(act, ds) {
     ui.npc = ds.npc; ui.screen = 'npc'; render(); window.scrollTo(0, 0); return true;
   }
   if (act === 'g-talk') {
-    const d = ds.npc.slice(7); const mi = MESTRE_INFO[d]; if (!mi) return true;
+    const d = ds.npc.startsWith('mestre-') ? ds.npc.slice(7) : null; const mi = npcInfo(ds.npc); if (!mi) return true;
     const o = ds.opt === 'indica' ? { id: 'indica', label: INDICA_LABEL } : mi.opts.find(x => x.id === ds.opt); if (!o) return true;
     if (o.once) { camp.flags.once = camp.flags.once || {}; if (camp.flags.once[o.once]) return true; camp.flags.once[o.once] = true; }
     const ents = [{ t: 'voce', text: o.label }];
@@ -942,7 +958,7 @@ async function guildClick(act, ds) {
   if (act === 'g-sell' || act === 'g-sell-all') {
     const ex = excessCopies().filter(x => act === 'g-sell-all' || x.id === ds.cid); let got = 0;
     ex.forEach(x => { const n = act === 'g-sell-all' ? x.extra : 1; camp.collection[x.id] -= n; got += n * x.value; });
-    camp.gold += got; hist({ k: 'venda', cards: ex.map(x => x.id), gold: got }); saveCamp(); render(); toast(`+${got} de ouro.`); return true;
+    camp.gold += got; hist({ k: 'venda', cards: ex.map(x => x.id), gold: got }); saveCamp(); render(); toast(`A Sociedade Mágica agradece: +${got} de ouro.`); return true;
   }
   return false;
 }
@@ -990,7 +1006,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>

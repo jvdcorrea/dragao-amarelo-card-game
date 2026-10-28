@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.52*
+*Atualizada em 26/10/2026 · acompanha o design v0.53*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -17,7 +17,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 3. **[x] Ouro em cada luta vencida** (P69). Batalha 8 a 12, Elite 20 a 25, Chefe 50, inclusive em revisitas. Vai direto para o cofre e não se perde na derrota.
 
-4. **[~] Comprar cartas repetidas (quando passam de 2).** Funciona na cidade com um "Comprador de cópias" provisório (Comum 5, Incomum 12, Rara 30 de ouro). Ideias para não ser um mercador:
+4. **[x] Cartas repetidas (quando passam de 2).** Lerael Vane, arquivista da Sociedade Mágica (P81), recebe as cópias na cidade e paga um honorário (Comum 5, Incomum 12, Rara 30 de ouro). As ideias abaixo ficam como opções futuras. Ideias para não ser um mercador:
    - **Os próprios Mestres aceitam cópias da Disciplina deles** como parte do pagamento do booster. Não cria NPC novo e liga duas coisas que já existem.
    - **Arquivista da biblioteca real:** guarda uma cópia de cada carta "para a posteridade" e paga em ouro. Combina com o salão de livros da ilustração do Felix.
    - **Banco do credor:** aceita cartas como abatimento da dívida, pela avaliação dele (sempre desconfiada). Liga as cópias à dívida.
