@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.55 · rascunho para editar*
+*Documento de design preliminar · v0.56 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -475,6 +475,12 @@ Mesmo motor de regras da batalha (P10), com vocabulário e condições de vitór
 - **Yaven:** conversar sobre magia, visitar a estação espacial mágica, olhar as estrelas e ver as magias de festa.
 - **Lerael:** café com amenidades ou café com reclamações do trabalho.
 As lutas dos passeios usam o deck de batalha contra um encontro comum do andar atual; vitória dá 10 a 15 de ouro, derrota não tem multa.
+
+**Disciplina do deck social (P88, revê P54):** o deck social passa a ter Disciplina própria, escolhida no editor social entre as Disciplinas de que o jogador tem cartas sociais. Pode ser diferente da do deck de batalha.
+
+**Defesas sociais (P89, aplica P24 a P27):** quando a noite traz uma defesa (20% a partir do dia 3), metade das vezes, depois do tutorial social, ela é uma visita indesejada resolvida com o deck social: Golpista de Fala Mansa (Perfil Ganância, 14 de Resistência), Cobrador de Proteção (Perfil Respeito, 16) ou o representante do Grifo Dourado, uma guilda rival (Perfil Vaidade, 16). Mesmas regras das defesas físicas: não gasta ação; vitória dá 15 a 25 de ouro; derrota custa até 20. A patrulha com Mikeus também pode virar uma conversa (25%) com um Bêbado Chato (Vaidade, 10) ou uma Figura Suspeita (Procedimento, 12); vitória dá 5 a 10 de ouro.
+
+**O credor e a primeira parcela (P90, aplica P3, P28 e P30):** ao concluir o terceiro andar pela primeira vez, o credor aparece na guilda: **Barão Ostrander, do Banco da Coroa** [nome provisório]. Como a guilda acabou de reabrir, ele cobra uma primeira parcela reduzida de **300 de ouro**, e o prazo sai de uma negociação (Perfil Procedimento, 22 de Resistência): vitória dá 4 dias; derrota, 2. Paga-se no Banco da Coroa, na cidade, ou na hora, se houver ouro. O dinheiro vem junto com o **tesouro do Basilisco**: 300 de ouro na primeira vitória sobre ele. Quando o cofre alcança o valor da parcela, Felix recomenda pagar imediatamente, para evitar os juros e para não gastar o ouro sem querer, como Ergos fazia. Se o prazo vencer, a parcela sobe 10% e o Barão volta para outra negociação (vitória: 3 dias; derrota: 2 dias e mais 10%). Nunca há game over. As parcelas seguintes ainda estão a definir.
 
 **Disciplinas no social (P35, P54):** o deck social usa sempre a mesma Disciplina do deck de batalha. O deck social inicial segue a lógica do de batalha: 14 neutras fixas + seleção introdutória de 6 cartas da Disciplina. Listas no arquivo de cartas.
 

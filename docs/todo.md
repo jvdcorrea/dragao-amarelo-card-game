@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 27/10/2026 · acompanha o design v0.55*
+*Atualizada em 28/10/2026 · acompanha o design v0.56*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -51,9 +51,12 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [ ] Afinidade com cada NPC: passeios somam pontos; níveis liberam falas, uma carta social Rara do NPC e, no topo, o NPC como carta de Contato no deck de batalha.
 - [ ] Recrutar na Taverna por negociação (P11), com perfil próprio de cada candidato.
-- [ ] Defesas sociais (P24, P27): golpistas, cobradores de proteção e guildas rivais, com as mesmas regras das defesas físicas.
+- [x] Defesas sociais (P89): golpistas, cobradores de proteção e a guilda rival; a patrulha também pode virar conversa.
+- [x] Deck social com Disciplina própria (P88).
+- [x] O credor e a primeira parcela de 300 de ouro, com o tesouro do Basilisco (P90).
+- [ ] Nome definitivo do credor (hoje Barão Ostrander, provisório) e as parcelas seguintes.
 - [ ] Mestres como chefes sociais (P29): vencer a negociação ensina a Disciplina do Mestre.
-- [ ] O credor como chefe social de renegociação (P30), com Suborno Discreto virando contra quem tenta.
+- [ ] Renegociar a taxa com o credor (P30), com Suborno Discreto virando contra quem tenta.
 - [ ] Vitória graduada: a Compostura que sobra define o acordo (gorjeta, desconto, informação extra).
 - [ ] Clientes recorrentes no Quadro de Missões que às vezes exigem negociação para pagar.
 

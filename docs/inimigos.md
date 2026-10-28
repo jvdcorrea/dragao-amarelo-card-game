@@ -1,6 +1,6 @@
 # Dragão Amarelo: Inimigos · Grupo 1
 
-*v0.10 · complementa o design (v0.40) e as cartas (v0.16) · todos os números são provisórios*
+*v0.11 · complementa o design (v0.56) e as cartas (v0.18) · todos os números são provisórios*
 
 ---
 
@@ -173,3 +173,18 @@ Medido com o deck inicial novo (20 neutras fixas + 10 introdutórias, P53) e com
 > - **Revoada na Fenda e Toca das Aranhas ficaram fáceis** (98% a 100%). Para a Revoada, que abre o andar 1, isso serve; a Toca aparece até o andar 4 e precisa de mais pressão.
 > - **Jardim de Esporos segue o comum mais difícil** (30% a 78%) e ainda é mais difícil que a elite Centopeia Imperatriz para todas as Disciplinas. O Brotar 4/4 pune muito quem não mata Brotos na hora.
 > - **Fungo Colossal Desperto é a elite mais dura** (23% a 68%).
+
+
+---
+
+## Interlocutores sociais (protótipo, P86, P89, P90)
+
+| Interlocutor | Onde aparece | Perfil | Resistência | Deck |
+|---|---|---|---|---|
+| Cliente Reclamão | Tutorial, quando a taverna abre | Ganância | 12 | Reclamação Insistente, Pelo de Gato na Manga, Pedido de Desconto, Quero Falar com o Gerente, Ameaça de Avaliação Ruim |
+| Golpista de Fala Mansa | Defesa social | Ganância | 14 | Conversa Fiada, Proposta Imperdível, Comparsa, Promessa Vazia, Amigo de Bar |
+| Cobrador de Proteção | Defesa social | Respeito | 16 | Capanga, Ameaça Velada, Brutamontes, Taxa de Proteção, Conversa Fiada |
+| Representante do Grifo Dourado | Defesa social (guilda rival) | Vaidade | 16 | Fanfarronice, Troféu Exibido, Campeão da Guilda Rival, Desdém Profissional, Proposta Imperdível |
+| Bêbado Chato | Patrulha com Mikeus | Vaidade | 10 | Soluço Ofensivo, Cantoria Desafinada, Amigo de Bar, Conversa Fiada |
+| Figura Suspeita | Patrulha com Mikeus | Procedimento | 12 | Olhar Desconfiado, Resposta Evasiva, Álibi Ensaiado, Conversa Fiada, Proposta Imperdível |
+| Barão Ostrander | Credor, depois do terceiro andar | Procedimento | 22 | Notificação Oficial, Juros Compostos, Cláusula de Multa, Auditor da Coroa, Contador Implacável, Penhora |

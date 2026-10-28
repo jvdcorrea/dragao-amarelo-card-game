@@ -449,3 +449,6 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .tutorial-social dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
 .tutorial-social dt { font-weight: 700; } .tutorial-social dd { margin: 0; }
 @media (max-width: 600px) { .tutorial-social dl { grid-template-columns: 1fr; } .tutorial-social dd { margin-bottom: 6px; } }
+.parcela { margin: 2px 0 8px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ouro-vivo); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }
+.parcela.urgente { border-color: var(--vida); background: color-mix(in srgb, var(--vida) 10%, transparent); }
+.parcela.paga { color: var(--muted); border-color: var(--line); background: transparent; }

@@ -460,6 +460,9 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .tutorial-social dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
 .tutorial-social dt { font-weight: 700; } .tutorial-social dd { margin: 0; }
 @media (max-width: 600px) { .tutorial-social dl { grid-template-columns: 1fr; } .tutorial-social dd { margin-bottom: 6px; } }
+.parcela { margin: 2px 0 8px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ouro-vivo); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }
+.parcela.urgente { border-color: var(--vida); background: color-mix(in srgb, var(--vida) 10%, transparent); }
+.parcela.paga { color: var(--muted); border-color: var(--line); background: transparent; }
 
 </style>
 </head>
@@ -1372,6 +1375,40 @@ sd_('e_desconto', { name: 'Pedido de Desconto', cost: 2, type: 'unit', atk: 2, h
 sd_('e_gerente', { name: 'Quero Falar com o Gerente', cost: 3, type: 'unit', atk: 2, hp: 4, kw: ['guarda'], text: 'Ponto Sensível.' });
 sd_('e_avaliacao', { name: 'Ameaça de Avaliação Ruim', cost: 3, type: 'spell', text: 'Cause 3 de dano à sua Compostura.', onPlay(st, s) { hitR(st, s, 3); } });
 ENC.cliente = { name: 'Cliente da Taverna', tier: 'Social', social: true, perfil: 'Ganância', leader: 'Cliente Reclamão', hp: 12, hand: 3, rule: 'Perfil Ganância. Quer pagar menos porque a mesa está cheia de pelo de gato.', deck: { e_reclamacao: 4, e_pelo: 3, e_desconto: 4, e_gerente: 2, e_avaliacao: 2 } };
+// Interlocutores das defesas sociais, das patrulhas e do credor
+const eT = (id, name, cost, n, text) => sd_(id, { name, cost, type: 'spell', text: text || `Cause ${n} de dano à sua Compostura.`, onPlay(st, s) { hitR(st, s, n); } });
+const eA = (id, name, cost, atk, hp, kw, text, extra) => sd_(id, Object.assign({ name, cost, type: 'unit', atk, hp, kw: kw || [], text: text || (kw && kw.includes('guarda') ? 'Ponto Sensível.' : '') }, extra || {}));
+eT('e_lero', 'Conversa Fiada', 1, 2);
+eA('e_proposta', 'Proposta Imperdível', 2, 2, 2);
+eA('e_comparsa', 'Comparsa', 2, 1, 3, ['guarda']);
+eT('e_promessa', 'Promessa Vazia', 2, 3);
+eA('e_capanga', 'Capanga', 3, 3, 2);
+eT('e_ameaca', 'Ameaça Velada', 2, 3);
+eA('e_brutamontes', 'Brutamontes', 4, 3, 4, ['guarda']);
+eT('e_taxa', 'Taxa de Proteção', 3, 4);
+eT('e_fanfarra', 'Fanfarronice', 1, 2);
+eA('e_trofeu_rival', 'Troféu Exibido', 2, 2, 3);
+eA('e_campeao', 'Campeão da Guilda Rival', 4, 4, 3);
+eT('e_desdem', 'Desdém Profissional', 3, 4);
+eT('e_soluco', 'Soluço Ofensivo', 1, 2);
+eA('e_cantoria', 'Cantoria Desafinada', 2, 1, 4, ['guarda']);
+eA('e_amigo_bar', 'Amigo de Bar', 1, 1, 2);
+eT('e_olhar_desc', 'Olhar Desconfiado', 1, 2);
+eA('e_evasiva', 'Resposta Evasiva', 2, 2, 3, ['guarda']);
+eA('e_alibi', 'Álibi Ensaiado', 3, 2, 3, ['escudo'], 'Álibi.');
+eT('e_notificacao', 'Notificação Oficial', 1, 2);
+eT('e_juros', 'Juros Compostos', 2, 3);
+eA('e_multa', 'Cláusula de Multa', 3, 2, 4, ['guarda']);
+eA('e_auditor', 'Auditor da Coroa', 3, 3, 3);
+eA('e_contador', 'Contador Implacável', 2, 2, 2, [], 'Abertura: cause 1 de dano à sua Compostura.', { onPlay(st, s) { hitR(st, s, 1); } });
+sd_('e_penhora', { name: 'Penhora', cost: 4, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Destrua um Argumento seu.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { e.destroyed = true; log(st, `${e.name} é penhorado.`); } } });
+const socEnc = (id, o) => { ENC[id] = Object.assign({ tier: 'Social', social: true, hand: 3 }, o); };
+socEnc('golpista', { name: 'Golpista na Porta', perfil: 'Ganância', leader: 'Golpista de Fala Mansa', hp: 14, rule: 'Perfil Ganância. Quer vender à guilda um “seguro contra dragões”.', deck: { e_lero: 4, e_proposta: 4, e_comparsa: 3, e_promessa: 3, e_amigo_bar: 2 } });
+socEnc('protecao', { name: 'Cobrador de Proteção', perfil: 'Respeito', leader: 'Cobrador de Proteção', hp: 16, rule: 'Perfil Respeito. Diz que a rua é perigosa e que a proteção dele custa caro.', deck: { e_capanga: 4, e_ameaca: 4, e_brutamontes: 2, e_taxa: 2, e_lero: 3 } });
+socEnc('rival', { name: 'Guilda Rival', perfil: 'Vaidade', leader: 'Representante do Grifo Dourado', hp: 16, rule: 'Perfil Vaidade. A guilda rival veio “avaliar a concorrência” e roubar clientes.', deck: { e_fanfarra: 4, e_trofeu_rival: 4, e_campeao: 2, e_desdem: 2, e_proposta: 3 } });
+socEnc('bebado', { name: 'Bêbado na Estrada', perfil: 'Vaidade', leader: 'Bêbado Chato', hp: 10, rule: 'Perfil Vaidade. Acha que sabe lutar melhor que vocês e quer provar no grito.', deck: { e_soluco: 5, e_cantoria: 3, e_amigo_bar: 4, e_lero: 3 } });
+socEnc('suspeito', { name: 'Figura Suspeita', perfil: 'Procedimento', leader: 'Figura Suspeita', hp: 12, rule: 'Perfil Procedimento. Diz que só estava passando. Carrega um mapa da guilda.', deck: { e_olhar_desc: 4, e_evasiva: 3, e_alibi: 2, e_lero: 3, e_proposta: 3 } });
+socEnc('credor', { name: 'O Credor', perfil: 'Procedimento', leader: 'Barão Ostrander', hp: 22, rule: 'Perfil Procedimento. Veio cobrar a dívida de Ergos e espera o pior de todo devedor.', deck: { e_notificacao: 4, e_juros: 4, e_multa: 3, e_auditor: 3, e_contador: 3, e_penhora: 2 } });
 const SOCIAL_NEUTRAL_STARTER = { s_felix: 2, s_elogio: 2, s_respirar: 2, s_solido: 2, s_colo: 2, s_contra: 2, s_ponto: 2 };
 const SOCIAL_INTRO = { temporal: ['s_fala', 's_precedente', 's_veterano'], draconic: ['s_calma', 's_forca', 's_presenca'], necro: ['s_desabafo', 's_charme', 's_elogio_postumo'], holy: ['s_informante', 's_vigilia_oracao', 's_sermao'], tech: ['s_demonstracao', 's_clausula', 's_adendo'], space: ['s_jargao', 's_profecia', 's_diagrama'] };
 const SOCIAL_POOL = {
@@ -1626,7 +1663,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.18/design-v0.55/inimigos-v0.10/proto-2026-10-27';
+const RULES = 'cartas-v0.18/design-v0.56/inimigos-v0.11/proto-2026-10-28';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -2082,9 +2119,11 @@ function floorCleared() {
   addCards(run.mochila);
   camp.cleared[run.floor] = true; camp.floor = Math.max(camp.floor, run.floor + 1);
   hist({ k: 'andar', floor: run.floor, res: 'concluido', mochila: run.mochila.slice() });
+  if (run.floor === 3 && !camp.debt && !camp.pending.some(p => p.kind === 'credor')) camp.pending.push({ kind: 'credor' });
+  let treasure = 0; if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = 300; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
   const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
   hist({ k: 'booster', type: 'andar', disc: camp.deck.disc, cards: pack });
-  ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0 };
+  ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0, treasure };
   camp.run = null; afterRun(); saveCamp(); ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 function floorFailed(why) {
@@ -2156,6 +2195,7 @@ function ensureGuild() {
   camp.recruits = camp.recruits || [];
   camp.pending = camp.pending || [];
   camp.quests = camp.quests || [];
+  if (camp.cleared && camp.cleared[3] && !camp.debt && !camp.pending.some(p => p.kind === 'credor') && !camp.run) camp.pending.push({ kind: 'credor' });
   camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: 'bloq', lab: 'bloq', ferraria: 'bloq' };
   if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
@@ -2183,7 +2223,13 @@ function newDefense() {
   const prog = Object.keys(camp.cleared).length;
   return { leader: t.leader, text: t.text, hp: 10 + prog * 2 + rint(0, 3), deck, gold: rint(15, 25), multa: 20 };
 }
-function registerDefense(spec) { E.ENC.defesa = { name: 'Defesa: ' + spec.leader, tier: 'Defesa', leader: spec.leader, hp: spec.hp, hand: 3, rule: 'Invasores na guilda.', deck: spec.deck }; }
+const DEF_SOCIAIS = [
+  { enc: 'golpista', text: 'Um sujeito de sorriso largo bate à porta oferecendo um “seguro contra dragões” para a guilda, com assinatura hoje mesmo.' },
+  { enc: 'protecao', text: 'Dois capangas e um homem de luvas entram sem bater. A rua é perigosa, ele diz, e a proteção dele é a melhor que o seu ouro pode comprar.' },
+  { enc: 'rival', text: 'O representante do Grifo Dourado, uma guilda rival, aparece para “avaliar a concorrência” e convencer seus clientes a mudar de casa.' },
+];
+function newSocialDefense() { const t = DEF_SOCIAIS[Math.floor(rnd() * DEF_SOCIAIS.length)]; const e = E.ENC[t.enc]; return { social: true, enc: t.enc, leader: e.leader, text: t.text, gold: rint(15, 25), multa: 20 }; }
+function registerDefense(spec) { if (spec.social) return; E.ENC.defesa = { name: 'Defesa: ' + spec.leader, tier: 'Defesa', leader: spec.leader, hp: spec.hp, hand: 3, rule: 'Invasores na guilda.', deck: spec.deck }; }
 function startDefense() {
   const spec = camp.defense; registerDefense(spec);
   st = E.newGame(camp.deck.disc, 'defesa', null, { deck: R.deckList(camp.deck) });
@@ -2242,8 +2288,9 @@ function endDay() {
   const lines = [];
   finishBuilding(lines); processAdvs(lines);
   camp.day += 1; camp.acts = {}; camp.cityTrip = null;
+  if (debtOpen() && camp.day > camp.debt.due && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.amount = Math.round(camp.debt.amount * 1.1); camp.debt.overdue = (camp.debt.overdue || 0) + 1; camp.pending.push({ kind: 'credor', volta: true }); lines.push(`O prazo da parcela venceu. Com juros, ela passou para ${camp.debt.amount} de ouro, e o Barão vai aparecer.`); hist({ k: 'parcela-vencida', amount: camp.debt.amount }); }
   refreshBoard();
-  if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader }); }
+  if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = camp.flags.socialTut && rnd() < 0.5 ? newSocialDefense() : newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader, social: !!camp.defense.social }); }
   hist({ k: 'dia', day: camp.day });
   saveCamp();
   ui.scene = { kind: 'dia', lines }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
@@ -2258,17 +2305,26 @@ function pendingScene() {
   if (p.kind === 'primeiro-aventureiro') return { kind: 'primeiro-aventureiro' };
   if (p.kind === 'sugestao-taverna') return { kind: 'sugestao-taverna' };
   if (p.kind === 'cliente-tutorial') return { kind: 'cliente-tutorial' };
+  if (p.kind === 'credor') return { kind: 'credor', volta: !!p.volta };
+  if (p.kind === 'felix-divida' && debtOpen()) return { kind: 'felix-divida' };
   if (p.kind === 'defesa' && camp.defense) return { kind: 'defesa' };
   camp.pending.shift(); saveCamp(); return pendingScene();
 }
 function guildScene(sc) {
   if (sc.kind === 'cliente-tutorial') return socialTutScene();
+  if (sc.kind === 'credor') return credorScene(sc);
+  if (sc.kind === 'credor-res') return credorResScene(sc);
+  if (sc.kind === 'felix-divida') return felixDebtScene();
   if (sc.kind === 'passeio') return passeioScene(sc);
   if (sc.kind === 'primeiro-aventureiro') {
-    return `${felixArt('guilda')}<h2>Alguém bate à porta</h2><p>Você mal tirou a poeira da dungeon das botas quando a porta da guilda range. É Brisa, uma batedora de mochila remendada e olhar curioso.</p><div class="fala"><span class="quem">Brisa</span><p>Ouvi dizer que o Dragão Amarelo voltou a descer. Se a guilda está aberta, eu quero trabalho. Sei achar coisas e sei voltar viva. Na maioria das vezes.</p></div><div class="fala"><span class="quem">Felix</span><p>Ela fala demais, mas aceita pagamento atrasado. Contrata.</p></div><p class="intro-dica">Aventureiros não lutam com você: eles cumprem missões de clientes e do governo pelo Quadro de Missões e trazem ouro. Personagem provisória: o primeiro aventureiro ainda vai ser definido.</p><div class="opcoes"><button class="botao principal" data-act="g-hire-first">Contratar Brisa</button></div>`;
+    return `${felixArt('guilda')}<h2>Alguém bate à porta</h2><p>Você mal tirou a poeira da dungeon das botas quando a porta da guilda range. É Brisa, uma batedora de mochila remendada e olhar curioso.</p><div class="fala"><span class="quem">Brisa</span><p>Ouvi dizer que o Dragão Amarelo voltou a descer. Se a guilda está aberta, eu quero trabalho. Sei achar coisas e sei voltar inteira. Na maioria das vezes.</p></div><div class="fala"><span class="quem">Felix</span><p>Ela fala demais, mas aceita pagamento atrasado. Contrata.</p></div><p class="intro-dica">Aventureiros não lutam com você: eles cumprem missões de clientes e do governo pelo Quadro de Missões e trazem ouro. Personagem provisória: o primeiro aventureiro ainda vai ser definido.</p><div class="opcoes"><button class="botao principal" data-act="g-hire-first">Contratar Brisa</button></div>`;
   }
   if (sc.kind === 'sugestao-taverna') {
     return `${felixArt('guilda')}<h2>Uma ideia do Felix</h2><div class="fala"><span class="quem">Felix</span><p>Uma aventureira não faz uma guilda. Nos fundos tem a velha taverna, onde o Ergos recebia gente de toda parte. Se alguém tirasse as teias, os aventureiros voltariam a aparecer.</p><p>Alguém. Não eu. Eu tenho asas, não vassoura.</p></div><p class="intro-dica">O menu de Instalações está liberado. Fazer faxina na taverna custa só o dia de trabalho de obra.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-taverna">Abrir as Instalações</button><button class="botao" data-act="g-ok-pend">Depois</button></div>`;
+  }
+  if (sc.kind === 'defesa' && camp.defense && camp.defense.social) {
+    const d = camp.defense; const e = E.ENC[d.enc];
+    return `<h2>Visita indesejada</h2><p>${esc(d.text)}</p><p>${esc(e.leader)}, Perfil ${esc(e.perfil)}, ${e.hp} de Resistência.</p><p class="intro-dica">Defesas não gastam ações do dia. Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend-social">${bi('social')}Negociar</button></div>`;
   }
   if (sc.kind === 'defesa') {
     const d = camp.defense;
@@ -2368,6 +2424,8 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Sabe, eu sou tipo um necrodançarino também, mas meu palco é uma masmorra mágica.', reply: ['Turnê subterrânea! Respeito demais.', 'Eu passei minha vida estudando e aprendendo todos os segredos da magia para conquistar todas as masmorras e acumular poder, mas no fim nada supera o poder de um bom refrão e um sorriso no rosto. Se a sua masmorra tiver eco, sorte sua. Acústica de caverna é outra coisa.'] },
       { id: 'm', label: 'Qual música você tocou hoje?', rot: ['Valsa para Ossos Cansados', 'Três por Quatro por Toda a Eternidade', 'Meu Coração Parou (Mas o Ritmo Não)', 'Morto de Saudade', 'Osso Duro de Roer', 'Sem Pulso, Mas com Swing', 'Até que a Morte nos Junte', 'Cova Rasa, Coração Fundo', 'Réquiem pra Quem Requebra', 'Esqueleto no Armário (Versão Acústica)'], reply: ['Hoje foi “{rot}”. Um clássico do repertório!'] },
       { id: 'n', label: 'Os bichinhos espectrais são seus?', reply: ['São meus pequenos amigos. Eu cuido deles, e as crianças do circo adoram!'] },
+      { id: 'q', reqOther: { npc: 'mestre-temporal', opt: 'p3' }, label: 'Como é Macabra? Imagino que seja um lugar macabro.', reply: ['Não sei onde você ouviu esse nome, mas posso te contar um pouco. Macabra é um lugar brutal, tomado por uma grande guerra eterna. Os nativos têm outro nome para o planeta: Calmera. Acreditamos que o mundo já foi mais pacífico, por causa desse nome.', 'Mas os seres Sintrópicos lutam bravamente contra os Entrópicos todos os dias. A guerra ficou tão extrema que os viajantes que vão para lá voltam horrorizados; por isso a chamam de Macabra.', 'Eu? Lutei na linha de frente como um campeão dos Sintrópicos, é claro! Sou um lich diferente.'] },
+      { id: 'r', requires: 'q', label: 'Eu achei que liches eram malignos e comiam almas, mas você parece um cara legal.', reply: ['Isso se deve ao magnífico Método Goodwich de Lichdom Ético. Essencialmente, eu sou um lich vegano.', 'Com uma magia sofisticada, eu transmuto objetos inanimados, geralmente rochas, em Ephemera energizado, a matéria dos espíritos, e como isso. Assim, minha mente e minha alma nunca se corrompem pela Entropia.', 'Talvez eu possa te ensinar um dia. Me procure caso você se torne um arquimago.'] },
       { id: 'o', label: 'Por que um lich trocou a magia arcana pela música?', reply: ['>A guitarra fica em silêncio por um instante.', 'Passei séculos tentando não morrer. Um dia percebi que nunca tinha vivido.'] },
     ] },
   temporal: { name: 'Mikeus', title: 'mestre de Temporal Warfare', img: 'mikeus', pos: '48% 30%', face: '50% 12%',
@@ -2384,7 +2442,7 @@ const MESTRE_INFO = {
       { id: 'p2', requires: 'c', met: 'mestre-holy', label: "Pode me contar sobre o Gun'Liao?", reply: ['Ele lutou guerras de que ninguém sabe e tem um destino glorioso e sombrio.'] },
       { id: 'p3', requires: 'c', met: 'mestre-necro', label: 'Pode me contar sobre o Charles?', reply: ['Ele vai permanecer. Seus dias de batalha e glória ficaram nas terras de Macabra, sua nação natal.'] },
       { id: 'p5', requires: 'c', met: 'mestre-space', label: 'Pode me contar sobre o Yaven?', reply: ['Nenhum segredo vai se esconder de seus olhos curiosos.'] },
-      { id: 'p6', requires: 'c', met: 'mestre-draconic', label: 'Pode me contar sobre o Ko?', reply: ['Também conhecido como O Vagante, ele vai continuar acumulando poder e vai ser endeusado em muitos planetas que visitar. Dificilmente cruzamos nossos caminhos, mas soube que ele fica cada vez mais forte.'] },
+      { id: 'p6', requires: 'c', met: 'mestre-draconic', label: 'Pode me contar sobre o Ko?', reply: ['Também conhecido como O Vagante, ele vai continuar acumulando poder e vai ser endeusado em muitos planetas que visitar. Eu e ele lutaremos muitas vezes ao longo das eras, e assim cultivaremos nossa força.'] },
       { id: 'p4', requires: 'c', label: 'Pode me contar sobre você?', reply: ['Eu era um rapaz comum de um planeta chamado Terra, mas fui acidentalmente transportado para um mundo cheio de perigos. Por sorte, eu descobri os poderes da cronomancia.', 'Eu sei o que você está pensando. Não sei o que é “isekai” e não tive um harém. Por favor, não pergunte...'] },
     ] },
   draconic: { name: 'Ko', title: 'mestre de Draconic Primalism', img: 'ko', pos: '50% 50%', face: '50% 9%',
@@ -2433,6 +2491,13 @@ const NPC_INFO = {
       { id: 'c', label: 'O que é a Sociedade Mágica?', reply: ['Uma reunião de magos que concordam em discordar, formalmente e por escrito.', 'Registramos Disciplinas, artefatos e fenômenos. Cartomantes também, quando aparecem. Faz tempo que não aparece nenhum.'] },
     ] },
 };
+NPC_INFO.banco = { name: 'Barão Ostrander', title: 'banqueiro da Coroa', img: 'nenhuma', pos: '50% 50%', face: '50% 50%',
+  place: 'O Banco da Coroa é todo mármore, silêncio e balcões altos demais. Atrás do mais alto deles, o Barão Ostrander confere números com uma pena que nunca erra.',
+  greet: 'Banco da Coroa. Se veio pagar, ótimo. Se veio pedir mais prazo, a fila é ali, e ela não anda.',
+  opts: [
+    { id: 'a', label: 'Quanto exatamente o Ergos devia?', reply: ['Mais do que você gostaria de saber e menos do que eu gostaria de cobrar. A Coroa parcela. Eu fiscalizo.'] },
+    { id: 'b', label: 'O senhor conhecia o Ergos?', reply: ['Conhecia o livro-caixa dele. Era o capítulo mais criativo do banco.'] },
+  ] };
 NPC_INFO.felix = { name: 'Felix', title: 'familiar de Ergos', img: 'warroom', pos: '50% 50%', face: '38% 50%',
   place: 'Felix está enrolado na poltrona da sala de guerra, perto da lareira. Ele abre um olho só quando você se aproxima.',
   greet: 'Hm. Quer conversar? Eu anoto tudo o que você faz lá embaixo. Tudo.',
@@ -2504,6 +2569,7 @@ function renderCidade() {
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
+  ${camp.debt && camp.debt.due != null ? `<h2>Banco da Coroa</h2><ul class="lista-npc">${npc('banco', 'Barão Ostrander, Banco da Coroa', debtOpen() ? `Recebe a parcela da dívida: ${camp.debt.amount} de ouro até o fim do dia ${camp.debt.due}.` : 'A parcela está paga. Por enquanto.', '<div class="npc-thumb vazio" aria-hidden="true">B</div>')}</ul>` : ''}
   <h2>Sociedade Mágica</h2><ul class="lista-npc">${npc('copias', 'Lerael Vane, arquivista da Sociedade Mágica', 'Recebe cordialmente as cópias que passam de 2 (o deck só aceita 2), em troca de um honorário, para avançar as pesquisas arcanas.', npcArt(NPC_INFO.copias, 'npc-thumb'))}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
@@ -2513,6 +2579,7 @@ function optOk(o, id) {
   if (o.requires && !said.has(o.requires)) return false;
   if (o.after) { if (!o.after.every(x => said.has(x))) return false; if (o.laterDay) { const sd = (f.saidDay || {})[id] || {}; if (Math.max(...o.after.map(x => sd[x] || 0)) >= camp.day) return false; } }
   if (o.met && !(((f.visits || {})[o.met] || 0) > 0)) return false;
+  if (o.reqOther && !(((f.said || {})[o.reqOther.npc]) || []).includes(o.reqOther.opt)) return false;
   if (o.needBoss && !camp.cleared[5]) return false;
   return true;
 }
@@ -2553,6 +2620,9 @@ function renderNpc() {
     if (mi) talk = talkHtml(id, mi, d) + '<h3>Treinamento</h3>';
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
       <div class="opcoes coluna dialogo"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button>${d === 'tech' && (((camp.flags.said || {})[id]) || []).includes('c') ? `<button class="botao" data-act="g-buy" data-dd="tech" data-polite="1" ${camp.gold < BOOSTER_PRECO - 5 ? 'disabled' : ''}>“Boa noite, Chrome! Eu gostaria de fazer um upgrade no meu baralho de Magitech, por favor. Obrigado!” (${BOOSTER_PRECO - 5} de ouro)</button>` : ''}</div>`;
+  } else if (id === 'banco') {
+    const d = camp.debt;
+    body = `${talkHtml(id, NPC_INFO.banco, null)}<h3>Parcela</h3>${debtOpen() ? `<p>Parcela da dívida de Ergos: <b>${d.amount} de ouro</b>, até o fim do dia ${d.due}. Você tem ${camp.gold}.</p><div class="opcoes"><button class="botao principal" data-act="g-pay" ${camp.gold >= d.amount ? '' : 'disabled'}>Pagar a parcela (${d.amount} de ouro)</button></div>` : `<p>A parcela de ${d.amount} de ouro está paga.</p>`}`;
   } else {
     const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
     body = `${talkHtml(id, NPC_INFO.copias, null)}<h3>Arquivo</h3><p>${ex.length ? 'A Sociedade paga um honorário de pesquisa por cópia que passa de 2 na sua coleção (o deck só aceita 2):' : 'Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.'}</p>
@@ -2572,6 +2642,9 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-ok-taverna') { camp.pending.shift(); camp.flags.facilities = true; if (camp.fac.taverna === 'bloq') camp.fac.taverna = 'suja'; saveCamp(); ui.screen = 'instalacoes'; render(); return true; }
   if (act === 'g-defend') { startDefense(); return true; }
+  if (act === 'g-credor') { startSocial('credor', { credor: true, volta: !!ds.volta, enc: 'credor' }); return true; }
+  if (act === 'g-pay') { if (payDebt()) { ui.scene = { kind: 'msg', title: 'Parcela paga', text: `O Barão Ostrander confere cada moeda, anota no livro-caixa e, por um instante, quase sorri. “Pontual. Que novidade.” Restam ${camp.gold} de ouro no cofre.` }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); } else toast('Ouro insuficiente para a parcela.'); return true; }
+  if (act === 'g-defend-social') { if (camp.defense && camp.defense.social) startSocial(camp.defense.enc, { defesa: true, enc: camp.defense.enc }); return true; }
   if (act === 'g-end-day') {
     if (camp.run) return true;
     const c = await choose('Encerrar o dia', `Encerrar o dia ${camp.day}? Missões avançam, obras terminam e pode acontecer alguma coisa durante a noite.${!camp.acts.descer ? ' Você ainda não desceu hoje.' : ''}`, [{ v: 'sim', label: 'Encerrar o dia' }]);
@@ -2580,6 +2653,7 @@ async function guildClick(act, ds) {
   if (act === 'g-social-tut') { startSocial('cliente', { tut: true, enc: 'cliente' }); return true; }
   if (act === 'g-passeio') { doPasseio(ds.npc); return true; }
   if (act === 'g-passeio-luta') { startPasseioFight(ds.fe); return true; }
+  if (act === 'g-passeio-social') { startSocial(ds.se, { passeio: true, enc: ds.se }); return true; }
   if (act === 'g-felix') { ui.talkLogs = ui.talkLogs || {}; ui.talkLogs.felix = []; ui.screen = 'felix'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
@@ -2679,29 +2753,73 @@ function socialProblems() {
     const d = E.DEF[id];
     if (k > 2) p.push(`${d.name}: no máximo 2 cópias.`);
     if ((camp.socialColl[id] || 0) < k) p.push(`${d.name}: você só tem ${camp.socialColl[id] || 0}.`);
-    if (d.disc && d.disc !== 'neutra' && d.disc !== camp.deck.disc) p.push(`${d.name} é de outra Disciplina.`);
+    if (d.disc && d.disc !== 'neutra' && d.disc !== camp.social.disc) p.push(`${d.name} é de outra Disciplina.`);
   });
   return p;
 }
 function startSocial(encId, ctx) {
-  const pr = socialProblems(); if (pr.length) { toast('Ajuste o deck social antes: ' + pr[0]); ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); return; }
+  const pr = socialProblems(); if (pr.length) { toast('Ajuste o deck social antes: ' + pr[0]); ui.deckFrom = ui.screen; ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); return; }
   const deck = []; Object.entries(camp.social.cards).forEach(([id, n]) => { for (let i = 0; i < n; i++) deck.push(id); });
-  st = E.newGame(camp.deck.disc, encId, null, { deck, bosses: camp.cleared[5] ? 1 : 0 });
+  st = E.newGame(camp.social.disc, encId, null, { deck, bosses: camp.cleared[5] ? 1 : 0 });
   st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   st.ctx = Object.assign({ mode: 'social', camp: camp.id, day: camp.day, hpStart: 30 }, ctx || {});
   ui.screen = 'battle'; ui.mode = null; ui.info = null; ui.modal = null; ui.busy = false; ui.overClosed = false; render(); window.scrollTo(0, 0);
 }
 function socialDone() {
   const won = st.over === 'P'; const ctx = st.ctx; st = null;
-  let title, txt;
+  let title = won ? 'Acordo fechado' : 'Negociação perdida', txt;
   if (ctx.tut) {
     const g = won ? 15 : 5; camp.gold += g; camp.flags.socialTut = true; camp.pending = camp.pending.filter(p => p.kind !== 'cliente-tutorial');
-    title = won ? 'Acordo fechado' : 'Negociação perdida';
     txt = won ? `O cliente admite que o pelo de gato dá personalidade à mesa, paga a conta inteira e ainda deixa gorjeta: +${g} de ouro. Felix aceita os elogios em nome da categoria.` : `O cliente paga só metade, resmungando sobre pelos na cerveja: +${g} de ouro. Felix considera isso uma vitória moral.`;
     hist({ k: 'social', enc: 'cliente', won, gold: g });
-  } else { title = won ? 'Acordo fechado' : 'Negociação perdida'; txt = won ? 'Você conseguiu o que queria.' : 'Não foi desta vez.'; hist({ k: 'social', enc: ctx.enc, won }); }
+  } else if (ctx.defesa) {
+    const spec = camp.defense || { gold: 15, multa: 20 }; let delta;
+    if (won) { delta = spec.gold; camp.gold += delta; txt = `${spec.leader || 'A visita'} vai embora sem o que veio buscar. A vizinhança comenta, e a fama da guilda rende: +${delta} de ouro.`; }
+    else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = `Você cede mais do que devia. A conta da conversa sai cara: ${m} de ouro.`; }
+    title = won ? 'A guilda se defendeu' : 'A guilda saiu perdendo';
+    hist({ k: 'defesa', social: true, enc: ctx.enc, won, gold: delta });
+    camp.defense = null; camp.pending = camp.pending.filter(p => p.kind !== 'defesa');
+  } else if (ctx.passeio) {
+    if (won) { const g = rint(5, 10); camp.gold += g; txt = `A conversa termina do seu jeito, e o sujeito ainda paga uma rodada para fazer as pazes: +${g} de ouro. Mikeus assente: “Bom. Da outra vez você precisou de mais palavras.”`; hist({ k: 'social', enc: ctx.enc, won, gold: g }); }
+    else { txt = 'A conversa não leva a lugar nenhum. Vocês deixam para lá e seguem caminho. Mikeus não comenta, o que é pior.'; hist({ k: 'social', enc: ctx.enc, won }); }
+  } else if (ctx.credor) {
+    const d = camp.debt || (camp.debt = { amount: 300, status: 'aberta', overdue: 0 });
+    const days = won ? (ctx.volta ? 3 : 4) : 2;
+    if (!won && ctx.volta) d.amount = Math.round(d.amount * 1.1);
+    d.due = camp.day + days; d.status = 'aberta'; d.felixTip = false;
+    camp.pending = camp.pending.filter(p => p.kind !== 'credor');
+    title = won ? 'Prazo negociado' : 'O Barão leva a melhor';
+    txt = won ? `O Barão fecha o livro-caixa com um estalo. “${days === 4 ? 'Quatro' : 'Três'} dias. ${d.amount} de ouro. Nem um dia a mais, nem uma moeda a menos.”` : `O Barão anota alguma coisa sem tirar os olhos de você. “Dois dias. ${d.amount} de ouro. E considere-se com sorte.”`;
+    hist({ k: 'credor', won, amount: d.amount, due: d.due, volta: !!ctx.volta });
+    saveCamp();
+    ui.scene = { kind: 'credor-res', title, text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return;
+  } else { txt = won ? 'Você conseguiu o que queria.' : 'Não foi desta vez.'; hist({ k: 'social', enc: ctx.enc, won }); }
   saveCamp();
   ui.scene = { kind: 'msg', title, text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
+/* Dívida: o credor, a parcela e o Banco da Coroa */
+function debtOpen() { return !!(camp.debt && camp.debt.status === 'aberta' && camp.debt.due != null); }
+function payDebt() {
+  const d = camp.debt; if (!debtOpen() || camp.gold < d.amount) return false;
+  camp.gold -= d.amount; d.status = 'paga'; d.paidDay = camp.day; hist({ k: 'parcela-paga', amount: d.amount, day: camp.day }); saveCamp(); return true;
+}
+function credorScene(sc) {
+  const d = camp.debt;
+  if (sc.volta) return `<h2>O credor voltou</h2><p>O prazo venceu, e o Barão Ostrander está de novo na porta da guilda, agora com dois auditores e um sorriso que não chega aos olhos.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>Prazos existem para serem cumpridos. Como este não foi, a parcela agora é de ${d.amount} de ouro. Vamos conversar sobre quando você pretende pagar.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: mais 3 dias de prazo. Derrota: 2 dias, e a parcela sobe mais 10%.</p><div class="opcoes"><button class="botao principal" data-act="g-credor" data-volta="1">${bi('social')}Negociar</button></div>`;
+  return `<h2>O credor</h2><p>Mal você volta do terceiro andar, um homem de casaca impecável espera na porta da guilda, com um livro-caixa debaixo do braço e a paciência de quem nunca perdeu uma cobrança.</p>
+    <div class="fala"><span class="quem">Barão Ostrander</span><p>Barão Ostrander, do Banco da Coroa. A dívida de Ergos não sumiu junto com ele. Agora ela é sua.</p><p>Como a guilda acabou de reabrir, a Coroa aceita uma primeira parcela reduzida: 300 de ouro. Resta saber em quanto tempo. E eu reconheço um devedor que vai tentar enrolar só de olhar.</p></div>
+    <div class="fala"><span class="quem">Felix</span><p>Sorria. Não prometa nada que envolva números.</p></div>
+    <p class="intro-dica">Negociação com o Perfil Procedimento: cartas que citam Procedimento rendem mais. Vitória: 4 dias de prazo. Derrota: 2 dias.</p>
+    <div class="opcoes"><button class="botao principal" data-act="g-credor">${bi('social')}Negociar o prazo</button></div>`;
+}
+function credorResScene(sc) {
+  const d = camp.debt;
+  return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><p class="destaque">Parcela: ${d.amount} de ouro até o fim do dia ${d.due}. Você tem ${camp.gold}.</p><p class="intro-dica">O pagamento é feito no Banco da Coroa, na cidade${camp.gold >= d.amount ? ', ou agora mesmo' : ''}.</p>
+    <div class="opcoes">${camp.gold >= d.amount ? `<button class="botao principal" data-act="g-pay">Pagar agora (${d.amount} de ouro)</button>` : ''}<button class="botao ${camp.gold >= d.amount ? '' : 'principal'}" data-act="home">Voltar à guilda</button></div>`;
+}
+function felixDebtScene() {
+  const d = camp.debt;
+  return `${felixArt('guilda')}<h2>Um conselho do Felix</h2><div class="fala"><span class="quem">Felix</span><p>Você tem ${camp.gold} de ouro e a parcela é de ${d.amount}. Vá ao Banco da Coroa e pague hoje, antes que o Barão volte com juros.</p><p>E antes que esse ouro escorra pelos seus dedos. Ergos também “ia pagar amanhã”. Todo dia ele ia pagar amanhã.</p></div><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Entendido</button></div>`;
 }
 function socialTutScene() {
   const disc = DISC_NAME[camp.deck.disc];
@@ -2721,13 +2839,13 @@ function socialTutScene() {
 /* Passeios: encerrar a ida à cidade passando tempo com alguém */
 const ATIV = {
   'mestre-tech': [
-    { title: 'Sair para comer', cost: 5, text: 'Chrome escolhe um restaurante caro demais, pede metade do cardápio e deixa você pagar só a sobremesa: 5 de ouro, “simbólicos”. Entre uma garfada e outra, ela redesenha num guardanapo um contrato melhor que o seu.', broke: 'Você não tem nem para a sobremesa. Chrome paga tudo e cobra em histórias da dungeon, com juros.' },
+    { title: 'Sair para comer', cost: 5, text: 'Chrome escolhe um restaurante caro demais, pede metade do cardápio e deixa você pagar só a sobremesa: 5 de ouro, “simbólicos”. Entre uma garfada e outra, ela fala sobre como os contratos que faz com clientes e fornecedores são os mais espertos e lucrativos do mundo.', broke: 'Você não tem nem para a sobremesa. Chrome paga tudo e cobra em histórias da dungeon, com juros.' },
     { title: 'Garimpar itens raros no mercado', equip: 0.4, text: 'Vocês garimpam as bancas do mercado de antiguidades. Chrome pechincha como quem desarma uma armadilha.', win: 'Entre quinquilharias, ela acha um equipamento de verdade e joga para você: “Considere um investimento.”', lose: 'Nada que preste hoje. “O mercado é assim: hoje não, amanhã talvez.”' },
     { title: 'Visitar os gatos da guilda', text: 'Chrome vai até a guilda só para ver os gatos. Em dez minutos ela está no chão, cercada de Felinos, distribuindo chamegos com uma seriedade de auditoria. Felix finge desinteresse e é o primeiro da fila.' },
   ],
   'mestre-temporal': [
     { title: 'Treinar', text: 'Mikeus te faz repetir o mesmo golpe até o braço tremer. “De novo. No futuro, você erra esse. Hoje, não.”' },
-    { title: 'Sair para patrulhar', fight: 0.4, text: 'Vocês patrulham as estradas fora dos muros. Mikeus anda como quem já conhece cada curva do caminho.', win: 'Ele para de repente. “Agora.” Alguma coisa sai do mato.', lose: 'Nada acontece. Mikeus parece aliviado, como quem lembra de uma versão em que aconteceu.' },
+    { title: 'Sair para patrulhar', fight: 0.25, social: { chance: 0.25, encs: ['bebado', 'suspeito'], text: 'No caminho de volta, alguém atravessa a estrada e resolve que hoje é dia de conversa. Mikeus suspira: “Essa luta é sua.”' }, text: 'Vocês patrulham as estradas fora dos muros. Mikeus anda como quem já conhece cada curva do caminho.', win: 'Ele para de repente. “Agora.” Alguma coisa sai do mato.', lose: 'Nada acontece. Mikeus parece aliviado, como quem lembra de uma versão em que aconteceu.' },
     { title: 'Conversar sobre o passado', text: 'Num banco do dojo, Mikeus fala do passado, ou do futuro, depende de quem conta. Fala de amigos que ainda não nasceram e de um café que já não existe. Você não entende tudo, mas ele parece mais leve depois.' },
   ],
   'mestre-necro': [
@@ -2753,7 +2871,7 @@ const ATIV = {
     { title: 'Ver as magias de festa', text: 'Yaven mostra as magias de festa dele: confete que flutua, fogos que formam constelações e um cometa de bolso que dá três voltas na sala e pousa na sua cabeça.' },
   ],
   copias: [
-    { title: 'Tomar um café e conversar amenidades', text: 'Lerael faz uma pausa para o café com você. Vocês falam do tempo, de livros e de um gato que dorme todo dia na janela do arquivo. Ela sorri duas vezes. Um recorde, segundo os colegas.' },
+    { title: 'Tomar um café e conversar amenidades', text: 'Lerael faz uma pausa para o café com você. Vocês falam do tempo, de livros e de um gato que dorme todo dia na janela do arquivo.' },
     { title: 'Tomar um café e ouvir as reclamações', text: 'No café, Lerael finalmente desabafa: formulários em triplicata, magos que não devolvem livros e um diretor que acha que arquivo se organiza sozinho. Você escuta. Ela parece que vai dormir melhor só de ter falado.' },
   ],
 };
@@ -2781,9 +2899,12 @@ function doPasseio(id) {
     if (rnd() < a.equip) { const ws = Object.keys(R.RARITY).filter(x => E.DEF[x].type === 'weapon'); equip = ws[Math.floor(rnd() * ws.length)]; addCards([equip]); paras.push(a.win); extras.push(`Equipamento: ${E.DEF[equip].name}, para o deck de batalha`); }
     else paras.push(a.lose);
   }
+  let socialEnc = null;
   if (a.fight) {
     const ok = !R.deckProblems(camp.deck, camp.collection).length;
-    if (ok && rnd() < a.fight) { const F = R.FLOORS[Math.min(camp.floor || 1, 5)]; fight = F.commons[Math.floor(rnd() * F.commons.length)]; paras.push(a.win); }
+    const r = rnd();
+    if (ok && r < a.fight) { const F = R.FLOORS[Math.min(camp.floor || 1, 5)]; fight = F.commons[Math.floor(rnd() * F.commons.length)]; paras.push(a.win); }
+    else if (a.social && camp.flags.socialTut && r < a.fight + a.social.chance && !socialProblems().length) { socialEnc = a.social.encs[Math.floor(rnd() * a.social.encs.length)]; paras.push(a.social.text); }
     else paras.push(a.lose);
   }
   const card = socialCardFor(npcDisc(id));
@@ -2791,7 +2912,7 @@ function doPasseio(id) {
   if (camp.cityTrip && !camp.cityTrip.visited.includes(id)) camp.cityTrip.visited.push(id);
   hist({ k: 'passeio', npc: id, title: a.title, card, equip, fight });
   finishCityTrip();
-  ui.scene = { kind: 'passeio', npc: id, title: a.title, paras, extras, card, fight }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+  ui.scene = { kind: 'passeio', npc: id, title: a.title, paras, extras, card, fight, socialEnc }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 function passeioScene(sc) {
   const mi = npcInfo(sc.npc);
@@ -2799,7 +2920,7 @@ function passeioScene(sc) {
   return `${art}<h2>${esc(mi.name)}: ${esc(sc.title)}</h2>${sc.paras.map(p => `<p>${esc(p)}</p>`).join('')}
     ${sc.card ? `<h3>Carta social</h3><div class="prever-lista">${cardById(sc.card, '', '', (camp.socialColl[sc.card] || 0) > 1 ? 'Você já tinha' : 'Nova')}</div>` : ''}
     ${sc.extras.length ? `<p class="destaque">${esc(sc.extras.join(' · '))}</p>` : ''}
-    <div class="opcoes">${sc.fight ? `<button class="botao principal" data-act="g-passeio-luta" data-fe="${sc.fight}">Lutar: ${esc(E.ENC[sc.fight].name)}</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>'}${sc.card ? '<button class="botao" data-act="deck-social">Deck social</button>' : ''}</div>`;
+    <div class="opcoes">${sc.fight ? `<button class="botao principal" data-act="g-passeio-luta" data-fe="${sc.fight}">Lutar: ${esc(E.ENC[sc.fight].name)}</button>` : sc.socialEnc ? `<button class="botao principal" data-act="g-passeio-social" data-se="${sc.socialEnc}">${bi('social')}Conversar: ${esc(E.ENC[sc.socialEnc].leader)}</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>'}${sc.card ? `<button class="botao" data-act="deck-social">${bi('social')}Editar deck social</button>` : ''}</div>`;
 }
 function startPasseioFight(encId) {
   st = E.newGame(camp.deck.disc, encId, null, { deck: R.deckList(camp.deck) });
@@ -2817,6 +2938,7 @@ const bi = k => iconSvg(typeof ART !== 'undefined' ? ART.ui[k] : null, 'ico-btn'
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
   ensureGuild(); finishCityTrip();
+  if (debtOpen() && camp.gold >= camp.debt.amount && !camp.debt.felixTip && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.felixTip = true; camp.pending.unshift({ kind: 'felix-divida' }); saveCamp(); }
   const ps = pendingScene(); if (ps) { ui.scene = ps; ui.screen = 'scene'; renderScene(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
   const next = Math.min(camp.floor, 5);
@@ -2834,11 +2956,12 @@ function renderHome() {
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
       ${guildStatus()}
+      ${camp.debt && camp.debt.due != null ? `<p class="parcela ${debtOpen() ? (camp.debt.due - camp.day <= 1 ? 'urgente' : '') : 'paga'}">${debtOpen() ? `Parcela da dívida: <b>${camp.debt.amount} de ouro</b> até o fim do dia ${camp.debt.due}${camp.debt.due === camp.day ? ' (hoje!)' : ''}. Pague no Banco da Coroa, na cidade.` : `Parcela de ${camp.debt.amount} de ouro paga no dia ${camp.debt.paidDay}.`}</p>` : ''}
       ${camp.quests && camp.quests.length ? `<div class="quests"><b>Quests:</b> ${camp.quests.map(q => `<span class="quest" title="${esc(q.desc)}">${esc(q.title)}</span>`).join('')}</div>` : ''}
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
       <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Deck social</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Editar deck social</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
 }
@@ -3007,9 +3130,9 @@ const curDeck = () => (isSocialEd() ? camp.social : camp.deck);
 const curColl = () => (isSocialEd() ? camp.socialColl : camp.collection);
 function renderDeck() {
   const SOCED = isSocialEd(); if (SOCED) ensureSocial();
-  const deck = curDeck(), coll = curColl(); if (SOCED) deck.disc = camp.deck.disc;
+  const deck = curDeck(), coll = curColl();
   const probs = SOCED ? socialProblems() : R.deckProblems(deck, coll);
-  const discs = SOCED ? [camp.deck.disc] : ownedDiscs();
+  const discs = SOCED ? R.DISCS.filter(d => d === deck.disc || Object.keys(camp.socialColl).some(id => camp.socialColl[id] > 0 && E.DEF[id].disc === d)) : ownedDiscs();
   const TOT = SOCED ? 20 : 30;
   const inDeck = id => deck.cards[id] || 0;
   const sortC = (a, b) => E.DEF[a].cost - E.DEF[b].cost || E.DEF[a].name.localeCompare(E.DEF[b].name);
@@ -3026,9 +3149,9 @@ function renderDeck() {
   const curve = [0, 0, 0, 0, 0, 0, 0, 0];
   deckIds.forEach(id => { curve[Math.min(7, E.DEF[id].cost)] += deck.cards[id]; });
   const mx = Math.max(1, ...curve);
-  $('#app').innerHTML = `<header class="abertura"><h1>${SOCED ? 'Editar deck social' : 'Editar deck'}</h1><p class="intro">${SOCED ? '20 cartas, até 2 cópias, a mesma Disciplina do deck de batalha mais básicas. Novas cartas sociais vêm de passar o tempo com os NPCs da cidade.' : '30 cartas, até 2 cópias, uma Disciplina mais neutras.'}</p></header>
-    <div class="linha-logs"><button class="botao principal" data-act="home">Voltar</button>
-      <span>Disciplina:</span>${SOCED ? `<span class="botao principal disc-${deck.disc}" aria-disabled="true">${esc(DISC_NAME[deck.disc])}</span><small>(segue o deck de batalha)</small>` : discs.map(d => `<button class="botao ${d === deck.disc ? 'principal' : ''} disc-${d}" data-deckdisc="${d}">${esc(DISC_NAME[d])}</button>`).join('')}<button class="botao" data-act="${SOCED ? 'deck-edit' : 'deck-social'}">${SOCED ? 'Ir para o deck de batalha' : 'Ir para o deck social'}</button></div>
+  $('#app').innerHTML = `<header class="abertura"><h1>${SOCED ? 'Editar deck social' : 'Editar deck'}</h1><p class="intro">${SOCED ? '20 cartas, até 2 cópias, uma Disciplina mais básicas. A Disciplina do deck social pode ser diferente da do deck de batalha. Novas cartas sociais vêm de passar o tempo com os NPCs da cidade.' : '30 cartas, até 2 cópias, uma Disciplina mais neutras.'}</p></header>
+    <div class="linha-logs"><button class="botao principal" data-act="deck-back">Voltar</button>
+      <span>Disciplina:</span>${discs.map(d => `<button class="botao ${d === deck.disc ? 'principal' : ''} disc-${d}" data-deckdisc="${d}">${esc(DISC_NAME[d])}</button>`).join('')}<button class="botao" data-act="${SOCED ? 'deck-edit' : 'deck-social'}">${SOCED ? 'Ir para o deck de batalha' : 'Ir para o deck social'}</button></div>
     <p class="camp-linha ${probs.length ? 'erro' : 'ok'}">${R.deckSize(deck)}/${TOT} cartas. ${probs.length ? esc(probs[0]) : SOCED ? 'Deck social pronto para negociar.' : 'Deck pronto para descer.'}</p>
     <div class="curva ${SOCED ? 'social' : ''}" aria-label="${SOCED ? 'Curva de Lábia' : 'Curva de mana'}">${curve.map((n, i) => `<div><i style="height:${Math.round(48 * n / mx)}px"></i><span>${i === 7 ? '7+' : i}</span><small>${n}</small></div>`).join('')}</div>
     <div class="editor">
@@ -3084,7 +3207,7 @@ function renderScene() {
       <div class="opcoes"><button class="botao principal disc-${camp.deck.disc}" data-pack="${camp.deck.disc}">Booster de ${esc(DISC_NAME[camp.deck.disc])}</button><button class="botao" data-pack="geral">Booster Geral</button></div>
       <p class="intro">Cada booster tem 5 cartas: 3 Comuns, 1 Incomum e 1 Incomum ou Rara. O Geral pode trazer qualquer Disciplina ou neutra.</p>`;
   } else if (sc.kind === 'booster') {
-    const intro = sc.type === 'andar' ? `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Ouro das lutas: ${sc.gold}.</p><h3>Booster do andar</h3><p class="intro-dica">2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.</p>` : `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2>`;
+    const intro = sc.type === 'andar' ? `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Ouro das lutas: ${sc.gold}.</p>${sc.treasure ? `<p class="destaque">No covil do Basilisco, entre ossos e escamas trocadas, você encontra o tesouro dele: +${sc.treasure} de ouro.</p>` : ''}<h3>Booster do andar</h3><p class="intro-dica">2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.</p>` : `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2>`;
     const back = sc.back === 'npc' ? `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">Voltar ao mestre</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>';
     body = `${intro}<div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : 'Nova')).join('')}</div><p class="destaque">As cartas já estão na sua coleção.</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">Editar deck</button></div>`;
   } else if (sc.kind === 'msg') {
@@ -3120,7 +3243,8 @@ async function runClick(ds) {
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }
   if (act === 'pas-continue') { finalizeGame(); passeioFightDone(); return true; }
-  if (act === 'deck-social') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ensureSocial(); ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'deck-back') { const to = ui.deckFrom || 'home'; ui.deckFrom = null; ui.screen = (to === 'scene' && !ui.scene) || to === 'deck' ? 'home' : to; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'deck-social') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } if (ui.screen !== 'deck') ui.deckFrom = ui.screen; ensureSocial(); ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'code') { useCode(($('#codigo') || {}).value); return true; }
   if (act === 'cheats') { if (cheats.unlocked) { ui.screen = 'cheats'; render(); window.scrollTo(0, 0); } return true; }
   if (act && act.startsWith('ch-') && cheats.unlocked && await cheatClick(act)) return true;
@@ -3155,10 +3279,11 @@ async function runClick(ds) {
     return true;
   }
   if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { curDeck().cards = {}; saveCamp(); render(); } return true; }
-  if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.deckKind = 'batalha'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } if (ui.screen !== 'deck') ui.deckFrom = ui.screen; ui.deckKind = 'batalha'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (ds.deckadd) { const id = ds.deckadd; const dk = curDeck(); dk.cards[id] = (dk.cards[id] || 0) + 1; saveCamp(); render(); return true; }
   if (ds.deckrem) { const id = ds.deckrem; const dk = curDeck(); dk.cards[id] = Math.max(0, (dk.cards[id] || 0) - 1); if (!dk.cards[id]) delete dk.cards[id]; saveCamp(); render(); return true; }
-  if (ds.deckdisc) { const d = ds.deckdisc; camp.deck.disc = d; Object.keys(camp.deck.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.deck.cards[id]; }); if (camp.social) { camp.social.disc = d; Object.keys(camp.social.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.social.cards[id]; }); } saveCamp(); render(); return true; }
+  if (ds.deckdisc && isSocialEd()) { const d = ds.deckdisc; camp.social.disc = d; Object.keys(camp.social.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.social.cards[id]; }); saveCamp(); render(); return true; }
+  if (ds.deckdisc) { const d = ds.deckdisc; camp.deck.disc = d; Object.keys(camp.deck.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.deck.cards[id]; });  saveCamp(); render(); return true; }
   if (ds.deckfilter) { ui.deckFilter = ds.deckfilter; render(); return true; }
   if (ds.floor) { startDescent(+ds.floor, ds.revisit === '1'); return true; }
   if (act === 'continue-run') { ui.screen = 'map'; render(); return true; }
