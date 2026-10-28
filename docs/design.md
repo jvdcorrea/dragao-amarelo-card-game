@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.53 · rascunho para editar*
+*Documento de design preliminar · v0.54 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -387,6 +387,14 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
 - **Cidade (P73, revisto em P78):** uma ida por dia; dentro dela, o jogador visita quantos Mestres e NPCs quiser, e a ação só é gasta ao voltar para a guilda (sair sem visitar ninguém não gasta). Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. **Lerael Vane, arquivista da Sociedade Mágica** (P81), recebe cordialmente as cópias que passam de 2 para avançar as pesquisas arcanas e paga um honorário por cópia (Comum 5, Incomum 12, Rara 30 de ouro). Elfa de óculos, formal, meticulosa e cronicamente sem dormir; a Sociedade Mágica registra Disciplinas, artefatos, fenômenos e Cartomantes, e a arquivista comenta que faz tempo que não aparece um.
 - **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez). Da segunda visita em diante, Gun'Liao, Charles e Mikeus cumprimentam com outra fala. A parte de compra da tela de cada Mestre se chama Treinamento.
 - **Diálogo como registro (P78):** cada fala escolhida fica na tela, em sequência, registrando a conversa da ida. Falas ainda não feitas aparecem como botões; as já feitas vão para um menu recolhível "Falas já feitas", de onde podem ser repetidas.
+- **Falas condicionais e notificação (P82):** uma fala pode exigir outra antes, exigir que um conjunto de falas tenha sido feito num dia anterior, exigir já ter conhecido outro Mestre ou ter vencido o Basilisco. Falas em rodízio mudam o texto a cada vez. Na cidade, um "!" ao lado do NPC avisa que há falas novas.
+- **Falas novas dos Mestres (P83):**
+  - **Chrome:** "Posso pagar depois?" (nome sujo no CERASA); depois de esgotar as três primeiras falas, em outro dia, "Você conhecia Ergos?" (Ergos era Cartomante e sumiu devendo a ela uma engrenagem mágica); em seguida, "Ele é meu tio..." abre a primeira **quest**, *A engrenagem da Chrome*. Depois da fala sobre gente grata, aparece a compra educada ("Boa noite, Chrome! ... por favor. Obrigado!"), 5 de ouro mais barata.
+  - **Gun'Liao:** os deuses que ele serve conforme a necessidade (Pelor, o Sol Invicto; Susanoo; e a favorita, a Serpente Omissa, serpe da sombra e do tempo), o que acontece com quem não paga, as escamas como bênção da Serpente Omissa e, depois do Basilisco, "Eu sei. Bom trabalho."
+  - **Charles:** a música que tocou hoje (títulos-trocadilho em rodízio), os bichinhos espectrais e o momento sério sobre ter trocado a magia arcana pela música.
+  - **Mikeus:** depois de revelar que vem do futuro, fala sobre cada Mestre que o jogador já conheceu (Chrome ficará famosa por armaduras eficientes e estilosas; Gun'Liao terá um destino glorioso e sombrio; Charles vem de Macabra, sua nação natal; Yaven não deixa segredo escapar; Ko, o Vagante, será endeusado em muitos planetas) e sobre si mesmo (um rapaz comum da Terra, transportado para este mundo, que descobriu a cronomancia).
+- **Quests (P84):** pedidos pessoais dos NPCs, listados na guilda. A primeira é a engrenagem da Chrome; como concluir ainda está a definir.
+- **Falar com Felix (P85):** ação livre na guilda. Felix comenta as estatísticas da campanha (lutas, vitórias, dano médio, carta favorita), onde o jogador tem caído (com a dica do encontro e uma leitura da curva do deck) e o que vem no próximo andar (encontros comuns e o final, com dica).
 - **Indicação de aventureiro (P79):** depois de comprar um booster de um Mestre (e com a guilda já recebendo aventureiros), aparece a fala "Preciso de aventureiros pra me ajudar na guilda, pode me indicar alguém?". Cada Mestre indica uma vez, se houver vaga; com a guilda cheia, a fala continua disponível.
   - **Mikeus:** Katya, guerreira temporal, aluna verde e animada (spunky go-getter).
   - **Charles Goodwich:** Matador, esqueleto batedor, "muito tímido em vida"; cumprimenta com "Buenos días, fuckboy."

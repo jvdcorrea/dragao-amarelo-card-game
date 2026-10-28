@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 26/10/2026 · acompanha o design v0.53*
+*Atualizada em 26/10/2026 · acompanha o design v0.54*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -39,6 +39,10 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
    - **[x]** Ida à cidade conta só ao voltar; dentro dela, quantos Mestres quiser (P78). Diálogo como registro, com menu de falas já feitas (P78). Indicação de aventureiro depois de comprar um booster: Katya, Matador, 9S e Tsubaki (P79).
    - *Falta:* os aventureiros que o Yaven e o Ko indicam (hoje aleatórios); aprender Disciplinas novas com os Mestres (P29).
 
+**[x] Falas condicionais, notificação de falas novas, quests e Falar com Felix** (P82 a P85).
+   - *Falta:* como concluir a quest da engrenagem da Chrome.
+   - *Atenção:* Pelor é um deus do Dungeons & Dragons (Wizards of the Coast). Para um lançamento comercial, vale trocar por um nome original.
+
 **[x] Códigos secretos e Menu de testes** (P77), nas Configurações. Partidas de campanhas com testes saem marcadas no log.
 
 **[x] Estrutura de base** (P68): o dia com as quatro ações (descer, visita, despacho, obra, uma vez cada) e o botão "Encerrar o dia". Descer não passa mais o dia sozinho.
@@ -56,6 +60,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [ ] P36: o problema terminal do mundo.
 - [ ] Nome dos Felinos da Guilda; Gigante das Profundezas; nomes em inglês das Disciplinas.
 - [ ] Gato Farejador: agora que existe ouro, já pode ser implementado.
+- [x] Falar com Felix (P85).
 - [ ] Clientes: chegam como evento ou exigem visita?
 - [ ] Balanceamento do grupo 1: dificuldade geral baixa, Basilisco arrastado, Draconic forte. Testar o Broto 0/1 com Necro e Temporal.
 - [ ] Inimigos dos grupos 2 a 4.

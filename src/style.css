@@ -430,3 +430,8 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .titulo-fundo::after { background: linear-gradient(180deg, rgba(8, 10, 20, 0) 30%, rgba(8, 10, 20, .6) 100%), var(--img-guilda) center top / contain no-repeat; }
   .titulo-tela.com-arte h1.sr { position: relative; z-index: 1; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; }
 }
+
+/* Notificação de falas novas e quests */
+.badge-novo { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--vida); color: #fff; font-size: .72rem; font-weight: 800; vertical-align: 2px; margin-left: 4px; }
+.quests { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 10px; font-size: .9rem; }
+.quest { padding: 2px 10px; border-radius: 999px; border: 1px solid var(--ouro-vivo); color: var(--ouro); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }

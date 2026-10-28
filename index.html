@@ -442,6 +442,11 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .titulo-tela.com-arte h1.sr { position: relative; z-index: 1; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; }
 }
 
+/* Notificação de falas novas e quests */
+.badge-novo { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--vida); color: #fff; font-size: .72rem; font-weight: 800; vertical-align: 2px; margin-left: 4px; }
+.quests { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 10px; font-size: .9rem; }
+.quest { padding: 2px 10px; border-radius: 999px; border: 1px solid var(--ouro-vivo); color: var(--ouro); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }
+
 </style>
 </head>
 <body>
@@ -2016,6 +2021,7 @@ function ensureGuild() {
   camp.missions = camp.missions || [];
   camp.recruits = camp.recruits || [];
   camp.pending = camp.pending || [];
+  camp.quests = camp.quests || [];
   camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: 'bloq', lab: 'bloq', ferraria: 'bloq' };
   if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
@@ -2193,6 +2199,9 @@ const MESTRE_INFO = {
       { id: 'a', label: 'Que? Como assim?', reply: ['O seu bolso está emitindo três frequências arcanas diferentes. Eu só juntei dois com dois. Lógica simples.', 'Ninguém passa pela porta da ACT com uma assinatura mágica dessas sem eu notar. Se quiser saber o que ele faz de verdade, pergunte. A primeira consulta é por conta da casa. A segunda a gente negocia.'] },
       { id: 'b', label: 'Estou feliz em te ver 😏', reply: ['Ah, finalmente alguém com iniciativa. Gostei.', 'Vamos ver se você tem a mesma iniciativa para os negócios. Tudo que você vê aqui é Magitech da mais alta qualidade, certamente investir em equipamento de qualidade é mais atraente que meu rostinho lindo, não?'] },
       { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. Se lembrar de falar por favor e obrigado, mais justo ainda.'] },
+      { id: 'e', after: ['a', 'b', 'c'], laterDay: true, label: 'Você conhecia Ergos?', reply: ['Sim, o antigo dono da Dragão Amarelo. Desapareceu me devendo uma engrenagem mágica, acredita? Espero que ele esteja bem. Era um Cartomante como você.'] },
+      { id: 'f', requires: 'e', label: 'Ele é meu tio, eu herdei a guilda dele, junto com as dívidas.', reply: ['Oh. Entendi agora, você é do sangue dele. Significa que você vai achar aquela engrenagem pra mim?'], quest: { id: 'engrenagem', title: 'A engrenagem da Chrome', desc: 'Achar a engrenagem mágica que Ergos ficou devendo à Chrome.' } },
+      { id: 'g', label: 'Posso pagar depois?', reply: ['Poderia, com juros, mas você tem nome sujo no CERASA. Limpa teu nome antes de sair colecionando credores.'] },
       { id: 'd', requires: 'a', label: 'Quero minha consulta grátis', reply: ['Quem está sintonizado com um baralho como esse e sabe usá-lo é chamado de Cartomante. A comunidade mágica ainda discute se a Cartomancia é ou não uma Disciplina, mas, sinceramente, esses detalhes pouco me importam. O que importa é que um Cartomante pode usar as propriedades do baralho como alavanca para manifestar poderes mágicos com facilidade, e até se sintonizar com uma Disciplina. Eu recomendaria a Magitech, a melhor de todas, obviamente. Há registros de Cartomantes que dominaram mais de uma Disciplina no passado, mas nada que possamos confirmar. Cartomantes já são raros por natureza; os excepcionais são ainda mais raros, e por isso mesmo difíceis de documentar.', 'Por enquanto, foque em equilibrar os custos das cartas para não perder um turno sem fazer nada, depois pense em fazer uma sinergia em suas cartas. Não tenha medo de experimentar cartas diferentes e veja o que funciona melhor.'] },
     ] },
   holy: { name: "Gun'Liao", title: 'mestre do Holy Shadowmancy', img: 'gunliao', pos: '45% 35%', face: '46% 20%',
@@ -2205,6 +2214,10 @@ const MESTRE_INFO = {
       { id: 'a', label: 'Me ensine, mestre.', reply: ['Primeira lição: os deuses não são generosos. São justos. Cobram em fervor, em sacrifício, às vezes em silêncio. Pague o preço certo e até o céu assina contrato com você.', 'Segunda lição: Se alguém precisa pagar o preço em sangue, é melhor que seja um monstro, não acha? Há monstros no mundo todo, esperando para derramar o seu. Não permita.'] },
       { id: 'b', label: 'Você também ensina sobre o que habita as sombras? Achei que clérigos eram do bem!', reply: ['E somos. A luz precisa de quem caminhe onde ela não alcança.', 'Um monstro abatido em silêncio é uma oração surda, tão boa quanto uma peregrinação. Os deuses aceitam as duas, cordeiro. E só um de nós precisa se sentir culpado. Deixe que eu absolvo toda sua culpa.'] },
       { id: 'c', label: 'Estou mais interessado nas artes sombrias.', reply: ['Honestidade. Que raro. Que refrescante.', 'As sombras são o lugar que protege e conforta os de fé enquanto eles esperam a hora certa. Emboscar, Revelar, Sacrificar. Chame de arte sombria se preferir. Eu, pessoalmente, chamo de liturgia com bom timing.'] },
+      { id: 'd', label: 'Quais deuses você serve?', reply: ['Depende de que deus eu preciso no momento. Eu gosto do Pelor, o Sol Invicto, quando preciso dispensar justiça e destruir o mal. Susanoo é uma força imparável, muito útil. E é claro, minha favorita, a Serpente Omissa, Serpe da sombra e do tempo. Posso te ensinar sobre eles.'] },
+      { id: 'e', label: 'O que acontece com quem não paga?', reply: ['>Ele sorri da sua inocência.', 'Sempre paga, de um jeito ou de outro.'] },
+      { id: 'f', label: 'As escamas no seu rosto...', reply: ['É a bênção da Serpente Omissa. Seu poder e seu aspecto permeiam minha forma.'] },
+      { id: 'g', needBoss: true, label: 'Eu ofereci o Basilisco aos deuses', reply: ['Eu sei. Bom trabalho.'] },
     ] },
   necro: { name: 'Charles Goodwich', title: 'o bom lich, mestre da Necrodança', img: 'goodwich', pos: '45% 30%', face: '47% 14%',
     place: 'As últimas notas ainda ecoam pela lona do Necro-Circus. A plateia pula no compasso, um-dois-três, um-dois-três, enquanto esqueletos de chapéu de plumas fecham o refrão com violino, alaúde e tambor, e cães e gatos espectrais correm pelo palco. É impossível não balançar a cabeça. Quando a música para, o vocalista desce, um lich de cabelo prateado com uma guitarra que ainda solta faíscas azuis, e acena para você.',
@@ -2215,6 +2228,9 @@ const MESTRE_INFO = {
       { id: 'a', label: 'Sim, por favor!', once: 'autografo', reply: ['>Ele rabisca o seu ingresso com um floreio e um sorriso de caveira: «Para {nome}, que tem ritmo. Charles G.»', 'Guarda bem. Daqui a uns trezentos anos isso vale uma fortuna. Confia, eu já vi acontecer.'] },
       { id: 'b', label: 'Ótimo show! Está contratando?', reply: ['Valeu! Quem sabe no dia do seu funeral, mas a gente valoriza quem saiba contar até três. Trate de aprender até lá, se ainda estiver interessado!', 'Necrodança é isso: o Compasso. Um, dois, três, e volta. A carta certa no tempo certo e a música faz o resto. Eu dou aula, se quiser. Não precisa morrer antes, juro.'] },
       { id: 'c', label: 'Sabe, eu sou tipo um necrodançarino também, mas meu palco é uma masmorra mágica.', reply: ['Turnê subterrânea! Respeito demais.', 'Eu passei minha vida estudando e aprendendo todos os segredos da magia para conquistar todas as masmorras e acumular poder, mas no fim nada supera o poder de um bom refrão e um sorriso no rosto. Se a sua masmorra tiver eco, sorte sua. Acústica de caverna é outra coisa.'] },
+      { id: 'm', label: 'Qual música você tocou hoje?', rot: ['Valsa para Ossos Cansados', 'Três por Quatro por Toda a Eternidade', 'Meu Coração Parou (Mas o Ritmo Não)', 'Morto de Saudade', 'Osso Duro de Roer', 'Sem Pulso, Mas com Swing', 'Até que a Morte nos Junte', 'Cova Rasa, Coração Fundo', 'Réquiem pra Quem Requebra', 'Esqueleto no Armário (Versão Acústica)'], reply: ['Hoje foi “{rot}”. Um clássico do repertório!'] },
+      { id: 'n', label: 'Os bichinhos espectrais são seus?', reply: ['São meus pequenos amigos. Eu cuido deles, e as crianças do circo adoram!'] },
+      { id: 'o', label: 'Por que um lich trocou a magia arcana pela música?', reply: ['>A guitarra fica em silêncio por um instante.', 'Passei séculos tentando não morrer. Um dia percebi que nunca tinha vivido.'] },
     ] },
   temporal: { name: 'Mikeus', title: 'mestre de Temporal Warfare', img: 'mikeus', pos: '48% 30%', face: '50% 12%',
     place: 'No pátio de um dojo, sob nuvens que parecem passar rápido demais, um guerreiro de armadura vermelha e gasta segura um elmo debaixo do braço. A lança dele brilha com runas que você não reconhece, e ele olha para você como quem reencontra um velho conhecido.',
@@ -2226,6 +2242,12 @@ const MESTRE_INFO = {
       { id: 'b', label: 'O que vai acontecer no futuro?', reply: ['Não. Cada palavra que eu digo sobre aquilo muda alguma coisa, e eu já vi o que acontece quando muda demais.', 'Treine. É a única resposta que não cria paradoxo.'] },
       { id: 'c', label: 'Você realmente vê o futuro?', reply: ['Não vejo. Eu lembro. Lutei em guerras que ainda não começaram e em outras que vocês já esqueceram.', 'Eu sou ambos um aprendiz e o fundador da disciplina do Temporal Warfare, então escute quando digo: Golpeie antes, volte depois. A vitória geralmente pertence a quem percebe o confronto antes.'] },
       { id: 'd', label: 'Melhor começar logo então, se você não tem tempo a perder, eu tenho menos ainda.', reply: ['>Mikeus aponta a lança para o dojo e, pela primeira vez, quase sorri.', 'Boa resposta. Foi a mesma que você me deu da outra vez.'] },
+      { id: 'p1', requires: 'c', met: 'mestre-tech', label: 'Pode me contar sobre a Chrome?', reply: ['Ela vai ficar famosa por fazer armaduras eficientes e estilosas.'] },
+      { id: 'p2', requires: 'c', met: 'mestre-holy', label: "Pode me contar sobre o Gun'Liao?", reply: ['Ele lutou guerras de que ninguém sabe e tem um destino glorioso e sombrio.'] },
+      { id: 'p3', requires: 'c', met: 'mestre-necro', label: 'Pode me contar sobre o Charles?', reply: ['Ele vai permanecer. Seus dias de batalha e glória ficaram nas terras de Macabra, sua nação natal.'] },
+      { id: 'p5', requires: 'c', met: 'mestre-space', label: 'Pode me contar sobre o Yaven?', reply: ['Nenhum segredo vai se esconder de seus olhos curiosos.'] },
+      { id: 'p6', requires: 'c', met: 'mestre-draconic', label: 'Pode me contar sobre o Ko?', reply: ['Também conhecido como O Vagante, ele vai continuar acumulando poder e vai ser endeusado em muitos planetas que visitar. Dificilmente cruzamos nossos caminhos, mas soube que ele fica cada vez mais forte.'] },
+      { id: 'p4', requires: 'c', label: 'Pode me contar sobre você?', reply: ['Eu era um rapaz comum de um planeta chamado Terra, mas fui acidentalmente transportado para um mundo cheio de perigos. Por sorte, eu descobri os poderes da cronomancia.', 'Eu sei o que você está pensando. Não sei o que é “isekai” e não tive um harém. Por favor, não pergunte...'] },
     ] },
   draconic: { name: 'Ko', title: 'mestre de Draconic Primalism', img: 'ko', pos: '50% 50%', face: '50% 9%',
     place: 'No bosque antigo, nos limites da cidade, a luz das estrelas atravessa as copas como se o céu tivesse descido para ver. Um grifo observa de um galho, e uma fera feita de luz estelar ronda as raízes. No meio da clareira, um ser dracônico de asas cheias de constelações espera de braços soltos. É Ko, viajante das estrelas, e ele olha para você como quem mede a força de alguém só de ver.',
@@ -2273,6 +2295,60 @@ const NPC_INFO = {
       { id: 'c', label: 'O que é a Sociedade Mágica?', reply: ['Uma reunião de magos que concordam em discordar, formalmente e por escrito.', 'Registramos Disciplinas, artefatos e fenômenos. Cartomantes também, quando aparecem. Faz tempo que não aparece nenhum.'] },
     ] },
 };
+NPC_INFO.felix = { name: 'Felix', title: 'familiar de Ergos', img: 'warroom', pos: '50% 50%', face: '38% 50%',
+  place: 'Felix está enrolado na poltrona da sala de guerra, perto da lareira. Ele abre um olho só quando você se aproxima.',
+  greet: 'Hm. Quer conversar? Eu anoto tudo o que você faz lá embaixo. Tudo.',
+  opts: [
+    { id: 'a', always: true, dyn: 'stats', label: 'Como eu estou indo?' },
+    { id: 'b', always: true, dyn: 'falhas', label: 'Onde eu tenho errado?' },
+    { id: 'c', always: true, dyn: 'proximo', label: 'O que vem pela frente?' },
+  ] };
+const FELIX_TIPS = {
+  revoada: 'Na Revoada, todo Morcego da Gruta tem +1 de Ataque, e o Ninho de Morcegos invoca mais um a cada turno. Derrube o Ninho cedo.',
+  jardim: 'No Jardim, os Cogumelos-Broto brotam como 4/4. Cada Broto morre com 1 de dano: corte no turno em que aparece, e cuide do Fungoide Ancião, que planta um novo por turno.',
+  toca: 'Na Toca, as Aranhas Tecelãs saem baratas e deixam suas unidades Imóveis. Espalhe o Ataque em mais de uma unidade e respeite a Centopeia Venenosa: ela tem Letal.',
+  bicharada: 'A Toupeira Rainha compra uma carta extra sempre que tem menos unidades que você. Quando estiver na frente no campo, mire na Vida dela e feche a luta rápido.',
+  imperatriz: 'Com a Centopeia Imperatriz, tudo que tem Letal fica mais barato e mais resistente. Troque as Centopeias com unidades baratas e guarde as grandes para depois.',
+  fungo: 'No Fungo Colossal, os Cogumelos Adultos ganham Guarda, e o Fungo Colossal faz todos os Brotos brotarem quando entra. Limpe os Brotos sempre; dano em área ajuda muito.',
+  basilisco: 'O Olhar do Basilisco deixa Imóvel a sua unidade de maior Ataque, e a Mordida Petrificante destrói unidades Imóveis. Espalhe o Ataque em várias unidades médias. A Estátua Antiga protege o Basilisco enquanto estiver em campo, e com 20 de Vida ou menos ele troca de pele e recupera 8: guarde dano para depois disso.',
+};
+function felixLines(kind) {
+  const games = lsGet(LS_GAMES, []).filter(g => g.ctx && g.ctx.camp === camp.id && (g.result === 'win' || g.result === 'loss'));
+  const encName = id => (E.ENC[id] && E.ENC[id].name) || id;
+  if (kind === 'stats') {
+    if (!games.length) return ['Você ainda não lutou nesta campanha. Eu anoto tudo, então capriche.'];
+    const w = games.filter(g => g.result === 'win').length, l = games.length - w;
+    const dmg = games.map(g => ((g.ctx.hpStart || 30) - Math.max(g.hp[0], 0))); const avg = Math.round(dmg.reduce((a, b) => a + b, 0) / dmg.length * 10) / 10;
+    const plays = {}; games.forEach(g => (g.events || []).forEach(e => { if (e.k === 'play' && e.s === 'P') plays[e.c] = (plays[e.c] || 0) + 1; }));
+    const fav = Object.entries(plays).sort((a, b) => b[1] - a[1])[0];
+    const out = [`Lutas nesta campanha: ${games.length}. Vitórias: ${w}. Derrotas: ${l}.`, `Em média, você sai de cada luta com ${String(avg).replace('.', ',')} de dano a menos.${avg >= 10 ? ' Isso é muito. Eu teria fugido.' : avg <= 3 ? ' Quase sem arranhões. Exibido.' : ''}`];
+    if (fav) out.push(fav[0] === 'felix' ? `A sua carta favorita sou eu: ${fav[1]} vezes. Ótimo gosto.` : `A sua carta favorita é ${E.DEF[fav[0]].name}: ${fav[1]} vezes. Eu vejo. Eu sei.`);
+    out.push(`Ouro no cofre: ${camp.gold}. Aventureiros na guilda: ${camp.advs.length}.`);
+    return out;
+  }
+  if (kind === 'falhas') {
+    const losses = {}; games.filter(g => g.result === 'loss').forEach(g => { losses[g.enc] = (losses[g.enc] || 0) + 1; });
+    const top = Object.entries(losses).sort((a, b) => b[1] - a[1]);
+    const out = [];
+    if (!top.length) out.push('Nenhuma derrota até agora. Não deixe isso subir à cabeça; a minha já está lá em cima, e é desconfortável.');
+    else { const [enc, n] = top[0]; out.push(`Você caiu ${n} vez${n === 1 ? '' : 'es'} contra ${encName(enc)}.`); if (FELIX_TIPS[enc]) out.push(FELIX_TIPS[enc]); }
+    const list = R.deckList(camp.deck); const avgCost = list.reduce((a, id) => a + E.DEF[id].cost, 0) / Math.max(1, list.length); const cheap = list.filter(id => E.DEF[id].cost <= 2).length;
+    if (avgCost > 3.2) out.push(`O seu deck está pesado: custo médio de ${avgCost.toFixed(1).replace('.', ',')}. As lutas costumam acabar antes de as cartas caras saírem.`);
+    else if (cheap < 10) out.push(`Só ${cheap} cartas custam 2 ou menos. Os primeiros turnos ficam vazios, e turno vazio é turno do inimigo.`);
+    else out.push(`A curva do deck está boa: custo médio de ${avgCost.toFixed(1).replace('.', ',')}.${top.length ? ' O problema não é o baralho. Talvez seja quem segura.' : ''}`);
+    return out;
+  }
+  const floor = camp.cleared[5] ? null : Math.min(camp.floor, 5);
+  if (!floor) return ['Você já atravessou as Grutas Vivas inteiras. O que vem depois, nem eu sei. Ainda.'];
+  const F = R.FLOORS[floor]; const out = [`O andar ${floor} tem ${F.commons.map(encName).join(', ').replace(/, ([^,]*)$/, ' e $1')} nas lutas comuns.`];
+  if (F.final === 'elite') out.push(`No fim, uma Elite: ${F.elites.map(encName).join(' ou ')}. Se for o Fungo, limpe os Brotos sempre, de preferência com dano em área. Se for a Imperatriz, troque as Centopeias com unidades baratas e guarde as grandes para depois.`);
+  else if (F.final === 'basilisco') out.push(`No fim, o ${encName('basilisco')}. ${FELIX_TIPS.basilisco}`);
+  else if (FELIX_TIPS[F.final]) out.push(FELIX_TIPS[F.final]);
+  return out;
+}
+function renderFelix() {
+  $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela">${talkHtml('felix', NPC_INFO.felix, null)}<div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+}
 const npcInfo = id => id.startsWith('mestre-') ? MESTRE_INFO[id.slice(7)] : NPC_INFO[id];
 function npcArt(m, cls) { return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
@@ -2286,21 +2362,39 @@ function finishCityTrip() {
 }
 function renderCidade() {
   const vis = (camp.cityTrip && camp.cityTrip.visited) || [];
-  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b><p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? 'Voltar a falar' : 'Visitar'}</button></li>`;
+  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b>${hasNewTalk(id) ? ' <span class="badge-novo" title="Falas novas disponíveis" aria-label="Falas novas disponíveis">!</span>' : ''}<p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? 'Voltar a falar' : 'Visitar'}</button></li>`;
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
   <h2>Sociedade Mágica</h2><ul class="lista-npc">${npc('copias', 'Lerael Vane, arquivista da Sociedade Mágica', 'Recebe cordialmente as cópias que passam de 2 (o deck só aceita 2), em troca de um honorário, para avançar as pesquisas arcanas.', npcArt(NPC_INFO.copias, 'npc-thumb'))}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
+function optOk(o, id) {
+  const f = camp.flags; const said = new Set(((f.said || {})[id]) || []);
+  if (o.once && (f.once || {})[o.once]) return false;
+  if (o.requires && !said.has(o.requires)) return false;
+  if (o.after) { if (!o.after.every(x => said.has(x))) return false; if (o.laterDay) { const sd = (f.saidDay || {})[id] || {}; if (Math.max(...o.after.map(x => sd[x] || 0)) >= camp.day) return false; } }
+  if (o.met && !(((f.visits || {})[o.met] || 0) > 0)) return false;
+  if (o.needBoss && !camp.cleared[5]) return false;
+  return true;
+}
+function npcOpts(id, mi, d) {
+  const opts = mi.opts.filter(o => optOk(o, id));
+  if (d && mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
+  return opts;
+}
+function hasNewTalk(id) {
+  const mi = npcInfo(id); if (!mi || !camp) return false;
+  const d = id.startsWith('mestre-') ? id.slice(7) : null; const said = new Set(((camp.flags.said || {})[id]) || []);
+  return npcOpts(id, mi, d).some(o => !o.always && !said.has(o.id));
+}
 function talkHtml(id, mi, d) {
   const nome = esc((camp && camp.name) || 'você');
   const fill = t => esc(t).replace(/\{nome\}/g, nome);
       const used = camp.flags.once || {}; const saidSet = new Set(((camp.flags.said || {})[id]) || []);
       const log = ((ui.talkLogs || {})[id]) || [];
-      const opts = mi.opts.filter(o => !(o.once && used[o.once]) && (!o.requires || saidSet.has(o.requires)));
-      if (d && mi.indica && (camp.flags.bought || {})[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d]) opts.push({ id: 'indica', label: INDICA_LABEL });
-      const novas = opts.filter(o => !saidSet.has(o.id)), feitas = opts.filter(o => saidSet.has(o.id));
+      const opts = npcOpts(id, mi, d);
+      const novas = opts.filter(o => o.always || !saidSet.has(o.id)), feitas = opts.filter(o => !o.always && saidSet.has(o.id));
       const bt = o => `<button class="botao" data-act="g-talk" data-npc="${id}" data-opt="${o.id}">${esc(o.label)}</button>`;
       const ent = e => e.t === 'voce' ? `<div class="fala voce"><span class="quem">Você</span><p>${fill(e.text)}</p></div>`
         : e.t === 'narra' ? `<p class="narra">${fill(e.text)}</p>`
@@ -2320,7 +2414,7 @@ function renderNpc() {
     let talk = '';
     if (mi) talk = talkHtml(id, mi, d) + '<h3>Treinamento</h3>';
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
-      <div class="opcoes"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button></div>`;
+      <div class="opcoes coluna dialogo"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button>${d === 'tech' && (((camp.flags.said || {})[id]) || []).includes('c') ? `<button class="botao" data-act="g-buy" data-dd="tech" data-polite="1" ${camp.gold < BOOSTER_PRECO - 5 ? 'disabled' : ''}>“Boa noite, Chrome! Eu gostaria de fazer um upgrade no meu baralho de Magitech, por favor. Obrigado!” (${BOOSTER_PRECO - 5} de ouro)</button>` : ''}</div>`;
   } else {
     const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
     body = `${talkHtml(id, NPC_INFO.copias, null)}<h3>Arquivo</h3><p>${ex.length ? 'A Sociedade paga um honorário de pesquisa por cópia que passa de 2 na sua coleção (o deck só aceita 2):' : 'Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.'}</p>
@@ -2345,6 +2439,7 @@ async function guildClick(act, ds) {
     const c = await choose('Encerrar o dia', `Encerrar o dia ${camp.day}? Missões avançam, obras terminam e pode acontecer alguma coisa durante a noite.${!camp.acts.descer ? ' Você ainda não desceu hoje.' : ''}`, [{ v: 'sim', label: 'Encerrar o dia' }]);
     if (c === 'sim') endDay(); return true;
   }
+  if (act === 'g-felix') { ui.talkLogs = ui.talkLogs || {}; ui.talkLogs.felix = []; ui.screen = 'felix'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-taverna') { ui.screen = 'taverna'; render(); window.scrollTo(0, 0); return true; }
@@ -2376,7 +2471,7 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-talk') {
     const d = ds.npc.startsWith('mestre-') ? ds.npc.slice(7) : null; const mi = npcInfo(ds.npc); if (!mi) return true;
-    const o = ds.opt === 'indica' ? { id: 'indica', label: INDICA_LABEL } : mi.opts.find(x => x.id === ds.opt); if (!o) return true;
+    const o = ds.opt === 'indica' ? { id: 'indica', label: INDICA_LABEL } : mi.opts.find(x => x.id === ds.opt); if (!o || (o.id !== 'indica' && !optOk(o, ds.npc))) return true;
     if (o.once) { camp.flags.once = camp.flags.once || {}; if (camp.flags.once[o.once]) return true; camp.flags.once[o.once] = true; }
     const ents = [{ t: 'voce', text: o.label }];
     if (o.id === 'indica') {
@@ -2390,19 +2485,22 @@ async function guildClick(act, ds) {
         hist({ k: 'aventureiro', name: a.name, from: ds.npc });
       }
     } else {
-      o.reply.filter(r => r[0] === '>').forEach(r => ents.push({ t: 'narra', text: r.slice(1) }));
-      const ls = o.reply.filter(r => r[0] !== '>'); if (ls.length) ents.push({ t: 'fala', name: mi.name, lines: ls });
+      let reply = o.dyn ? felixLines(o.dyn) : o.reply;
+      if (o.rot) { camp.flags.rot = camp.flags.rot || {}; const key = ds.npc + ':' + o.id; const k = camp.flags.rot[key] || 0; reply = reply.map(r => r.replace('{rot}', o.rot[k % o.rot.length])); camp.flags.rot[key] = k + 1; }
+      reply.filter(r => r[0] === '>').forEach(r => ents.push({ t: 'narra', text: r.slice(1) }));
+      const ls = reply.filter(r => r[0] !== '>'); if (ls.length) ents.push({ t: 'fala', name: mi.name, lines: ls });
+      if (o.quest && !camp.quests.some(q => q.id === o.quest.id)) { camp.quests.push(Object.assign({ day: camp.day, from: ds.npc }, o.quest)); ents.push({ t: 'narra', text: `Nova quest: ${o.quest.title}.` }); hist({ k: 'quest', id: o.quest.id }); setTimeout(() => toast(`Nova quest: ${o.quest.title}.`), 30); }
     }
     ui.talkLogs = ui.talkLogs || {}; (ui.talkLogs[ds.npc] = ui.talkLogs[ds.npc] || []).push(...ents);
-    if (o.id !== 'indica' || (camp.flags.indicou || {})[d]) { camp.flags.said = camp.flags.said || {}; const arr = camp.flags.said[ds.npc] = camp.flags.said[ds.npc] || []; if (!arr.includes(o.id)) arr.push(o.id); }
+    if (o.id !== 'indica' || (camp.flags.indicou || {})[d]) { camp.flags.said = camp.flags.said || {}; const arr = camp.flags.said[ds.npc] = camp.flags.said[ds.npc] || []; if (!arr.includes(o.id)) { arr.push(o.id); camp.flags.saidDay = camp.flags.saidDay || {}; (camp.flags.saidDay[ds.npc] = camp.flags.saidDay[ds.npc] || {})[o.id] = camp.day; } }
     hist({ k: 'dialogo', npc: ds.npc, opt: o.id }); saveCamp(); render();
     const last = document.querySelector('.dialogo-log > :last-child'); if (last) last.scrollIntoView({ block: 'nearest' });
     return true;
   }
   if (act === 'g-buy') {
-    const d = ds.dd; if (camp.gold < BOOSTER_PRECO) return true;
-    camp.gold -= BOOSTER_PRECO; const cards = R.openDiscPack(rnd, d, camp.collection); addCards(cards);
-    hist({ k: 'booster', type: 'mestre-' + d, cards, price: BOOSTER_PRECO });
+    const d = ds.dd; const price = ds.polite && d === 'tech' && (((camp.flags.said || {})['mestre-tech']) || []).includes('c') ? BOOSTER_PRECO - 5 : BOOSTER_PRECO; if (camp.gold < price) return true;
+    camp.gold -= price; const cards = R.openDiscPack(rnd, d, camp.collection); addCards(cards);
+    hist({ k: 'booster', type: 'mestre-' + d, cards, price });
     camp.flags.bought = camp.flags.bought || {}; camp.flags.bought[d] = true;
     if (!MESTRE_INFO[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d] && camp.advs.length < advMax()) { const a = newAdv(); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true; hist({ k: 'aventureiro', name: a.name, from: 'mestre-' + d }); setTimeout(() => toast(`O mestre indicou ${a.name} (${advClass(a)}) para a guilda.`), 50); }
     saveCamp();
@@ -2436,9 +2534,10 @@ function renderHome() {
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
       ${guildStatus()}
+      ${camp.quests && camp.quests.length ? `<div class="quests"><b>Quests:</b> ${camp.quests.map(q => `<span class="quest" title="${esc(q.desc)}">${esc(q.title)}</span>`).join('')}</div>` : ''}
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
       <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
@@ -2703,6 +2802,7 @@ function renderScreen() {
   else if (ui.screen === 'taverna' && camp) renderTaverna();
   else if (ui.screen === 'cidade' && camp) renderCidade();
   else if (ui.screen === 'npc' && camp && ui.npc) renderNpc();
+  else if (ui.screen === 'felix' && camp) renderFelix();
   else if (ui.screen === 'map' && camp && camp.run) renderMap();
   else if (ui.screen === 'scene' && ui.scene) renderScene();
   else { ui.screen = 'home'; renderHome(); }
