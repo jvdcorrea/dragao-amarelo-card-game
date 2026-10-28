@@ -2,9 +2,20 @@
 'use strict';
 const E = window.Engine;
 const TYPE_LABEL = { unit: 'Unidade', spell: 'Feitiço', weapon: 'Arma', structure: 'Estrutura', ritual: 'Ritual', trap: 'Armadilha' };
+const typeLabel = d => (d ? ((d.social ? SOC_TYPE : TYPE_LABEL)[d.type] || '') : '');
 const KW_LABEL = { guarda: 'Guarda', investida: 'Acelerar', avanco: 'Avanço', letal: 'Letal', dreno: 'Dreno', escudo: 'Escudo', emboscada: 'Emboscada', eco: 'Eco' };
 const DISC_NAME = { temporal: 'Temporal Warfare', draconic: 'Draconic Primalism', necro: 'Necrodance', holy: 'Holy Shadowmancy', tech: 'Magitech', space: 'Space Wizardry', neutra: 'Neutra' };
 const GLOSS = {
+  'Abertura': 'No social, o mesmo que Ao Entrar: efeito quando o Argumento entra.',
+  'Repercussão': 'No social, o mesmo que Ao Morrer: efeito quando o Argumento cai.',
+  'Ponto Sensível': 'No social, o mesmo que Guarda: Argumentos inimigos precisam derrubá-lo primeiro.',
+  'Álibi': 'No social, o mesmo que Escudo: ignora o primeiro dano que receberia.',
+  'Enfatizar': 'No social, o mesmo que Evoluir: +2/+2 num Argumento seu.',
+  'Perfil': 'Traço do interlocutor: Ganância, Vaidade, Princípios, Procedimento ou Respeito. A Tática certa no Perfil certo rende mais; algumas saem pela culatra.',
+  'Compostura': 'Sua vida na negociação.',
+  'Resistência': 'A vida do interlocutor. Zere para fechar o acordo.',
+  'Lábia': 'A mana da negociação.',
+  'Rumor': 'Carta inútil para o interlocutor; se ficar na mão dele no fim do turno, causa 1 de dano à Resistência dele.',
   'Guarda': 'Inimigos precisam atacar unidades com Guarda primeiro.',
   'Acelerar': 'Pode atacar qualquer alvo, inclusive o líder, no turno em que entra.',
   'Avanço': 'Pode atacar unidades no turno em que entra.',
@@ -34,7 +45,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.17/design-v0.49/inimigos-v0.10/proto-2026-10-26';
+const RULES = 'cartas-v0.18/design-v0.55/inimigos-v0.10/proto-2026-10-27';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -101,7 +112,7 @@ async function exportLogs(scope) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
@@ -178,8 +189,8 @@ function piece(e, tgt) {
   const kws = Object.keys(KW_LABEL).filter(k => E.hasKw(e, k)).map(k => `<span class="selo">${KW_LABEL[k]}</span>`).join('');
   const tags = e.tags.map(t => `<span class="selo tag">${esc(t)}</span>`).join('');
   let body = '';
-  if (e.kind === 'unit') body = `<span class="stats"><b class="atk" title="Ataque">${E.getAtk(st, e)}</b><b class="hp ${e.hp < e.maxHp ? 'ferido' : ''}" title="Vida">${e.hp}</b></span>`;
-  else if (e.kind === 'structure') body = `<span class="stats"><b class="hp" title="Vida">${e.hp}</b></span>`;
+  if (e.kind === 'unit') body = `<span class="stats"><b class="atk" title="${W('Ataque')}">${E.getAtk(st, e)}</b><b class="hp ${e.hp < e.maxHp ? 'ferido' : ''}" title="${W('Vida')}">${e.hp}</b></span>`;
+  else if (e.kind === 'structure') body = `<span class="stats"><b class="hp" title="${W('Vida')}">${e.hp}</b></span>`;
   else if (e.kind === 'ritual') body = `<span class="contagem" title="Contagem">${e.countdown}</span>`;
   const estados = [];
   if (e.imovel > 0) estados.push('Imóvel');
@@ -197,27 +208,27 @@ function leaderE(tgt) {
   const pct = Math.max(0, Math.round(100 * o.leader.hp / o.leader.maxHp));
   const res = enc.boss ? `<span>Evolução ${dots(o.resonance.points, enc.resonance)}</span>` : '';
   return `<section class="lider">
-    <div class="lider-id">${iconSvg(typeof ART !== 'undefined' ? ART.enc[st.encId] : null, 'ico-lider')}<span class="lider-nome">${esc(o.leader.name)}</span><span class="lider-tier">${enc.tier}${st.phase2 ? ', fase 2' : ''}</span></div>
+    <div class="lider-id">${iconSvg(typeof ART !== 'undefined' ? ART.enc[st.encId] : null, 'ico-lider')}<span class="lider-nome">${esc(o.leader.name)}</span><span class="lider-tier">${enc.social ? 'Perfil ' + esc(enc.perfil) : enc.tier}${st.phase2 ? ', fase 2' : ''}</span></div>
     <p class="regra">${esc(enc.rule)}</p>
-    <button class="alvo-lider ${isT ? 'alvo' : ''}" data-leader="E" data-info="l:E" aria-label="Vida de ${esc(o.leader.name)}: ${Math.max(0, o.leader.hp)}">
+    <button class="alvo-lider ${isT ? 'alvo' : ''}" data-leader="E" data-info="l:E" aria-label="${SOC() ? 'Resistência' : 'Vida'} de ${esc(o.leader.name)}: ${Math.max(0, o.leader.hp)}">
       <span class="vida-num">${Math.max(0, o.leader.hp)}</span><small>de ${o.leader.maxHp}</small>
     </button>
     <div class="lider-num">
       <span class="barra" aria-hidden="true"><i style="width:${pct}%"></i></span>
-      <span>${o.mana}/${o.maxMana} de mana</span><span class="conta">Mão ${o.hand.length}</span><span class="conta">Deck ${o.deck.length}</span>${res}
+      <span>${o.mana}/${o.maxMana} de ${W('mana')}</span><span class="conta">Mão ${o.hand.length}</span><span class="conta">Deck ${o.deck.length}</span>${res}
     </div>
   </section>`;
 }
 
 function centerBar() {
   let msg, cancel = false, cls = '';
-  if (st.over) msg = st.over === 'P' ? 'Vitória.' : 'Derrota.';
+  if (st.over) msg = st.over === 'P' ? (SOC() ? 'Acordo fechado.' : 'Vitória.') : (SOC() ? 'Negociação perdida.' : 'Derrota.');
   else if (st.pending && st.pending.kind === 'mulligan') msg = 'Escolha sua mão inicial.';
   else if (ui.busy || st.turnSide === 'E') { msg = `Vez de ${O().leader.name}.`; cls = 'inimigo-vez'; }
   else if (ui.mode) {
     cancel = true;
-    msg = { play: `Escolha um alvo para ${ui.mode.name}.`, attack: 'Escolha o alvo do ataque.', hero: 'Escolha o alvo da sua arma.', resonate: 'Escolha uma unidade sua para Evoluir.', confirm: `Toque de novo em ${ui.mode.name} ou em Jogar para confirmar.`, inspect: `${ui.mode.name}: ${ui.mode.reason}` }[ui.mode.kind];
-  } else msg = `Seu turno ${P().turnCount}. Jogue cartas, ataque com as unidades prontas e encerre o turno.`;
+    msg = { play: `Escolha um alvo para ${ui.mode.name}.`, attack: 'Escolha o alvo do ataque.', hero: 'Escolha o alvo da sua arma.', resonate: SOC() ? 'Escolha um Argumento seu para Enfatizar.' : 'Escolha uma unidade sua para Evoluir.', confirm: `Toque de novo em ${ui.mode.name} ou em Jogar para confirmar.`, inspect: `${ui.mode.name}: ${ui.mode.reason}` }[ui.mode.kind];
+  } else msg = SOC() ? `Seu turno ${P().turnCount}. Use Táticas, ponha Argumentos na mesa, pressione com os que estão prontos e encerre o turno.` : `Seu turno ${P().turnCount}. Jogue cartas, ataque com as unidades prontas e encerre o turno.`;
   const overBtn = st.over ? (st.ctx && st.ctx.mode === 'run' ? '<button class="botao principal" data-act="run-continue">Continuar</button>' : '<button class="botao" data-act="setup">Voltar</button>') : '';
   const m = ui.mode;
   const playBtn = m && m.kind === 'confirm' ? '<button class="botao principal" data-act="confirm-play">Jogar</button>' : '';
@@ -225,7 +236,7 @@ function centerBar() {
   let det = '';
   if (m && m.idx !== undefined && ['play', 'confirm', 'inspect'].includes(m.kind)) {
     const inst = P().hand[m.idx];
-    if (inst) { const d = E.DEF[inst.id]; det = `<div class="faixa-detalhe"><p class="linha">${TYPE_LABEL[d.type]}${d.tags.length ? ' (' + esc(d.tags.join(', ')) + ')' : ''}, custo ${E.getCost(st, 'P', inst)}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}</div>`; }
+    if (inst) { const d = E.DEF[inst.id]; det = `<div class="faixa-detalhe"><p class="linha">${typeLabel(d)}${d.tags.length ? ' (' + esc(d.tags.join(', ')) + ')' : ''}, custo ${E.getCost(st, 'P', inst)}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}</div>`; }
   }
   return `<div class="faixa ${cls}"><span>${esc(msg)}</span><span class="faixa-botoes">${playBtn}${cancel ? `<button class="botao discreto" data-act="cancel">${cancelLbl}</button>` : (!st.over ? '<button class="botao discreto" data-act="quit">Sair da partida</button>' : overBtn)}</span>${det}</div>`;
 }
@@ -246,10 +257,10 @@ function panelP() {
   const pct = Math.max(0, Math.round(100 * p.leader.hp / p.leader.maxHp));
   const endOk = st.turnSide === 'P' && !ui.busy && !st.over && !st.pending;
   return `<section class="painel-voce"><div class="painel-dados">
-    <div class="voce-vida" data-info="l:P"><b>${Math.max(0, p.leader.hp)}</b><span class="conta">de ${p.leader.maxHp}</span><span class="barra" aria-hidden="true"><i style="width:${pct}%"></i></span></div>
-    <div class="mana" title="Mana">${crys}<span>${p.mana}/${p.maxMana}${extra}</span></div>
+    <div class="voce-vida" data-info="l:P"><b>${Math.max(0, p.leader.hp)}</b><span class="conta">de ${p.leader.maxHp}${SOC() ? ' de Compostura' : ''}</span><span class="barra" aria-hidden="true"><i style="width:${pct}%"></i></span></div>
+    <div class="mana" title="${W('Mana')}">${crys}<span>${p.mana}/${p.maxMana}${extra}</span></div>
     ${st.usesCompasso ? `<div class="compasso" title="Compasso: posição da próxima carta"><span class="rotulo">Compasso</span>${beats}</div>` : ''}
-    <div class="ressonancia"><button class="botao" data-act="resonate" ${canRes ? '' : 'disabled'}>Evoluir</button>${dots(p.resonance.points, 3)}${resInfo ? `<small>${resInfo}</small>` : ''}</div>
+    <div class="ressonancia"><button class="botao" data-act="resonate" ${canRes ? '' : 'disabled'}>${W('Evoluir')}</button>${dots(p.resonance.points, 3)}${resInfo ? `<small>${resInfo}</small>` : ''}</div>
     ${weapon}${traps}
     <span class="conta">Deck ${p.deck.length}</span>
     ${pend.length ? `<p class="pendente">${esc(pend.join('; '))}.</p>` : ''}
@@ -257,8 +268,8 @@ function panelP() {
   </section>`;
 }
 
-const KW_RE = new RegExp('(?<![\\p{L}])(Exige Compasso \\d|Compasso \\d(?: ou \\d)?|Ao Entrar|Ao Morrer|Ao Evoluir|Ao Revelar|Ao ativar|Sangria \\d+|Ritual \\d+|Adiantar \\d+|Prever \\d+|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Cristal|Despertar|Armadilha|Órbita|Módulo|Brotar|Imóvel|Felinos|Felino|Dragões|Dragão|Construto|Rituais|Ritual|Cargas|Carga|Evoluir|Sacrifício)(?![\\p{L}])', 'gu');
-const KW_ONLY = /^(?:(?:Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Felino|Dragão|Construto|Órbita|Módulo|Armadilha|Ritual \d+|Sangria \d+|Adiantar \d+|Arma \d+\/\d+)\.\s*)+$/u;
+const KW_RE = new RegExp('(?<![\\p{L}])(Exige Compasso \\d|Compasso \\d(?: ou \\d)?|Ao Entrar|Ao Morrer|Ao Evoluir|Ao Revelar|Ao ativar|Sangria \\d+|Ritual \\d+|Adiantar \\d+|Prever \\d+|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Cristal|Despertar|Armadilha|Órbita|Módulo|Brotar|Imóvel|Felinos|Felino|Dragões|Dragão|Abertura|Repercussão|Ponto Sensível|Álibi|Ao Enfatizar|Perfil (?:Ganância|Vaidade|Princípios|Procedimento|Respeito)|Compostura|Resistência|Lábia|Rumores|Rumor|Construto|Rituais|Ritual|Cargas|Carga|Evoluir|Sacrifício)(?![\\p{L}])', 'gu');
+const KW_ONLY = /^(?:(?:Ponto Sensível|Álibi|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Felino|Dragão|Construto|Órbita|Módulo|Armadilha|Ritual \d+|Sangria \d+|Adiantar \d+|Arma \d+\/\d+)\.\s*)+$/u;
 function fmtText(text, compact) {
   if (!text) return '';
   const lines = [];
@@ -268,7 +279,7 @@ function fmtText(text, compact) {
 }
 function hashStr(t) { let h = 7; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return Math.abs(h); }
 function iconSvg(name, cls) { const d = typeof ART !== 'undefined' && name ? ART.icons[name] : null; return d ? `<svg class="${cls || 'ico'}" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="${d}"/></svg>` : ''; }
-function cardIconName(id) { return typeof ART !== 'undefined' ? ART.card[id] : null; }
+function cardIconName(id) { if (typeof ART === 'undefined') return null; if (ART.card[id]) return ART.card[id]; const d = E.DEF[id]; if (d && d.social) return d.tags.includes('Felino') ? 'cat' : ART.ui[d.type === 'unit' ? 'arg' : 'tat']; return null; }
 function artBand(id, disc, big) {
   const n = cardIconName(id); if (!n) return '';
   const h = hashStr(id);
@@ -286,7 +297,7 @@ function cardHtml(inst, i, extraCls, attrs, cost) {
   return `<button class="carta disc-${d.disc || 'neutra'} ${extraCls}" ${attrs}>
     <span class="custo ${c < d.cost ? 'menor' : c > d.cost ? 'maior' : ''}">${c}</span>
     <span class="nome">${esc(d.name)}</span>
-    <span class="tipo">${TYPE_LABEL[d.type]}${esc(tags)}</span>
+    <span class="tipo">${typeLabel(d)}${esc(tags)}</span>
     ${artBand(inst.id, d.disc || 'neutra')}
     <span class="texto">${fmtText(d.text)}</span>
     ${d.orbita ? `<span class="carga">${inst.cargas || 0} Carga${inst.cargas === 1 ? '' : 's'}</span>` : ''}
@@ -315,43 +326,43 @@ function infoPanel() {
       if (inst) {
         const d = E.DEF[inst.id];
         const chk = E.canPlay(st, 'P', +k.slice(2));
-        html = `${artBand(inst.id, d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}, custo ${E.getCost(st, 'P', inst)}${d.disc ? ', ' + DISC_NAME[d.disc] : ''}</p><p>${fmtText(d.text)}</p>${!chk.ok && chk.reason && st.turnSide === 'P' ? `<p class="linha">${esc(chk.reason)}</p>` : ''}${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}`;
+        html = `${artBand(inst.id, d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${typeLabel(d)}, custo ${E.getCost(st, 'P', inst)}${d.disc ? ', ' + DISC_NAME[d.disc] : ''}</p><p>${fmtText(d.text)}</p>${!chk.ok && chk.reason && st.turnSide === 'P' ? `<p class="linha">${esc(socTxt(chk.reason))}</p>` : ''}${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}`;
       }
     } else if (k.startsWith('e:')) {
       const e = E.ent(st, { t: 'e', uid: +k.slice(2) });
       if (e) {
         const d = E.DEF[e.id];
         const kw = Object.keys(KW_LABEL).filter(x => E.hasKw(e, x)).map(x => KW_LABEL[x]);
-        const st2 = e.kind === 'unit' ? `${E.getAtk(st, e)} de ataque, ${e.hp} de ${e.maxHp} de Vida` : e.kind === 'structure' ? `${e.hp} de Vida` : `contagem ${e.countdown}`;
+        const st2 = e.kind === 'unit' ? `${E.getAtk(st, e)} de ${SOC() ? 'Peso' : 'ataque'}, ${e.hp} de ${e.maxHp} de ${W('Vida')}` : e.kind === 'structure' ? `${e.hp} de ${W('Vida')}` : `contagem ${e.countdown}`;
         const extra = kw.slice(); if (e.imovel > 0) extra.push('Imóvel'); if (e.kind === 'ritual') extra.push('Ritual'); if (e.kind === 'structure') extra.push('Estrutura'); if (e.resonated) extra.push('Evoluir');
-        html = `${artBand(e.id, discOf(e), true)}<h2>${esc(e.name)}</h2><p class="linha">${TYPE_LABEL[d.type] || 'Unidade'} ${e.owner === 'P' ? 'sua' : 'inimiga'}, ${st2}</p>${d.text ? `<p>${fmtText(d.text)}</p>` : ''}${e.modules.length ? `<p class="linha">Módulos: ${e.modules.map(m => esc(E.DEF[m].name)).join(', ')}</p>` : ''}${glossFor(d.text, extra)}`;
+        html = `${artBand(e.id, discOf(e), true)}<h2>${esc(e.name)}</h2><p class="linha">${typeLabel(d) || 'Unidade'} ${e.owner === 'P' ? 'sua' : 'inimiga'}, ${st2}</p>${d.text ? `<p>${fmtText(d.text)}</p>` : ''}${e.modules.length ? `<p class="linha">Módulos: ${e.modules.map(m => esc(E.DEF[m].name)).join(', ')}</p>` : ''}${glossFor(d.text, extra)}`;
       }
     } else if (k === 'l:E') {
       const o = O();
-      html = `<h2>${esc(o.leader.name)}</h2><p class="linha">${st.enc.tier}, ${Math.max(0, o.leader.hp)} de ${o.leader.maxHp} de Vida</p><p>${esc(st.enc.rule)}</p>`;
+      html = `<h2>${esc(o.leader.name)}</h2><p class="linha">${st.enc.social ? 'Perfil ' + esc(st.enc.perfil) : st.enc.tier}, ${Math.max(0, o.leader.hp)} de ${o.leader.maxHp} de ${SOC() ? 'Resistência' : 'Vida'}</p><p>${esc(st.enc.rule)}</p>`;
     } else if (k === 'l:P') {
       const p = P();
-      html = `<h2>Você</h2><p class="linha">${Math.max(0, p.leader.hp)} de ${p.leader.maxHp} de Vida, ${DISC_NAME[st.disc]}</p><p>Evoluções restantes: ${p.resonance.points}. Cartas no deck: ${p.deck.length}.</p>${glossFor('Evoluir Compasso')}`;
+      html = `<h2>Você</h2><p class="linha">${Math.max(0, p.leader.hp)} de ${p.leader.maxHp} de ${SOC() ? 'Compostura' : 'Vida'}, ${DISC_NAME[st.disc]}</p><p>${SOC() ? 'Ênfases' : 'Evoluções'} restantes: ${p.resonance.points}. Cartas no deck: ${p.deck.length}.</p>${glossFor('Evoluir Compasso')}`;
     } else if (k === 'w' && P().weapon) {
       const w = P().weapon, d = E.DEF[w.id];
       html = `<h2>${esc(w.name)}</h2><p class="linha">Arma, ${w.atk} de ataque, ${w.dur} uso${w.dur > 1 ? 's' : ''} restante${w.dur > 1 ? 's' : ''}</p><p>${fmtText(d.text)}<br>Toque na arma para atacar com o protagonista; atacar uma unidade fere você com o ataque dela.</p>${glossFor(d.text)}`;
     } else if (k.startsWith('d:')) {
       const d = E.DEF[k.slice(2)];
-      if (d) html = `${artBand(k.slice(2), d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${TYPE_LABEL[d.type]}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, ['Armadilha'])}`;
+      if (d) html = `${artBand(k.slice(2), d.disc || 'neutra', true)}<h2>${esc(d.name)}</h2><p class="linha">${typeLabel(d)}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, ['Armadilha'])}`;
     }
   }
   return `<section class="info" aria-label="Detalhes">${html || '<p class="info-vazia">Passe o mouse ou toque numa carta para ver os detalhes.</p>'}</section>`;
 }
 function logPanel() {
-  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(l)}</li>`).join('')}</ol></section>`;
+  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(socTxt(l))}</li>`).join('')}</ol></section>`;
 }
 function overPanel() {
   const win = st.over === 'P';
   return `<div class="veu"><div class="janela resultado" role="dialog" aria-modal="true" aria-labelledby="res-t">
-    <h2 id="res-t">${win ? 'Vitória' : 'Derrota'}</h2>
-    <p>${win ? `${esc(O().leader.name)} caiu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Vida.` : `Você caiu no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Vida.`}</p>
+    <h2 id="res-t">${win ? (SOC() ? 'Acordo fechado' : 'Vitória') : (SOC() ? 'Negociação perdida' : 'Derrota')}</h2>
+    <p>${SOC() ? (win ? `${esc(O().leader.name)} cedeu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Compostura.` : `Você perdeu a compostura no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Resistência.`) : (win ? `${esc(O().leader.name)} caiu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Vida.` : `Você caiu no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Vida.`)}</p>
     ${win && st.ctx && st.ctx.mode === 'run' && camp && camp.run && camp.run.inBattle ? `<p class="destaque">Recompensa: +${camp.run.inBattle.gold || 0} de ouro.</p>` : ''}
-    ${st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') ? `<div class="opcoes"><button class="botao principal" data-act="${st.ctx.mode === 'defesa' ? 'def-continue' : 'run-continue'}">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>` : ''}<div class="opcoes" ${st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>
+    ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? `<div class="opcoes"><button class="botao principal" data-act="${{ defesa: 'def-continue', social: 'soc-continue', passeio: 'pas-continue' }[st.ctx.mode] || 'run-continue'}">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>` : ''}<div class="opcoes" ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>
   </div></div>`;
 }
 function modalHtml() {
@@ -568,6 +579,7 @@ function ensureGuild() {
   if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
   if (camp.defense) registerDefense(camp.defense);
+  ensureSocial();
 }
 function afterRun() {
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro')) camp.pending.push({ kind: 'primeiro-aventureiro' });
@@ -664,10 +676,13 @@ function pendingScene() {
   const p = camp.pending[0]; if (!p) return null;
   if (p.kind === 'primeiro-aventureiro') return { kind: 'primeiro-aventureiro' };
   if (p.kind === 'sugestao-taverna') return { kind: 'sugestao-taverna' };
+  if (p.kind === 'cliente-tutorial') return { kind: 'cliente-tutorial' };
   if (p.kind === 'defesa' && camp.defense) return { kind: 'defesa' };
   camp.pending.shift(); saveCamp(); return pendingScene();
 }
 function guildScene(sc) {
+  if (sc.kind === 'cliente-tutorial') return socialTutScene();
+  if (sc.kind === 'passeio') return passeioScene(sc);
   if (sc.kind === 'primeiro-aventureiro') {
     return `${felixArt('guilda')}<h2>Alguém bate à porta</h2><p>Você mal tirou a poeira da dungeon das botas quando a porta da guilda range. É Brisa, uma batedora de mochila remendada e olhar curioso.</p><div class="fala"><span class="quem">Brisa</span><p>Ouvi dizer que o Dragão Amarelo voltou a descer. Se a guilda está aberta, eu quero trabalho. Sei achar coisas e sei voltar viva. Na maioria das vezes.</p></div><div class="fala"><span class="quem">Felix</span><p>Ela fala demais, mas aceita pagamento atrasado. Contrata.</p></div><p class="intro-dica">Aventureiros não lutam com você: eles cumprem missões de clientes e do governo pelo Quadro de Missões e trazem ouro. Personagem provisória: o primeiro aventureiro ainda vai ser definido.</p><div class="opcoes"><button class="botao principal" data-act="g-hire-first">Contratar Brisa</button></div>`;
   }
@@ -855,7 +870,7 @@ const FELIX_TIPS = {
   basilisco: 'O Olhar do Basilisco deixa Imóvel a sua unidade de maior Ataque, e a Mordida Petrificante destrói unidades Imóveis. Espalhe o Ataque em várias unidades médias. A Estátua Antiga protege o Basilisco enquanto estiver em campo, e com 20 de Vida ou menos ele troca de pele e recupera 8: guarde dano para depois disso.',
 };
 function felixLines(kind) {
-  const games = lsGet(LS_GAMES, []).filter(g => g.ctx && g.ctx.camp === camp.id && (g.result === 'win' || g.result === 'loss'));
+  const games = lsGet(LS_GAMES, []).filter(g => g.ctx && g.ctx.camp === camp.id && g.ctx.mode !== 'social' && (g.result === 'win' || g.result === 'loss'));
   const encName = id => (E.ENC[id] && E.ENC[id].name) || id;
   if (kind === 'stats') {
     if (!games.length) return ['Você ainda não lutou nesta campanha. Eu anoto tudo, então capriche.'];
@@ -963,7 +978,7 @@ function renderNpc() {
       ${ex.length ? `<ul class="lista-npc">${ex.map(x => `<li class="npc"><div><b>${esc(E.DEF[x.id].name)}</b> ${rarTag(x.id)}<p class="linha">${x.extra} cópia${x.extra === 1 ? '' : 's'} extra · ${x.value} de ouro cada</p></div><button class="botao" data-act="g-sell" data-cid="${x.id}">Entregar 1</button></li>`).join('')}</ul>
       <div class="opcoes"><button class="botao principal" data-act="g-sell-all">Entregar todas (+${total} de ouro)</button></div>` : ''}`;
   }
-  $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${camp.gold} de ouro</p>${body}<div class="linha-logs"><button class="botao" data-act="g-cidade">Voltar à cidade</button></div></section>`;
+  $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${camp.gold} de ouro</p>${body}${passeioHtml(id)}<div class="linha-logs"><button class="botao" data-act="g-cidade">Voltar à cidade</button></div></section>`;
 }
 async function guildClick(act, ds) {
   if (act === 'g-ok-pend') { camp.pending.shift(); saveCamp(); ui.screen = 'home'; render(); return true; }
@@ -981,6 +996,9 @@ async function guildClick(act, ds) {
     const c = await choose('Encerrar o dia', `Encerrar o dia ${camp.day}? Missões avançam, obras terminam e pode acontecer alguma coisa durante a noite.${!camp.acts.descer ? ' Você ainda não desceu hoje.' : ''}`, [{ v: 'sim', label: 'Encerrar o dia' }]);
     if (c === 'sim') endDay(); return true;
   }
+  if (act === 'g-social-tut') { startSocial('cliente', { tut: true, enc: 'cliente' }); return true; }
+  if (act === 'g-passeio') { doPasseio(ds.npc); return true; }
+  if (act === 'g-passeio-luta') { startPasseioFight(ds.fe); return true; }
   if (act === 'g-felix') { ui.talkLogs = ui.talkLogs || {}; ui.talkLogs.felix = []; ui.screen = 'felix'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
@@ -1055,6 +1073,165 @@ async function guildClick(act, ds) {
   }
   return false;
 }
+/* ===== Deck social: batalha de negociação, editor, tutorial e passeios ===== */
+const SOC_TYPE = { unit: 'Argumento', spell: 'Tática', weapon: 'Arma', structure: 'Estrutura', ritual: 'Ritual', trap: 'Armadilha' };
+const SOC_W = { 'Ataque': 'Peso', 'Vida': 'Firmeza', 'mana': 'Lábia', 'Mana': 'Lábia', 'Evoluir': 'Enfatizar', 'unidade': 'Argumento' };
+const SOC = () => !!(st && st.social);
+const W = w => (SOC() ? (SOC_W[w] || w) : w);
+const socTxt = t => (SOC() && t ? String(t).replace(/Mana insuficiente/g, 'Lábia insuficiente').replace(/ de vida/g, ' de Compostura').replace(/ de mana/g, ' de Lábia').replace(/unidades/g, 'Argumentos').replace(/ evolui: /g, ' ganha Ênfase: ').replace(/ morre\./g, ' cai por terra.') : t);
+function socialStarter(disc) {
+  const cards = Object.assign({}, E.SOCIAL_NEUTRAL_STARTER);
+  (E.SOCIAL_INTRO[disc] || []).forEach(id => { cards[id] = 2; });
+  return cards;
+}
+function ensureSocial() {
+  if (!camp) return;
+  if (!camp.social) { const cards = socialStarter(camp.deck.disc); camp.social = { disc: camp.deck.disc, cards: Object.assign({}, cards) }; camp.socialColl = Object.assign({}, cards); }
+  if (!camp.socialColl) camp.socialColl = Object.assign({}, camp.social.cards);
+  if (camp.fac && camp.fac.taverna === 'ativa' && !camp.flags.socialTut && !(camp.pending || []).some(p => p.kind === 'cliente-tutorial')) camp.pending.push({ kind: 'cliente-tutorial' });
+}
+function socialSize() { return Object.values(camp.social.cards).reduce((a, b) => a + b, 0); }
+function socialProblems() {
+  const p = []; const n = socialSize();
+  if (n !== 20) p.push(`O deck social tem ${n} carta${n === 1 ? '' : 's'}; precisa de 20.`);
+  Object.entries(camp.social.cards).forEach(([id, k]) => {
+    const d = E.DEF[id];
+    if (k > 2) p.push(`${d.name}: no máximo 2 cópias.`);
+    if ((camp.socialColl[id] || 0) < k) p.push(`${d.name}: você só tem ${camp.socialColl[id] || 0}.`);
+    if (d.disc && d.disc !== 'neutra' && d.disc !== camp.deck.disc) p.push(`${d.name} é de outra Disciplina.`);
+  });
+  return p;
+}
+function startSocial(encId, ctx) {
+  const pr = socialProblems(); if (pr.length) { toast('Ajuste o deck social antes: ' + pr[0]); ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); return; }
+  const deck = []; Object.entries(camp.social.cards).forEach(([id, n]) => { for (let i = 0; i < n; i++) deck.push(id); });
+  st = E.newGame(camp.deck.disc, encId, null, { deck, bosses: camp.cleared[5] ? 1 : 0 });
+  st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  st.ctx = Object.assign({ mode: 'social', camp: camp.id, day: camp.day, hpStart: 30 }, ctx || {});
+  ui.screen = 'battle'; ui.mode = null; ui.info = null; ui.modal = null; ui.busy = false; ui.overClosed = false; render(); window.scrollTo(0, 0);
+}
+function socialDone() {
+  const won = st.over === 'P'; const ctx = st.ctx; st = null;
+  let title, txt;
+  if (ctx.tut) {
+    const g = won ? 15 : 5; camp.gold += g; camp.flags.socialTut = true; camp.pending = camp.pending.filter(p => p.kind !== 'cliente-tutorial');
+    title = won ? 'Acordo fechado' : 'Negociação perdida';
+    txt = won ? `O cliente admite que o pelo de gato dá personalidade à mesa, paga a conta inteira e ainda deixa gorjeta: +${g} de ouro. Felix aceita os elogios em nome da categoria.` : `O cliente paga só metade, resmungando sobre pelos na cerveja: +${g} de ouro. Felix considera isso uma vitória moral.`;
+    hist({ k: 'social', enc: 'cliente', won, gold: g });
+  } else { title = won ? 'Acordo fechado' : 'Negociação perdida'; txt = won ? 'Você conseguiu o que queria.' : 'Não foi desta vez.'; hist({ k: 'social', enc: ctx.enc, won }); }
+  saveCamp();
+  ui.scene = { kind: 'msg', title, text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
+function socialTutScene() {
+  const disc = DISC_NAME[camp.deck.disc];
+  return `${felixArt('guilda')}<h2>Um cliente reclamando</h2><p>Mal a taverna abre, o primeiro cliente bate a caneca na mesa e levanta a manga do casaco, coberta de pelo de gato.</p>
+    <div class="fala"><span class="quem">Cliente</span><p>Esta mesa está imunda de pelo de gato! Eu não vou pagar o preço cheio por isso. Exijo um desconto!</p></div>
+    <div class="fala"><span class="quem">Felix</span><p>Pelo de gato é decoração. Mas tudo bem: hora de conversar do jeito da família. Com cartas.</p></div>
+    <div class="tutorial-social"><h3>Negociação: o mesmo jogo, outras palavras</h3><dl>
+      <dt>Compostura</dt><dd>a sua vida na conversa. Se zerar, você perde a negociação.</dd>
+      <dt>Resistência</dt><dd>a vida do interlocutor. Zere para fechar o acordo.</dd>
+      <dt>Lábia</dt><dd>a mana: sobe 1 por turno, como na batalha.</dd>
+      <dt>Argumento</dt><dd>a unidade, com Peso (ataque) e Firmeza (vida). <b>Ponto Sensível</b> é a Guarda; <b>Álibi</b> é o Escudo.</dd>
+      <dt>Tática</dt><dd>o feitiço. <b>Abertura</b> e <b>Repercussão</b> são o Ao Entrar e o Ao Morrer; <b>Enfatizar</b> é a Evolução.</dd>
+      <dt>Perfil</dt><dd>o traço do interlocutor. Este cliente é de <b>Ganância</b>: cartas que citam Perfil Ganância rendem mais contra ele.</dd>
+    </dl><p class="intro-dica">O seu deck social começou com 20 cartas: 14 básicas e 6 de ${esc(disc)}. Dá para editar em Deck social, na guilda.</p></div>
+    <div class="opcoes"><button class="botao principal" data-act="g-social-tut">Negociar com o cliente</button></div>`;
+}
+/* Passeios: encerrar a ida à cidade passando tempo com alguém */
+const ATIV = {
+  'mestre-tech': [
+    { title: 'Sair para comer', cost: 5, text: 'Chrome escolhe um restaurante caro demais, pede metade do cardápio e deixa você pagar só a sobremesa: 5 de ouro, “simbólicos”. Entre uma garfada e outra, ela redesenha num guardanapo um contrato melhor que o seu.', broke: 'Você não tem nem para a sobremesa. Chrome paga tudo e cobra em histórias da dungeon, com juros.' },
+    { title: 'Garimpar itens raros no mercado', equip: 0.4, text: 'Vocês garimpam as bancas do mercado de antiguidades. Chrome pechincha como quem desarma uma armadilha.', win: 'Entre quinquilharias, ela acha um equipamento de verdade e joga para você: “Considere um investimento.”', lose: 'Nada que preste hoje. “O mercado é assim: hoje não, amanhã talvez.”' },
+    { title: 'Visitar os gatos da guilda', text: 'Chrome vai até a guilda só para ver os gatos. Em dez minutos ela está no chão, cercada de Felinos, distribuindo chamegos com uma seriedade de auditoria. Felix finge desinteresse e é o primeiro da fila.' },
+  ],
+  'mestre-temporal': [
+    { title: 'Treinar', text: 'Mikeus te faz repetir o mesmo golpe até o braço tremer. “De novo. No futuro, você erra esse. Hoje, não.”' },
+    { title: 'Sair para patrulhar', fight: 0.4, text: 'Vocês patrulham as estradas fora dos muros. Mikeus anda como quem já conhece cada curva do caminho.', win: 'Ele para de repente. “Agora.” Alguma coisa sai do mato.', lose: 'Nada acontece. Mikeus parece aliviado, como quem lembra de uma versão em que aconteceu.' },
+    { title: 'Conversar sobre o passado', text: 'Num banco do dojo, Mikeus fala do passado, ou do futuro, depende de quem conta. Fala de amigos que ainda não nasceram e de um café que já não existe. Você não entende tudo, mas ele parece mais leve depois.' },
+  ],
+  'mestre-necro': [
+    { title: 'Compor uma música', text: 'Charles te entrega uma partitura em branco e uma pena. Vocês passam a tarde procurando uma palavra que rime com “sarcófago”. Não existe. Vocês inventam uma.' },
+    { title: 'Aprender um instrumento', text: 'Charles te ensina três acordes num alaúde que já foi de um bardo famoso. “Ele não vai sentir falta”, garante. “Ele está na banda.”' },
+    { title: 'Buscar uma atração para o circo', text: 'Vocês percorrem a cidade atrás de uma atração nova para o Necro-Circus. Depois de um mímico, dois malabaristas e um fantasma muito tímido, Charles contrata o fantasma.' },
+    { title: 'Animar a Dragão Amarelo', text: 'Charles leva a banda espectral até a Dragão Amarelo. Os aventureiros dançam, os gatos fogem, e Felix reclama do barulho batendo o pé no ritmo.' },
+  ],
+  'mestre-holy': [
+    { title: 'Assistir a uma missa', text: 'Gun\'Liao celebra uma missa no terraço da catedral. O sermão é sobre gratidão e sacrifício, e de algum jeito você termina doando algo que nem lembrava de ter trazido.' },
+    { title: 'Conversar sobre os deuses', text: 'Entre os vitrais, ele fala dos deuses como quem fala de sócios: quem cobra o quê, quem paga em dia e quem nunca deve ser chamado depois da meia-noite.' },
+    { title: 'Alimentar as cobras de estimação', text: 'Ele te leva para alimentar as cobras de estimação. São sete, todas com nome de santo. Uma delas gosta de você mais do que deveria.' },
+    { title: 'Acompanhar alguns “favores” para os deuses', text: 'Você acompanha Gun\'Liao em alguns “favores” para os deuses. Nada é explicado. Uma porta é marcada, um homem pede perdão de joelhos, um poço é abençoado. No fim, ele agradece a companhia e lava as mãos devagar.' },
+  ],
+  'mestre-draconic': [
+    { title: 'Levantar peso na academia', text: 'Ko te leva a uma academia de lutadores. Ele levanta uma bigorna em cada mão. Você levanta a própria dignidade, com esforço.' },
+    { title: 'Voar e caçar monstros', fight: 0.4, text: 'Ko te carrega pelos céus acima da floresta. O mundo fica pequeno e o vento rouba as suas palavras.', win: 'Lá embaixo, alguma coisa se mexe. Ko sorri e mergulha.', lose: 'A caçada não encontra nada à altura. Ko parece um pouco decepcionado e dá mais uma volta só pela vista.' },
+  ],
+  'mestre-space': [
+    { title: 'Conversar sobre magia', text: 'Yaven passa a tarde explicando teoria mágica com desenhos, gestos e uma quantidade alarmante de estrelinhas no ar. Você entende metade. A metade boa.' },
+    { title: 'Visitar a estação espacial mágica', text: 'Yaven te leva à estação espacial mágica, uma torre de cristal que gira sozinha acima das nuvens. Lá de cima, ele aponta os caminhos dos cosmonautas entre as estrelas.' },
+    { title: 'Olhar as estrelas', text: 'Vocês deitam no telhado da biblioteca para olhar as estrelas. Yaven dá nome a cada uma. Algumas, ele admite, acabou de batizar.' },
+    { title: 'Ver as magias de festa', text: 'Yaven mostra as magias de festa dele: confete que flutua, fogos que formam constelações e um cometa de bolso que dá três voltas na sala e pousa na sua cabeça.' },
+  ],
+  copias: [
+    { title: 'Tomar um café e conversar amenidades', text: 'Lerael faz uma pausa para o café com você. Vocês falam do tempo, de livros e de um gato que dorme todo dia na janela do arquivo. Ela sorri duas vezes. Um recorde, segundo os colegas.' },
+    { title: 'Tomar um café e ouvir as reclamações', text: 'No café, Lerael finalmente desabafa: formulários em triplicata, magos que não devolvem livros e um diretor que acha que arquivo se organiza sozinho. Você escuta. Ela parece que vai dormir melhor só de ter falado.' },
+  ],
+};
+const npcDisc = id => id.startsWith('mestre-') ? id.slice(7) : 'neutra';
+function nextAtiv(id) { const list = ATIV[id]; if (!list) return null; return list[((camp.flags.atv || {})[id] || 0) % list.length]; }
+function socialCardFor(disc) {
+  const pool = E.SOCIAL_POOL[disc] || []; if (!pool.length) return null;
+  const w = pool.map(id => (camp.socialColl[id] ? 1 : 2)); let r = rnd() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r < 0) return pool[i]; }
+  return pool[pool.length - 1];
+}
+function passeioHtml(id) {
+  const a = nextAtiv(id); if (!a) return '';
+  const mi = npcInfo(id); const d = npcDisc(id);
+  return `<h3>Passar o tempo</h3><p class="intro-dica">Encerra a ida à cidade: você passa o resto do dia com ${esc(mi.name)} e ganha uma carta social ${d === 'neutra' ? 'básica (educação e bom senso)' : 'de ' + esc(DISC_NAME[d])}.${a.cost ? ` Custa ${a.cost} de ouro, simbólicos.` : ''}</p>
+    <div class="opcoes"><button class="botao" data-act="g-passeio" data-npc="${id}">${bi('passeio')}${esc(a.title)}</button></div>`;
+}
+function doPasseio(id) {
+  const a = nextAtiv(id); const mi = npcInfo(id); if (!a || !mi) return;
+  camp.flags.atv = camp.flags.atv || {}; camp.flags.atv[id] = (camp.flags.atv[id] || 0) + 1;
+  const paras = []; const extras = []; let fight = null, equip = null;
+  if (a.cost) { if (camp.gold >= a.cost) { camp.gold -= a.cost; paras.push(a.text); extras.push(`-${a.cost} de ouro`); } else paras.push(a.broke || a.text); }
+  else paras.push(a.text);
+  if (a.equip) {
+    if (rnd() < a.equip) { const ws = Object.keys(R.RARITY).filter(x => E.DEF[x].type === 'weapon'); equip = ws[Math.floor(rnd() * ws.length)]; addCards([equip]); paras.push(a.win); extras.push(`Equipamento: ${E.DEF[equip].name}, para o deck de batalha`); }
+    else paras.push(a.lose);
+  }
+  if (a.fight) {
+    const ok = !R.deckProblems(camp.deck, camp.collection).length;
+    if (ok && rnd() < a.fight) { const F = R.FLOORS[Math.min(camp.floor || 1, 5)]; fight = F.commons[Math.floor(rnd() * F.commons.length)]; paras.push(a.win); }
+    else paras.push(a.lose);
+  }
+  const card = socialCardFor(npcDisc(id));
+  if (card) { camp.socialColl[card] = (camp.socialColl[card] || 0) + 1; }
+  if (camp.cityTrip && !camp.cityTrip.visited.includes(id)) camp.cityTrip.visited.push(id);
+  hist({ k: 'passeio', npc: id, title: a.title, card, equip, fight });
+  finishCityTrip();
+  ui.scene = { kind: 'passeio', npc: id, title: a.title, paras, extras, card, fight }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
+function passeioScene(sc) {
+  const mi = npcInfo(sc.npc);
+  const art = mi && HAS_IMG(mi.img) ? npcArt(mi, 'npc-arte') : '';
+  return `${art}<h2>${esc(mi.name)}: ${esc(sc.title)}</h2>${sc.paras.map(p => `<p>${esc(p)}</p>`).join('')}
+    ${sc.card ? `<h3>Carta social</h3><div class="prever-lista">${cardById(sc.card, '', '', (camp.socialColl[sc.card] || 0) > 1 ? 'Você já tinha' : 'Nova')}</div>` : ''}
+    ${sc.extras.length ? `<p class="destaque">${esc(sc.extras.join(' · '))}</p>` : ''}
+    <div class="opcoes">${sc.fight ? `<button class="botao principal" data-act="g-passeio-luta" data-fe="${sc.fight}">Lutar: ${esc(E.ENC[sc.fight].name)}</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>'}${sc.card ? '<button class="botao" data-act="deck-social">Deck social</button>' : ''}</div>`;
+}
+function startPasseioFight(encId) {
+  st = E.newGame(camp.deck.disc, encId, null, { deck: R.deckList(camp.deck) });
+  st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  st.ctx = { mode: 'passeio', camp: camp.id, day: camp.day, hpStart: 30 };
+  ui.screen = 'battle'; ui.mode = null; ui.info = null; ui.modal = null; ui.busy = false; ui.overClosed = false; render(); window.scrollTo(0, 0);
+}
+function passeioFightDone() {
+  const won = st.over === 'P'; st = null; let txt;
+  if (won) { const g = rint(10, 15); camp.gold += g; txt = `Vitória. Vocês voltam com a história e com ${g} de ouro em despojos.`; hist({ k: 'passeio-luta', won, gold: g }); }
+  else { txt = 'A luta não sai como o esperado. Vocês voltam com hematomas e nada mais, mas inteiros.'; hist({ k: 'passeio-luta', won }); }
+  saveCamp(); ui.scene = { kind: 'msg', title: won ? 'Caçada bem-sucedida' : 'Retirada', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
+}
 const bi = k => iconSvg(typeof ART !== 'undefined' ? ART.ui[k] : null, 'ico-btn');
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
@@ -1080,14 +1257,14 @@ function renderHome() {
       <div class="andares">${floors}</div>
       <div class="acoes-setup">${mainBtn}</div>
       <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Deck social</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
     ${logsHtml()}`;
 }
 function statsMini(d) {
-  if (d.type === 'unit') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, Vida ${d.hp}"><b class="atk">${d.atk}</b><b class="hp">${d.hp}</b></span>`;
+  if (d.type === 'unit') return `<span class="lc-stats" aria-label="${d.social ? 'Peso' : 'Ataque'} ${d.atk}, ${d.social ? 'Firmeza' : 'Vida'} ${d.hp}"><b class="atk">${d.atk}</b><b class="hp">${d.hp}</b></span>`;
   if (d.type === 'weapon') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, usos ${d.hp}"><b class="atk">${d.atk}</b><b class="dur">${d.hp}</b></span>`;
-  if (d.type === 'structure') return `<span class="lc-stats" aria-label="Vida ${d.hp}"><b class="hp">${d.hp}</b></span>`;
+  if (d.type === 'structure') return `<span class="lc-stats" aria-label="${d.social ? 'Firmeza' : 'Vida'} ${d.hp}"><b class="hp">${d.hp}</b></span>`;
   return '<span class="lc-stats"></span>';
 }
 function renderCredits() {
@@ -1186,12 +1363,12 @@ function renderCheats() {
       ${camp.run ? num('ch-hp', camp.run.hp, 'ch-hp', 'Vida na descida', 'min="1" max="30"') : ''}
       <div class="cheat-linha"><label for="ch-aloj">Nível do Alojamento</label><select id="ch-aloj">${[0, 1, 2, 3].map(n => `<option value="${n}" ${n === (camp.fac.alojamento || 0) ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-aloj">Aplicar</button></div>
       <div class="cheat-linha"><label for="ch-card">Carta</label><select id="ch-card">${opts}</select><button class="botao" data-act="ch-card-add">+1</button><button class="botao" data-act="ch-card-rem">−1</button></div>
-      <div class="linha-logs">${btn('ch-all-cards', 'Coleção completa (2 de cada)')}</div>
+      <div class="linha-logs">${btn('ch-all-cards', 'Coleção completa (2 de cada)')}${btn('ch-all-social', 'Coleção social completa (2 de cada)')}</div>
       <h2>Ações do dia</h2>
       <div class="cheat-linha"><label class="cheat-check"><input type="checkbox" data-act="ch-unlimited" ${cheats.unlimited ? 'checked' : ''}> Ações ilimitadas (descer, visita, despacho e obra não se gastam)</label></div>
       <div class="linha-logs">${btn('ch-reset-acts', 'Restaurar as ações de hoje')}${btn('ch-end-day', 'Encerrar o dia agora', !!camp.run)}</div>
       <h2>Eventos e guilda</h2>
-      <div class="linha-logs">${btn('ch-ev-adv', 'Chegada do primeiro aventureiro')}${btn('ch-ev-taverna', 'Sugestão da taverna')}${btn('ch-ev-def', 'Defesa agora', !!camp.run)}</div>
+      <div class="linha-logs">${btn('ch-ev-adv', 'Chegada do primeiro aventureiro')}${btn('ch-ev-taverna', 'Sugestão da taverna')}${btn('ch-ev-def', 'Defesa agora', !!camp.run)}${btn('ch-ev-social', 'Negociação do cliente (tutorial social)', !!camp.run)}</div>
       <div class="linha-logs">${btn('ch-unlock', 'Liberar Quadro, Instalações e Taverna')}${btn('ch-build-now', 'Concluir a obra agora', !camp.building)}${btn('ch-missions-now', 'Resolver missões agora', !camp.advs.some(a => a.status !== 'livre'))}</div>
       <div class="linha-logs">${btn('ch-refresh', 'Novos pedidos e candidatos')}${btn('ch-free-adv', 'Aventureiro grátis')}${btn('ch-adv-up', 'Subir o nível dos aventureiros')}</div>
       <p class="intro-dica">Tudo o que for feito aqui marca a campanha como “com testes” no log, para não misturar com partidas normais na análise.</p>`;
@@ -1219,6 +1396,8 @@ async function cheatClick(act) {
     markCheat('carta'); toast(`${E.DEF[id].name}: ${camp.collection[id] || 0} na coleção.`); return true;
   }
   if (act === 'ch-all-cards') { playerCards().forEach(id => { camp.collection[id] = Math.max(2, camp.collection[id] || 0); }); return done('Coleção completa: 2 de cada carta.', 'colecao'); }
+  if (act === 'ch-all-social') { ensureSocial(); Object.keys(E.DEF).filter(id => E.DEF[id].social && id.startsWith('s_') && !E.DEF[id].token).forEach(id => { camp.socialColl[id] = Math.max(2, camp.socialColl[id] || 0); }); return done('Coleção social completa: 2 de cada carta.', 'colecao social'); }
+  if (act === 'ch-ev-social') { if (camp.run) return true; ensureSocial(); camp.pending = camp.pending.filter(p => p.kind !== 'cliente-tutorial'); camp.pending.unshift({ kind: 'cliente-tutorial' }); markCheat('evento social'); ui.screen = 'home'; render(); return true; }
   if (act === 'ch-reset-acts') { camp.acts = {}; return done('Ações de hoje restauradas.', 'acoes'); }
   if (act === 'ch-end-day') { if (camp.run) return true; markCheat('encerrar dia'); endDay(); return true; }
   if (act === 'ch-ev-adv') { camp.flags.firstAdv = false; camp.pending = camp.pending.filter(p => p.kind !== 'primeiro-aventureiro'); camp.pending.unshift({ kind: 'primeiro-aventureiro' }); markCheat('evento aventureiro'); ui.screen = 'home'; render(); return true; }
@@ -1242,10 +1421,15 @@ function renderSettings() {
   </section>`;
   const ci = $('#codigo'); if (ci) ci.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); useCode(ci.value); } });
 }
+const isSocialEd = () => ui.deckKind === 'social';
+const curDeck = () => (isSocialEd() ? camp.social : camp.deck);
+const curColl = () => (isSocialEd() ? camp.socialColl : camp.collection);
 function renderDeck() {
-  const deck = camp.deck, coll = camp.collection;
-  const probs = R.deckProblems(deck, coll);
-  const discs = ownedDiscs();
+  const SOCED = isSocialEd(); if (SOCED) ensureSocial();
+  const deck = curDeck(), coll = curColl(); if (SOCED) deck.disc = camp.deck.disc;
+  const probs = SOCED ? socialProblems() : R.deckProblems(deck, coll);
+  const discs = SOCED ? [camp.deck.disc] : ownedDiscs();
+  const TOT = SOCED ? 20 : 30;
   const inDeck = id => deck.cards[id] || 0;
   const sortC = (a, b) => E.DEF[a].cost - E.DEF[b].cost || E.DEF[a].name.localeCompare(E.DEF[b].name);
   const row = (id, side) => {
@@ -1253,7 +1437,7 @@ function renderDeck() {
     const canAdd = k < 2 && k < own && (!d.disc || d.disc === 'neutra' || d.disc === deck.disc);
     const btn = side === 'deck' ? `<button class="botao discreto" data-deckrem="${id}" aria-label="Tirar ${esc(d.name)}">Tirar</button>` : `<button class="botao discreto" data-deckadd="${id}" ${canAdd ? '' : 'disabled'} aria-label="Pôr ${esc(d.name)}">Pôr</button>`;
     const count = side === 'deck' ? `×${k}` : `${k}/${own}`;
-    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome"><span class="lc-ico">${iconSvg(cardIconName(id))}</span>${esc(d.name)} ${rarTag(id)}<span class="lc-tipo">${d.module ? 'Feitiço (Módulo)' : TYPE_LABEL[d.type] + (d.tags.length ? ' (' + d.tags.join(', ') + ')' : '')}</span><small>${d.text ? fmtText(d.text, true) : ''}</small></span>${statsMini(d)}<span class="lc-qtd">${count}</span>${btn}</li>`;
+    return `<li class="linha-carta disc-${d.disc || 'neutra'}" data-info="d:${id}"><span class="lc-custo">${d.cost}</span><span class="lc-nome"><span class="lc-ico">${iconSvg(cardIconName(id))}</span>${esc(d.name)} ${rarTag(id)}<span class="lc-tipo">${d.module ? typeLabel(d) + ' (Módulo)' : typeLabel(d) + (d.tags.length ? ' (' + d.tags.join(', ') + ')' : '')}</span><small>${d.text ? fmtText(d.text, true) : ''}</small></span>${statsMini(d)}<span class="lc-qtd">${count}</span>${btn}</li>`;
   };
   const deckIds = Object.keys(deck.cards).filter(id => deck.cards[id] > 0).sort(sortC);
   const f = ui.deckFilter;
@@ -1261,14 +1445,14 @@ function renderDeck() {
   const curve = [0, 0, 0, 0, 0, 0, 0, 0];
   deckIds.forEach(id => { curve[Math.min(7, E.DEF[id].cost)] += deck.cards[id]; });
   const mx = Math.max(1, ...curve);
-  $('#app').innerHTML = `<header class="abertura"><h1>Editar deck</h1><p class="intro">30 cartas, até 2 cópias, uma Disciplina mais neutras.</p></header>
+  $('#app').innerHTML = `<header class="abertura"><h1>${SOCED ? 'Editar deck social' : 'Editar deck'}</h1><p class="intro">${SOCED ? '20 cartas, até 2 cópias, a mesma Disciplina do deck de batalha mais básicas. Novas cartas sociais vêm de passar o tempo com os NPCs da cidade.' : '30 cartas, até 2 cópias, uma Disciplina mais neutras.'}</p></header>
     <div class="linha-logs"><button class="botao principal" data-act="home">Voltar</button>
-      <span>Disciplina:</span>${discs.map(d => `<button class="botao ${d === deck.disc ? 'principal' : ''} disc-${d}" data-deckdisc="${d}">${esc(DISC_NAME[d])}</button>`).join('')}</div>
-    <p class="camp-linha ${probs.length ? 'erro' : 'ok'}">${R.deckSize(deck)}/30 cartas. ${probs.length ? esc(probs[0]) : 'Deck pronto para descer.'}</p>
-    <div class="curva" aria-label="Curva de mana">${curve.map((n, i) => `<div><i style="height:${Math.round(48 * n / mx)}px"></i><span>${i === 7 ? '7+' : i}</span><small>${n}</small></div>`).join('')}</div>
+      <span>Disciplina:</span>${SOCED ? `<span class="botao principal disc-${deck.disc}" aria-disabled="true">${esc(DISC_NAME[deck.disc])}</span><small>(segue o deck de batalha)</small>` : discs.map(d => `<button class="botao ${d === deck.disc ? 'principal' : ''} disc-${d}" data-deckdisc="${d}">${esc(DISC_NAME[d])}</button>`).join('')}<button class="botao" data-act="${SOCED ? 'deck-edit' : 'deck-social'}">${SOCED ? 'Ir para o deck de batalha' : 'Ir para o deck social'}</button></div>
+    <p class="camp-linha ${probs.length ? 'erro' : 'ok'}">${R.deckSize(deck)}/${TOT} cartas. ${probs.length ? esc(probs[0]) : SOCED ? 'Deck social pronto para negociar.' : 'Deck pronto para descer.'}</p>
+    <div class="curva ${SOCED ? 'social' : ''}" aria-label="${SOCED ? 'Curva de Lábia' : 'Curva de mana'}">${curve.map((n, i) => `<div><i style="height:${Math.round(48 * n / mx)}px"></i><span>${i === 7 ? '7+' : i}</span><small>${n}</small></div>`).join('')}</div>
     <div class="editor">
       <section><div class="linha-logs"><h2 style="margin:0">Deck</h2><button class="botao discreto" data-act="deck-clear" ${R.deckSize(deck) ? '' : 'disabled'}>Limpar deck</button></div><ul class="lista-cartas">${deckIds.map(id => row(id, 'deck')).join('') || '<li class="vazio">Vazio</li>'}</ul></section>
-      <section><h2>Coleção</h2><div class="linha-logs">${[['disc', DISC_NAME[deck.disc]], ['neutra', 'Neutras'], ['todas', 'Todas']].map(([k, l]) => `<button class="botao ${f === k ? 'principal' : ''}" data-deckfilter="${k}">${esc(l)}</button>`).join('')}</div>
+      <section><h2>Coleção</h2><div class="linha-logs">${[['disc', DISC_NAME[deck.disc]], ['neutra', SOCED ? 'Básicas' : 'Neutras'], ['todas', 'Todas']].map(([k, l]) => `<button class="botao ${f === k ? 'principal' : ''}" data-deckfilter="${k}">${esc(l)}</button>`).join('')}</div>
         <ul class="lista-cartas">${collIds.map(id => row(id, 'coll')).join('') || '<li class="vazio">Nada aqui ainda</li>'}</ul></section>
     </div>`;
 }
@@ -1353,6 +1537,9 @@ async function runClick(ds) {
   const act = ds.act;
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
+  if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }
+  if (act === 'pas-continue') { finalizeGame(); passeioFightDone(); return true; }
+  if (act === 'deck-social') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ensureSocial(); ui.deckKind = 'social'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'code') { useCode(($('#codigo') || {}).value); return true; }
   if (act === 'cheats') { if (cheats.unlocked) { ui.screen = 'cheats'; render(); window.scrollTo(0, 0); } return true; }
   if (act && act.startsWith('ch-') && cheats.unlocked && await cheatClick(act)) return true;
@@ -1386,11 +1573,11 @@ async function runClick(ds) {
     if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, name: camp.name || '', created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.intro = null; ui.newDisc = null; ui.settingsFrom = 'title'; ui.screen = 'title'; render(); toast('Save apagado.'); }
     return true;
   }
-  if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { camp.deck.cards = {}; saveCamp(); render(); } return true; }
-  if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
-  if (ds.deckadd) { const id = ds.deckadd; camp.deck.cards[id] = (camp.deck.cards[id] || 0) + 1; saveCamp(); render(); return true; }
-  if (ds.deckrem) { const id = ds.deckrem; camp.deck.cards[id] = Math.max(0, (camp.deck.cards[id] || 0) - 1); if (!camp.deck.cards[id]) delete camp.deck.cards[id]; saveCamp(); render(); return true; }
-  if (ds.deckdisc) { const d = ds.deckdisc; camp.deck.disc = d; Object.keys(camp.deck.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.deck.cards[id]; }); saveCamp(); render(); return true; }
+  if (act === 'deck-clear') { const c = await choose('Limpar deck', 'Tirar todas as cartas do deck? Elas continuam na coleção.', [{ v: 'sim', label: 'Limpar' }]); if (c === 'sim') { curDeck().cards = {}; saveCamp(); render(); } return true; }
+  if (act === 'deck-edit') { if (camp && camp.run) { toast('O deck só pode ser editado na guilda, entre descidas.'); return true; } ui.deckKind = 'batalha'; ui.screen = 'deck'; ui.deckFilter = 'disc'; render(); window.scrollTo(0, 0); return true; }
+  if (ds.deckadd) { const id = ds.deckadd; const dk = curDeck(); dk.cards[id] = (dk.cards[id] || 0) + 1; saveCamp(); render(); return true; }
+  if (ds.deckrem) { const id = ds.deckrem; const dk = curDeck(); dk.cards[id] = Math.max(0, (dk.cards[id] || 0) - 1); if (!dk.cards[id]) delete dk.cards[id]; saveCamp(); render(); return true; }
+  if (ds.deckdisc) { const d = ds.deckdisc; camp.deck.disc = d; Object.keys(camp.deck.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.deck.cards[id]; }); if (camp.social) { camp.social.disc = d; Object.keys(camp.social.cards).forEach(id => { const dd = E.DEF[id].disc; if (dd && dd !== 'neutra' && dd !== d) delete camp.social.cards[id]; }); } saveCamp(); render(); return true; }
   if (ds.deckfilter) { ui.deckFilter = ds.deckfilter; render(); return true; }
   if (ds.floor) { startDescent(+ds.floor, ds.revisit === '1'); return true; }
   if (act === 'continue-run') { ui.screen = 'map'; render(); return true; }
@@ -1430,7 +1617,7 @@ function render() {
   const tgt = targetSet();
   const mirando = ui.mode && ['play', 'attack', 'hero', 'resonate'].includes(ui.mode.kind);
   $('#app').innerHTML = `<div class="jogo">
-    <main class="mesa ${mirando ? 'mirando' : ''}">
+    <main class="mesa ${mirando ? 'mirando' : ''} ${SOC() ? 'social' : ''}">
       ${leaderE(tgt)}
       <div class="fileira inimigo" aria-label="Campo inimigo">${O().board.map(e => piece(e, tgt)).join('') || '<span class="vazio">Campo inimigo vazio</span>'}</div>
       ${centerBar()}
@@ -1467,11 +1654,11 @@ async function startPlay(idx) {
   const inst = P().hand[idx]; if (!inst) return;
   const d = E.DEF[inst.id];
   const chk = E.canPlay(st, 'P', idx);
-  if (!chk.ok) { toast(chk.reason || 'Não dá para jogar agora.'); return; }
+  if (!chk.ok) { toast(socTxt(chk.reason) || 'Não dá para jogar agora.'); return; }
   const opts = {};
   if (d.sangria && chk.canLife) {
     if (chk.canMana) {
-      const c = await choose(d.name, 'Como você quer pagar?', [{ v: 'mana', label: `Pagar ${chk.cost} de mana` }, { v: 'vida', label: `Pagar ${d.sangria} de vida` }]);
+      const c = await choose(d.name, 'Como você quer pagar?', [{ v: 'mana', label: `Pagar ${chk.cost} de ${W('mana')}` }, { v: 'vida', label: `Pagar ${d.sangria} de ${SOC() ? 'Compostura' : 'vida'}` }]);
       if (c === null) return;
       opts.payLife = c === 'vida';
     } else opts.payLife = true;
@@ -1483,12 +1670,12 @@ async function startPlay(idx) {
   }
   if (chk.spec && chk.targets.length) { ui.mode = { kind: 'play', idx, opts, targets: chk.targets, name: d.name }; render(); return; }
   const r = E.playCard(st, 'P', idx, opts);
-  if (!r.ok) toast(r.reason);
+  if (!r.ok) toast(socTxt(r.reason));
   afterAction();
 }
 function runTarget(ref) {
   const m = ui.mode;
-  if (m.kind === 'play') { const r = E.playCard(st, 'P', m.idx, Object.assign({}, m.opts, { target: ref })); if (!r.ok) toast(r.reason); }
+  if (m.kind === 'play') { const r = E.playCard(st, 'P', m.idx, Object.assign({}, m.opts, { target: ref })); if (!r.ok) toast(socTxt(r.reason)); }
   else if (m.kind === 'attack') E.attack(st, 'P', m.uid, ref);
   else if (m.kind === 'hero') E.heroAttack(st, 'P', ref);
   afterAction();
@@ -1584,7 +1771,7 @@ document.addEventListener('click', async ev => {
     if (ui.mode && ui.mode.kind === 'confirm' && ui.mode.idx === idx) { ui.mode = null; await startPlay(idx); return; }
     const inst = P().hand[idx]; if (!inst) return;
     const chk = E.canPlay(st, 'P', idx);
-    if (!chk.ok) { ui.mode = { kind: 'inspect', idx, name: E.DEF[inst.id].name, reason: chk.reason || 'Não dá para jogar agora.' }; render(); return; }
+    if (!chk.ok) { ui.mode = { kind: 'inspect', idx, name: E.DEF[inst.id].name, reason: socTxt(chk.reason) || 'Não dá para jogar agora.' }; render(); return; }
     if (chk.spec && chk.targets.length) { ui.mode = null; await startPlay(idx); return; }
     ui.mode = { kind: 'confirm', idx, name: E.DEF[inst.id].name }; render();
     return;

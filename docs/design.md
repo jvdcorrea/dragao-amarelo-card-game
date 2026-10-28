@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.54 · rascunho para editar*
+*Documento de design preliminar · v0.55 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -463,6 +463,18 @@ Mesmo motor de regras da batalha (P10), com vocabulário e condições de vitór
 
 > [!tip] Gancho narrativo
 > Os "idiotas do governo" que declararam Ergos morto rendem uma linha de batalhas sociais: revogar a declaração de óbito. Um chefe social que é um cartório inteiro.
+
+**Playtest do deck social (P86):** a negociação usa o mesmo motor da batalha, com o vocabulário da tabela acima e uma paleta mais amigável (mesa clara em tons pêssego, Compostura em rosa, Lábia em verde-água). O deck social tem editor próprio, igual ao de batalha (20 cartas, até 2 cópias, mesma Disciplina do deck de batalha mais básicas). Assim que a taverna abre, o primeiro cliente reclama que a mesa está cheia de pelo de gato e quer pagar menos: é a negociação tutorial (Cliente Reclamão, Perfil Ganância, 12 de Resistência), com uma explicação curta de cada termo antes. Vitória: o cliente paga a conta e deixa gorjeta (15 de ouro); derrota: paga metade (5 de ouro).
+
+**Passeios (P87):** dentro da ida à cidade, o jogador pode encerrar a ida passando o resto do dia com um NPC. Isso gasta a ação e dá uma carta social da Disciplina do NPC (a Lerael dá cartas básicas de educação e bom senso), com mais chance de cartas que o jogador ainda não tem. Cada NPC tem um rodízio de atividades:
+- **Chrome:** sair para comer (5 de ouro simbólicos), garimpar itens raros no mercado (40% de chance de um equipamento: uma arma de batalha) e visitar os gatos da guilda.
+- **Mikeus:** treinar, sair para patrulhar (40% de chance de luta) e conversar sobre o passado.
+- **Charles:** compor uma música, aprender um instrumento, buscar uma atração para o circo e animar a Dragão Amarelo.
+- **Gun'Liao:** assistir a uma missa, conversar sobre os deuses, alimentar as cobras de estimação e acompanhar alguns "favores" para os deuses.
+- **Ko:** levantar peso na academia e voar para caçar monstros (40% de chance de luta).
+- **Yaven:** conversar sobre magia, visitar a estação espacial mágica, olhar as estrelas e ver as magias de festa.
+- **Lerael:** café com amenidades ou café com reclamações do trabalho.
+As lutas dos passeios usam o deck de batalha contra um encontro comum do andar atual; vitória dá 10 a 15 de ouro, derrota não tem multa.
 
 **Disciplinas no social (P35, P54):** o deck social usa sempre a mesma Disciplina do deck de batalha. O deck social inicial segue a lógica do de batalha: 14 neutras fixas + seleção introdutória de 6 cartas da Disciplina. Listas no arquivo de cartas.
 

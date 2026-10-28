@@ -1,6 +1,6 @@
 # Dragão Amarelo: Amostra de Cartas
 
-*v0.17 · complementa o documento de design (v0.42) e o arquivo de inimigos · todos os números são provisórios*
+*v0.18 · complementa o documento de design (v0.55) e o arquivo de inimigos · todos os números são provisórios*
 
 **Como ler**
 - Colunas: Carta | Custo | Tipo | Stats | Texto.
@@ -526,6 +526,10 @@ Espaço para as neutras que não cabem em nenhuma Disciplina (um golem, uma cria
 | **Ponto Bem Colocado** | 3 | Tática | | Cause 3 de dano à Resistência ou a um Argumento | Inicial |
 | **Testemunha da Guilda** | 3 | Argumento | 2/4 | Repercussão: recupere 3 de Compostura | Guilda |
 | **Selo Oficial** | 4 | Argumento | 3/5 | Ponto Sensível. Abertura: se o perfil for Procedimento, cause 3 de dano à Resistência | Contato (cartório) |
+| **Por Favor e Obrigado** | 1 | Tática | | Recupere 2 de Compostura e cause 1 de dano à Resistência. Perfil Vaidade ou Princípios: cause 3 em vez disso | Lerael (educação) |
+| **Bom Senso** | 2 | Tática | | Compre 1 carta. Se o interlocutor tiver mais Argumentos que você, compre 2 em vez disso | Lerael (bom senso) |
+
+> No protótipo (P87), a Lerael dá Por Favor e Obrigado, Bom Senso, Fofoca de Taverna, Testemunha da Guilda e Selo Oficial. Troféu das Profundezas e Escama de Basilisco ficam para recompensas da dungeon; Suborno Discreto e Carta de Recomendação esperam a economia de ouro dentro da negociação e a reputação da guilda.
 
 > [!tip] Felix nos dois decks
 > Como as duas batalhas usam o mesmo motor, Felix ganha uma versão social espelhada quase de graça. Reforça o mascote e os Felinos sem custo de sistema.

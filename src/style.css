@@ -435,3 +435,17 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .badge-novo { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--vida); color: #fff; font-size: .72rem; font-weight: 800; vertical-align: 2px; margin-left: 4px; }
 .quests { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 10px; font-size: .9rem; }
 .quest { padding: 2px 10px; border-radius: 999px; border: 1px solid var(--ouro-vivo); color: var(--ouro); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }
+
+/* Negociação: paleta mais amigável */
+.mesa.social { --mesa: #f6ece0; --vida: #c2557a; --mana: #2b8c84; --glow: #d9822b; --ouro-vivo: #e9a23b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mesa.social { --mesa: #2c2533; --vida: #f08aa8; --mana: #6fd2c5; --glow: #f2a65a; --ouro-vivo: #f0b45a; } }
+:root[data-theme="dark"] .mesa.social { --mesa: #2c2533; --vida: #f08aa8; --mana: #6fd2c5; --glow: #f2a65a; --ouro-vivo: #f0b45a; }
+.mesa.social .lider, .mesa.social .painel-voce { border-color: color-mix(in srgb, var(--vida) 35%, var(--line)); }
+.mesa.social .fileira.aliado { background: color-mix(in srgb, var(--mana) 10%, transparent); }
+.mesa.social .fileira.inimigo { background: color-mix(in srgb, var(--vida) 7%, transparent); }
+.curva.social i { background: #2b8c84; }
+.tutorial-social { border: 1px solid var(--line); border-left: 4px solid #2b8c84; border-radius: 0 10px 10px 0; padding: 8px 14px; margin: 12px 0; background: color-mix(in srgb, #2b8c84 7%, transparent); }
+.tutorial-social h3 { margin: 4px 0 6px; }
+.tutorial-social dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
+.tutorial-social dt { font-weight: 700; } .tutorial-social dd { margin: 0; }
+@media (max-width: 600px) { .tutorial-social dl { grid-template-columns: 1fr; } .tutorial-social dd { margin-bottom: 6px; } }

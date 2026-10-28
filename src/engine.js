@@ -416,6 +416,11 @@ function resolvePrever(st, takeUid) {
 }
 function triggerTrap(st, owner, event, e) {
   const sd = S(st, owner);
+  if (event === 'attack' && !sd.traps.includes('molas') && sd.traps.includes('s_clausula')) {
+    if (getAtk(st, e) > 2) return;
+    sd.traps.splice(sd.traps.indexOf('s_clausula'), 1); rec(st, { k: 'trap', c: 's_clausula', on: uidOf(e) });
+    log(st, `Cláusula Escondida! ${e.name} é anulado.`); e.destroyed = true; return;
+  }
   const id = event === 'attack' ? 'molas' : 'gas';
   const i = sd.traps.indexOf(id); if (i < 0) return;
   sd.traps.splice(i, 1);
@@ -439,9 +444,9 @@ function resolveDeaths(st) {
       if (e.kind === 'unit') {
         (sd.deadUnits = sd.deadUnits || []).push(e.id);
         const times = 1 + (e.extraDeath || 0);
-        if (d.onDeath) for (let k = 0; k < times; k++) d.onDeath(st, e);
+        if (d.onDeath && !e.silenced) for (let k = 0; k < times; k++) d.onDeath(st, e);
         if (e.kw.eco && !e.ecoUsed) sd.ecoReturns.push(e.id);
-        sd.board.forEach(o => { if (!isDead(o) && DEF[o.id].onFriendlyDeath) DEF[o.id].onFriendlyDeath(st, o, e); });
+        sd.board.forEach(o => { if (!isDead(o) && !o.silenced && DEF[o.id].onFriendlyDeath) DEF[o.id].onFriendlyDeath(st, o, e); });
       }
     });
     if (checkOver(st)) break;
@@ -450,8 +455,8 @@ function resolveDeaths(st) {
 function checkOver(st) {
   if (st.over) return true;
   const p = S(st, 'P').leader.hp, e = S(st, 'E').leader.hp;
-  if (p <= 0) { st.over = 'E'; log(st, 'Você caiu na dungeon.'); rec(st, { k: 'over', win: 'E', turns: [S(st, 'P').turnCount, S(st, 'E').turnCount], hp: [p, e] }); return true; }
-  if (e <= 0) { st.over = 'P'; log(st, `${S(st, 'E').leader.name} foi derrotado.`); rec(st, { k: 'over', win: 'P', turns: [S(st, 'P').turnCount, S(st, 'E').turnCount], hp: [p, e] }); return true; }
+  if (p <= 0) { st.over = 'E'; log(st, st.enc && st.enc.social ? 'Você perdeu a compostura.' : 'Você caiu na dungeon.'); rec(st, { k: 'over', win: 'E', turns: [S(st, 'P').turnCount, S(st, 'E').turnCount], hp: [p, e] }); return true; }
+  if (e <= 0) { st.over = 'P'; log(st, st.enc && st.enc.social ? `${S(st, 'E').leader.name} cede.` : `${S(st, 'E').leader.name} foi derrotado.`); rec(st, { k: 'over', win: 'P', turns: [S(st, 'P').turnCount, S(st, 'E').turnCount], hp: [p, e] }); return true; }
   return false;
 }
 
@@ -464,6 +469,8 @@ function validTargets(st, side, spec, isSpell) {
   switch (spec) {
     case 'enemyUnit': return ob.filter(e => e.kind === 'unit' && vis(e)).map(ref);
     case 'enemyUnitAtk4': return ob.filter(e => e.kind === 'unit' && vis(e) && getAtk(st, e) <= 4).map(ref);
+    case 'enemyUnitAtk3': return ob.filter(e => e.kind === 'unit' && vis(e) && getAtk(st, e) <= 3).map(ref);
+    case 'enemyUnitAtk2': return ob.filter(e => e.kind === 'unit' && vis(e) && getAtk(st, e) <= 2).map(ref);
     case 'enemyImovel': return ob.filter(e => e.kind === 'unit' && vis(e) && e.imovel > 0).map(ref);
     case 'anyEnemy': {
       const r = ob.filter(e => (e.kind === 'unit' || e.kind === 'structure') && vis(e)).map(ref);
@@ -554,11 +561,12 @@ function playCard(st, side, idx, opts) {
   } else if (d.type === 'trap') {
     sd.traps.push(inst.id);
   } else if (d.type === 'spell') {
-    sd.spellsCastThisTurn++;
+    sd.spellsCastThisTurn++; sd.spellsTotal = (sd.spellsTotal || 0) + 1;
     if (d.module) { const e = ent(st, target); if (e) attachModule(st, e, inst.id); }
     else if (d.onPlay) d.onPlay(st, side, ctx);
     charge(st, side, 1);
     sd.lastSpell = inst.id;
+    const os_ = S(st, opp(side)); if (os_.resposta) { os_.resposta -= 1; log(st, 'Resposta Ensaiada!'); dmg(st, { t: 'l', side }, 3, src(opp(side), {})); }
     sd.board.forEach(e => { if (!isDead(e) && DEF[e.id].onSpellCast) DEF[e.id].onSpellCast(st, e); });
   }
   if (sd.leader.hp <= 0) checkOver(st);
@@ -660,9 +668,9 @@ function startTurn(st, side) {
     const e = summon(st, side, id);
     if (e) { e.kw.eco = false; e.ecoUsed = true; const v = est ? 2 : 1; e.hp = v; e.maxHp = v; sd.ecoReturnedThisTurn = true; log(st, `${e.name} volta por Eco.`); }
   });
-  sd.board.slice().forEach(e => { if (!isDead(e) && DEF[e.id].brotar) brotar(st, e); });
+  sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].brotar) brotar(st, e); });
   sd.board.slice().forEach(e => { if (e.kind === 'ritual' && !e.removed) tickRitual(st, e, 1); });
-  sd.board.slice().forEach(e => { if (!isDead(e) && DEF[e.id].onStartTurn) DEF[e.id].onStartTurn(st, e); });
+  sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].onStartTurn) DEF[e.id].onStartTurn(st, e); });
   if (sd.boomerang) { const n = sd.boomerang; sd.boomerang = 0; if (aliveUnits(st, side).some(x => x.tags.includes('Felino'))) for (let i = 0; i < n; i++) { addToHand(st, side, 'bumerangue'); log(st, 'O Bumerangue volta.'); } }
   if (side === 'E' && st.enc.onStartTurn) st.enc.onStartTurn(st);
   draw(st, side, 1);
@@ -673,7 +681,8 @@ function endTurn(st) {
   if (st.over || st.pending) return false;
   const side = st.turnSide; const sd = S(st, side);
   rec(st, { k: 'endturn', s: side, n: sd.turnCount, manaLeft: sd.mana, hand: sd.hand.length });
-  sd.board.slice().forEach(e => { if (!isDead(e) && DEF[e.id].onEndTurn) DEF[e.id].onEndTurn(st, e); });
+  sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].onEndTurn) DEF[e.id].onEndTurn(st, e); });
+  sd.hand.slice().forEach(i => { const dd = DEF[i.id]; if (dd.onEndTurnInHand) dd.onEndTurnInHand(st, side, i); if (i.chantagem) { i.costMod -= i.chantagem; i.chantagem = 0; } });
   if (side === 'E' && st.enc.onEndTurn) st.enc.onEndTurn(st);
   resolveDeaths(st); if (checkOver(st)) return true;
   sd.board.forEach(e => { e.tempAtk = 0; e.tempKw = {}; e.rushThisTurn = false; if (e.imovel > 0) e.imovel -= 1; });
@@ -690,6 +699,7 @@ function newGame(discId, encId, seed, opts) {
   st.sides.P = mk('P', 'Você', 'Você', 30); st.sides.P.resonance.points = 3;
   if (opts.hp) st.sides.P.leader.hp = Math.min(30, opts.hp);
   if (opts.extraMana) st.sides.P.maxMana = opts.extraMana;
+  st.bosses = opts.bosses || 0; st.social = !!enc.social;
   st.sides.E = mk('E', enc.leader, enc.leader, enc.hp + (opts.encBonus || 0)); st.sides.E.resonance.points = enc.resonance || 0;
   const pd = [];
   if (opts.deck) opts.deck.forEach(id => pd.push(id));
@@ -799,8 +809,107 @@ function enemyStep(st) {
   return null;
 }
 
+/* ================= Social: mesmo motor, outro vocabulário =================
+   Argumento = unidade (Peso/Firmeza), Tática = feitiço, Lábia = mana,
+   Compostura = sua vida, Resistência = vida do interlocutor,
+   Abertura = Ao Entrar, Repercussão = Ao Morrer, Ponto Sensível = Guarda,
+   Álibi = Escudo, Ênfase = Evolução. Perfil = traço do interlocutor. */
+function perfil(st, p) { return !!(st.enc && st.enc.perfil === p); }
+function hitR(st, s, n) { dmg(st, { t: 'l', side: opp(s) }, n, src(s, { spell: true })); }
+function silence(st, e) { if (!e) return; e.silenced = true; e.kw = {}; e.tempKw = {}; log(st, `${e.name} perde todo o texto.`); }
+const sd_ = (id, o) => def(id, Object.assign({ social: true }, o));
+// Neutras sociais
+sd_('s_felix', { name: 'Felix Ronronando', cost: 1, type: 'unit', atk: 1, hp: 1, tags: ['Felino'], disc: 'neutra', text: 'Felino. Abertura: compre 1 carta.', onPlay(st, s) { draw(st, s, 1); } });
+sd_('s_elogio', { name: 'Elogio Calculado', cost: 1, type: 'spell', disc: 'neutra', text: 'Cause 2 de dano à Resistência. Perfil Vaidade: cause 4 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Vaidade') ? 4 : 2); } });
+sd_('s_respirar', { name: 'Respirar Fundo', cost: 1, type: 'spell', disc: 'neutra', text: 'Recupere 3 de Compostura.', onPlay(st, s) { heal(st, s, 3); } });
+sd_('s_solido', { name: 'Argumento Sólido', cost: 2, type: 'unit', atk: 2, hp: 3, disc: 'neutra', text: '' });
+sd_('s_colo', { name: 'Gato de Colo', cost: 2, type: 'unit', atk: 1, hp: 3, kw: ['guarda'], tags: ['Felino'], disc: 'neutra', text: 'Felino. Ponto Sensível. Abertura: recupere 2 de Compostura.', onPlay(st, s) { heal(st, s, 2); } });
+sd_('s_contra', { name: 'Contraproposta', cost: 2, type: 'spell', disc: 'neutra', target: () => 'enemyUnitAtk2', targetRequired: true, text: 'Destrua um Argumento inimigo com 2 ou menos de Peso.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
+sd_('s_ponto', { name: 'Ponto Bem Colocado', cost: 3, type: 'spell', disc: 'neutra', target: () => 'anyEnemy', targetRequired: true, text: 'Cause 3 de dano à Resistência ou a um Argumento.', onPlay(st, s, c) { dmg(st, c.target, 3, src(s, { spell: true })); } });
+sd_('s_fofoca', { name: 'Fofoca de Taverna', cost: 2, type: 'spell', disc: 'neutra', text: 'Compre 2 cartas. O interlocutor compra 1.', onPlay(st, s) { draw(st, s, 2); draw(st, opp(s), 1); } });
+sd_('s_trofeu', { name: 'Troféu das Profundezas', cost: 2, type: 'spell', disc: 'neutra', text: 'Cause 2 de dano à Resistência, +1 para cada chefe derrotado na campanha.', onPlay(st, s) { hitR(st, s, 2 + (st.bosses || 0)); } });
+sd_('s_escama', { name: 'Escama de Basilisco', cost: 2, type: 'spell', disc: 'neutra', text: 'Cause 3 de dano à Resistência. Perfil Respeito: cause 6 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Respeito') ? 6 : 3); } });
+sd_('s_testemunha', { name: 'Testemunha da Guilda', cost: 3, type: 'unit', atk: 2, hp: 4, disc: 'neutra', text: 'Repercussão: recupere 3 de Compostura.', onDeath(st, e) { heal(st, e.owner, 3); } });
+sd_('s_selo', { name: 'Selo Oficial', cost: 4, type: 'unit', atk: 3, hp: 5, kw: ['guarda'], disc: 'neutra', text: 'Ponto Sensível. Abertura: se o Perfil for Procedimento, cause 3 de dano à Resistência.', onPlay(st, s) { if (perfil(st, 'Procedimento')) hitR(st, s, 3); } });
+// Educação e bom senso (vêm da Lerael)
+sd_('s_por_favor', { name: 'Por Favor e Obrigado', cost: 1, type: 'spell', disc: 'neutra', text: 'Recupere 2 de Compostura e cause 1 de dano à Resistência. Perfil Vaidade ou Princípios: cause 3 em vez disso.', onPlay(st, s) { heal(st, s, 2); hitR(st, s, perfil(st, 'Vaidade') || perfil(st, 'Princípios') ? 3 : 1); } });
+sd_('s_bom_senso', { name: 'Bom Senso', cost: 2, type: 'spell', disc: 'neutra', text: 'Compre 1 carta. Se o interlocutor tiver mais Argumentos que você, compre 2 em vez disso.', onPlay(st, s) { draw(st, s, aliveUnits(st, opp(s)).length > aliveUnits(st, s).length ? 2 : 1); } });
+// Temporal Warfare
+sd_('s_fala', { name: 'Fala Antecipada', cost: 1, type: 'spell', disc: 'temporal', text: 'Olhe a carta do topo do deck do interlocutor; se for uma Tática, ela vai para o fundo. Compre 1 carta.', onPlay(st, s) { const dk = S(st, opp(s)).deck; if (dk.length) { const d0 = DEF[dk[0].id]; if (d0.type === 'spell') { dk.push(dk.shift()); log(st, `Você antecipa ${d0.name} e a manda para o fundo.`); } else log(st, `A próxima carta do interlocutor é ${d0.name}.`); } draw(st, s, 1); } });
+sd_('s_resposta', { name: 'Resposta Ensaiada', cost: 1, type: 'spell', disc: 'temporal', text: 'Na próxima vez que o interlocutor usar uma Tática, cause 3 de dano à Resistência dele.', onPlay(st, s) { S(st, s).resposta = (S(st, s).resposta || 0) + 1; } });
+sd_('s_olhar', { name: 'Olhar de Campo de Batalha', cost: 2, type: 'spell', disc: 'temporal', text: 'Cause 2 de dano à Resistência. Perfil Respeito: cause 4 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Respeito') ? 4 : 2); } });
+sd_('s_precedente', { name: 'Precedente Histórico', cost: 2, type: 'unit', atk: 2, hp: 3, kw: ['eco'], disc: 'temporal', text: 'Eco. Abertura: se o Perfil for Procedimento, ganha +1/+1.', onPlay(st, s, c) { if (perfil(st, 'Procedimento') && c.ent) buff(c.ent, 1, 1); } });
+sd_('s_veterano', { name: 'Veterano de Mil Guerras', cost: 3, type: 'unit', atk: 3, hp: 2, disc: 'temporal', text: 'Abertura: cause 1 de dano a cada Argumento inimigo com 2 ou menos de Firmeza. Ao Enfatizar: repete a Abertura.', onPlay(st, s) { aliveUnits(st, opp(s)).filter(e => e.hp <= 2).forEach(e => dmg(st, { t: 'e', uid: e.uid }, 1, src(s, {}))); }, onResonate(st, e) { aliveUnits(st, opp(e.owner)).filter(x => x.hp <= 2).forEach(x => dmg(st, { t: 'e', uid: x.uid }, 1, src(e.owner, {}))); } });
+sd_('s_lembranca', { name: 'Lembrança Inconveniente', cost: 3, type: 'spell', disc: 'temporal', target: () => 'enemyUnitAtk3', targetRequired: true, text: 'Destrua um Argumento inimigo com 3 ou menos de Peso.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
+sd_('s_testemunha_epoca', { name: 'Testemunha de Outra Época', cost: 4, type: 'unit', atk: 3, hp: 4, atraso: true, disc: 'temporal', text: 'Atraso. Quando aparecer, cause 3 de dano à Resistência.', onAppear(st, e) { hitR(st, e.owner, 3); } });
+sd_('s_ultimato', { name: 'Ultimato', cost: 5, type: 'spell', disc: 'temporal', text: 'Seus Argumentos ganham +2 de Peso neste turno.', onPlay(st, s) { aliveUnits(st, s).forEach(e => { e.tempAtk += 2; }); } });
+// Draconic Primalism
+sd_('s_calma', { name: 'Calma Ancestral', cost: 1, type: 'spell', disc: 'draconic', text: 'Ganhe 1 Cristal (Lábia).', onPlay(st, s) { cristal(st, s); } });
+sd_('s_paciencia', { name: 'Paciência de Dragão', cost: 2, type: 'spell', disc: 'draconic', text: 'Recupere 4 de Compostura. Despertar: recupere 8 em vez disso.', onPlay(st, s) { heal(st, s, despertar(st, s) ? 8 : 4); } });
+sd_('s_olhar_inab', { name: 'Olhar Inabalável', cost: 2, type: 'unit', atk: 1, hp: 5, kw: ['guarda'], disc: 'draconic', text: 'Ponto Sensível.' });
+sd_('s_bufada', { name: 'Bufada de Desdém', cost: 3, type: 'spell', disc: 'draconic', target: (st, s) => despertar(st, s) ? null : 'enemyUnit', targetRequired: true, text: 'Cause 3 de dano a um Argumento inimigo. Despertar: a todos os Argumentos inimigos.', onPlay(st, s, c) { if (despertar(st, s)) aoeUnits(st, s, 3, src(s, { spell: true })); else dmg(st, c.target, 3, src(s, { spell: true })); } });
+sd_('s_forca', { name: 'Força Bruta', cost: 4, type: 'spell', disc: 'draconic', text: 'Cause 4 de dano à Resistência. Perfil Respeito: cause 6 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Respeito') ? 6 : 4); } });
+sd_('s_presenca', { name: 'Presença Colossal', cost: 6, type: 'unit', atk: 5, hp: 7, kw: ['guarda'], disc: 'draconic', text: 'Ponto Sensível. Abertura: Argumentos inimigos com 3 ou menos de Peso ficam Imóveis.', onPlay(st, s) { aliveUnits(st, opp(s)).filter(e => getAtk(st, e) <= 3).forEach(e => setImovel(st, e)); } });
+sd_('s_tesouro', { name: 'Tesouro do Ninho', cost: 3, type: 'spell', disc: 'draconic', text: 'Cause 2 de dano à Resistência. Perfil Ganância: cause 6 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Ganância') ? 6 : 2); } });
+sd_('s_voz_anciao', { name: 'Voz do Ancião', cost: 8, type: 'unit', atk: 7, hp: 7, disc: 'draconic', text: 'Abertura: cause 5 de dano à Resistência.', onPlay(st, s) { hitR(st, s, 5); } });
+// Necrodance
+sd_('s_desabafo', { name: 'Desabafo Mórbido', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 2 de Compostura. Ganhe 1 de Lábia neste turno.', onPlay(st, s) { S(st, s).leader.hp -= 2; S(st, s).mana += 1; } });
+sd_('s_piada', { name: 'Piada de Velório', cost: 1, type: 'spell', disc: 'necro', text: 'Cause 2 de dano à Resistência. Perfil Princípios: cause 2 de dano à sua Compostura em vez disso.', onPlay(st, s) { if (perfil(st, 'Princípios')) { S(st, s).leader.hp -= 2; log(st, 'A piada pegou mal.'); } else hitR(st, s, 2); } });
+sd_('s_charme', { name: 'Charme Fúnebre', cost: 2, type: 'unit', atk: 2, hp: 2, compasso: [2], disc: 'necro', text: 'Compasso 2: ganha Álibi.', onPlay(st, s, c) { if (c.ent && onBeat(st, s, c, 2)) c.ent.kw.escudo = true; } });
+sd_('s_elogio_postumo', { name: 'Elogio Póstumo', cost: 2, type: 'spell', disc: 'necro', exigeCompasso: 3, text: 'Exige Compasso 3. Cause 5 de dano à Resistência.', onPlay(st, s) { hitR(st, s, 5); } });
+sd_('s_boato', { name: 'Boato Assombrado', cost: 3, type: 'unit', atk: 2, hp: 3, disc: 'necro', text: 'Repercussão: embaralhe 2 Rumores no deck do interlocutor.', onDeath(st, e) { shuffleInto(st, opp(e.owner), 's_rumor'); shuffleInto(st, opp(e.owner), 's_rumor'); log(st, '2 Rumores correm pela cidade.'); } });
+sd_('s_testamento', { name: 'Testamento Revelado', cost: 3, type: 'spell', sangria: 3, disc: 'necro', target: () => 'enemyUnit', targetRequired: true, text: 'Sangria 3. Destrua um Argumento inimigo.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
+sd_('s_marcha', { name: 'Marcha Fúnebre', cost: 4, type: 'spell', compasso: [1, 3], disc: 'necro', text: 'Cause 1 de dano à Resistência para cada Argumento aliado destruído nesta negociação. Compasso 1 ou 3: em dobro.', onPlay(st, s, c) { const n = (S(st, s).deadUnits || []).length * ((onBeat(st, s, c, 1) || onBeat(st, s, c, 3)) ? 2 : 1); if (n) hitR(st, s, n); } });
+sd_('s_coral', { name: 'Coral de Carpideiras', cost: 5, type: 'unit', atk: 3, hp: 5, compasso: [3], disc: 'necro', text: 'Abertura: se for Compasso 3, cause 3 de dano à Resistência.', onPlay(st, s, c) { if (onBeat(st, s, c, 3)) hitR(st, s, 3); } });
+sd_('s_rumor', { name: 'Rumor', cost: 1, type: 'spell', token: true, junk: true, text: 'Não faz nada. Se estiver na mão do interlocutor no fim do turno dele, cause 1 de dano à Resistência dele.', onEndTurnInHand(st, s) { if (s === 'E') { S(st, s).leader.hp -= 1; log(st, 'Um Rumor incomoda o interlocutor.'); } } });
+// Holy Shadowmancy
+sd_('s_bencao', { name: 'Bênção Calculada', cost: 1, type: 'spell', disc: 'holy', text: 'Recupere 3 de Compostura. Perfil Princípios: também cause 2 de dano à Resistência.', onPlay(st, s) { heal(st, s, 3); if (perfil(st, 'Princípios')) hitR(st, s, 2); } });
+sd_('s_informante', { name: 'Informante das Sombras', cost: 2, type: 'unit', atk: 1, hp: 3, kw: ['emboscada'], disc: 'holy', text: 'Emboscada. Abertura: a carta mais cara na mão do interlocutor custa 2 a mais no próximo turno dele (chantagem).', onPlay(st, s) { const h = S(st, opp(s)).hand.filter(i => !DEF[i.id].junk); if (!h.length) return; h.sort((a, b) => DEF[b.id].cost - DEF[a.id].cost); h[0].costMod = (h[0].costMod || 0) + 2; h[0].chantagem = (h[0].chantagem || 0) + 2; log(st, `Chantagem: ${DEF[h[0].id].name} fica mais cara.`); } });
+sd_('s_segredo', { name: 'Segredo Sussurrado', cost: 2, type: 'spell', disc: 'holy', text: 'Cause 3 de dano à Resistência. Se você controlar um Argumento com Emboscada, cause 5 em vez disso.', onPlay(st, s) { hitR(st, s, hasEmboscada(st, s) ? 5 : 3); } });
+sd_('s_vigilia_oracao', { name: 'Vigília de Oração', cost: 2, type: 'ritual', countdown: 3, disc: 'holy', text: 'Ritual 3. Ao ativar: cause 6 de dano à Resistência.', ritualEffect(st, e) { hitR(st, e.owner, 6); } });
+sd_('s_testemunha_enc', { name: 'Testemunha Encapuzada', cost: 3, type: 'unit', atk: 2, hp: 4, kw: ['guarda'], disc: 'holy', text: 'Ponto Sensível. Repercussão: compre 1 carta.', onDeath(st, e) { draw(st, e.owner, 1); } });
+sd_('s_sermao', { name: 'Sermão Inflamado', cost: 4, type: 'spell', disc: 'holy', text: 'Cause 4 de dano à Resistência. Perfil Princípios: cause 8 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Princípios') ? 8 : 4); } });
+sd_('s_dossie', { name: 'Dossiê Completo', cost: 5, type: 'spell', disc: 'holy', text: 'Destrua todos os Argumentos inimigos com 3 ou menos de Firmeza.', onPlay(st, s) { aliveUnits(st, opp(s)).filter(e => e.hp <= 3).forEach(e => { e.destroyed = true; }); } });
+sd_('s_voz_fe', { name: 'Voz da Fé', cost: 6, type: 'unit', atk: 4, hp: 6, kw: ['escudo'], disc: 'holy', text: 'Álibi. Abertura: reduza em 2 a contagem de todos os seus Rituais.', onPlay(st, s) { S(st, s).board.slice().forEach(e => { if (e.kind === 'ritual' && !e.removed) tickRitual(st, e, 2); }); } });
+// Magitech
+sd_('s_amostra', { name: 'Amostra Grátis', cost: 1, type: 'spell', disc: 'tech', text: 'Recupere 2 de Compostura. Perfil Ganância: também cause 3 de dano à Resistência.', onPlay(st, s) { heal(st, s, 2); if (perfil(st, 'Ganância')) hitR(st, s, 3); } });
+sd_('s_demonstracao', { name: 'Demonstração Impressionante', cost: 2, type: 'spell', disc: 'tech', text: 'Cause 3 de dano à Resistência. Perfil Ganância: compre 1 carta.', onPlay(st, s) { hitR(st, s, 3); if (perfil(st, 'Ganância')) draw(st, s, 1); } });
+sd_('s_clausula', { name: 'Cláusula Escondida', cost: 2, type: 'trap', disc: 'tech', text: 'Armadilha. Quando um Argumento inimigo com 2 ou menos de Peso atacar, destrua-o.' });
+sd_('s_adendo', { name: 'Adendo Técnico', cost: 2, type: 'spell', module: true, disc: 'tech', target: () => 'friendlyUnit', targetRequired: true, text: 'Módulo. Acople a um Argumento aliado: +1/+2.', attach(e) { buff(e, 1, 2); } });
+sd_('s_contrato', { name: 'Contrato Blindado', cost: 3, type: 'unit', atk: 1, hp: 5, kw: ['guarda', 'escudo'], disc: 'tech', text: 'Ponto Sensível. Álibi.' });
+sd_('s_prototipo', { name: 'Protótipo Falante', cost: 3, type: 'unit', atk: 2, hp: 3, disc: 'tech', text: 'Abertura: crie uma Amostra Grátis na sua mão.', onPlay(st, s) { addToHand(st, s, 's_amostra'); } });
+sd_('s_patente', { name: 'Patente Registrada', cost: 4, type: 'structure', hp: 4, disc: 'tech', text: 'No fim do seu turno, cause 1 de dano à Resistência. Perfil Procedimento: cause 2 em vez disso.', onEndTurn(st, e) { hitR(st, e.owner, perfil(st, 'Procedimento') ? 2 : 1); } });
+sd_('s_exposicao', { name: 'Exposição Grandiosa', cost: 5, type: 'spell', disc: 'tech', text: 'Cause 2 de dano à Resistência para cada Argumento e Estrutura que você controla.', onPlay(st, s) { const n = S(st, s).board.filter(e => !isDead(e) && (e.kind === 'unit' || e.kind === 'structure')).length; if (n) hitR(st, s, 2 * n); } });
+// Space Wizardry
+sd_('s_jargao', { name: 'Jargão Celeste', cost: 1, type: 'spell', disc: 'space', target: () => 'enemyUnit', targetRequired: true, text: 'Um Argumento inimigo perde todo o texto.', onPlay(st, s, c) { silence(st, ent(st, c.target)); } });
+sd_('s_citacao', { name: 'Citação Obscura', cost: 1, type: 'spell', disc: 'space', text: 'Cause 2 de dano à Resistência. Perfil Procedimento: cause 4 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Procedimento') ? 4 : 2); } });
+sd_('s_aura', { name: 'Aura de Mistério', cost: 2, type: 'unit', atk: 1, hp: 4, kw: ['escudo'], disc: 'space', text: 'Álibi.' });
+sd_('s_profecia', { name: 'Profecia Vaga', cost: 2, type: 'spell', orbita: true, disc: 'space', text: 'Órbita. Cause 2 de dano à Resistência, +1 por Carga.', onPlay(st, s, c) { hitR(st, s, 2 + (c.inst.cargas || 0)); } });
+sd_('s_diagrama', { name: 'Diagrama Incompreensível', cost: 3, type: 'unit', atk: 2, hp: 3, kw: ['guarda'], disc: 'space', text: 'Ponto Sensível. Abertura: dê 1 Carga a cada carta com Órbita na sua mão.', onPlay(st, s) { charge(st, s, 1); } });
+sd_('s_oraculo', { name: 'Ar de Oráculo', cost: 4, type: 'unit', atk: 2, hp: 4, disc: 'space', text: 'Abertura: cause 1 de dano à Resistência para cada Tática que você usou nesta negociação.', onPlay(st, s) { const n = S(st, s).spellsTotal || 0; if (n) hitR(st, s, n); } });
+sd_('s_silencio', { name: 'Silêncio Estelar', cost: 3, type: 'spell', disc: 'space', text: 'Todos os Argumentos inimigos perdem o texto.', onPlay(st, s) { aliveUnits(st, opp(s)).forEach(e => silence(st, e)); } });
+sd_('s_revelacao', { name: 'Revelação Cósmica', cost: 6, type: 'spell', orbita: true, orbitaCost: true, disc: 'space', text: 'Órbita. Custa 1 a menos por Carga. Cause 6 de dano à Resistência.', onPlay(st, s) { hitR(st, s, 6); } });
+// Interlocutor do tutorial: cliente que reclama do pelo de gato
+sd_('e_reclamacao', { name: 'Reclamação Insistente', cost: 1, type: 'unit', atk: 1, hp: 2, text: '' });
+sd_('e_pelo', { name: 'Pelo de Gato na Manga', cost: 1, type: 'spell', text: 'Cause 2 de dano à sua Compostura.', onPlay(st, s) { hitR(st, s, 2); } });
+sd_('e_desconto', { name: 'Pedido de Desconto', cost: 2, type: 'unit', atk: 2, hp: 2, text: '' });
+sd_('e_gerente', { name: 'Quero Falar com o Gerente', cost: 3, type: 'unit', atk: 2, hp: 4, kw: ['guarda'], text: 'Ponto Sensível.' });
+sd_('e_avaliacao', { name: 'Ameaça de Avaliação Ruim', cost: 3, type: 'spell', text: 'Cause 3 de dano à sua Compostura.', onPlay(st, s) { hitR(st, s, 3); } });
+ENC.cliente = { name: 'Cliente da Taverna', tier: 'Social', social: true, perfil: 'Ganância', leader: 'Cliente Reclamão', hp: 12, hand: 3, rule: 'Perfil Ganância. Quer pagar menos porque a mesa está cheia de pelo de gato.', deck: { e_reclamacao: 4, e_pelo: 3, e_desconto: 4, e_gerente: 2, e_avaliacao: 2 } };
+const SOCIAL_NEUTRAL_STARTER = { s_felix: 2, s_elogio: 2, s_respirar: 2, s_solido: 2, s_colo: 2, s_contra: 2, s_ponto: 2 };
+const SOCIAL_INTRO = { temporal: ['s_fala', 's_precedente', 's_veterano'], draconic: ['s_calma', 's_forca', 's_presenca'], necro: ['s_desabafo', 's_charme', 's_elogio_postumo'], holy: ['s_informante', 's_vigilia_oracao', 's_sermao'], tech: ['s_demonstracao', 's_clausula', 's_adendo'], space: ['s_jargao', 's_profecia', 's_diagrama'] };
+const SOCIAL_POOL = {
+  temporal: ['s_fala', 's_resposta', 's_olhar', 's_precedente', 's_veterano', 's_lembranca', 's_testemunha_epoca', 's_ultimato'],
+  draconic: ['s_calma', 's_paciencia', 's_olhar_inab', 's_bufada', 's_forca', 's_presenca', 's_tesouro', 's_voz_anciao'],
+  necro: ['s_desabafo', 's_piada', 's_charme', 's_elogio_postumo', 's_boato', 's_testamento', 's_marcha', 's_coral'],
+  holy: ['s_bencao', 's_informante', 's_segredo', 's_vigilia_oracao', 's_testemunha_enc', 's_sermao', 's_dossie', 's_voz_fe'],
+  tech: ['s_amostra', 's_demonstracao', 's_clausula', 's_adendo', 's_contrato', 's_prototipo', 's_patente', 's_exposicao'],
+  space: ['s_jargao', 's_citacao', 's_aura', 's_profecia', 's_diagrama', 's_oraculo', 's_silencio', 's_revelacao'],
+  neutra: ['s_por_favor', 's_bom_senso', 's_fofoca', 's_testemunha', 's_selo'],
+};
+
 const Engine = {
-  DEF, DISC, ENC, NEUTRAL_STARTER, BOARD_MAX, HAND_MAX,
+  DEF, DISC, ENC, NEUTRAL_STARTER, BOARD_MAX, HAND_MAX, SOCIAL_NEUTRAL_STARTER, SOCIAL_INTRO, SOCIAL_POOL,
   newGame, mulligan, keepHand, nextMulliganSize, canPlay, playCard, attack, heroAttack, canHeroAttack, resonate, canResonate, endTurn,
   resolvePrever, enemyStep, validTargets, attackTargets, canAttack, getCost, getAtk, hasKw, isDead,
   compassoPos, ent, S, sameRef, despertar,
