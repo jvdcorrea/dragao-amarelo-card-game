@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 28/10/2026 · acompanha o design v0.56*
+*Atualizada em 28/10/2026 · acompanha o design v0.57*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -32,8 +32,8 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 7. **[ ] Outras instalações:** Área de treinamento (melhorar aventureiros e unidades), Laboratório arcano (feitiços e upgrades mágicos), Ferraria (equipamentos em carta e dos aventureiros). Já aparecem bloqueadas, cada uma esperando um NPC.
    - *Falta:* quem libera cada uma, o custo e o que cada melhoria faz.
 
-8. **[~] Defesas com inimigos aleatórios** (P72). A partir do dia 3, 20% de chance por noite. Os invasores são monstros do Buraco, em quatro temas com cartas do grupo 1. Vitória dá ouro; derrota custa até 20 de ouro.
-   - *Falta:* ladrões (precisam de cartas humanas), defesas sociais, e Cofre ou vigias reduzindo a chance.
+8. **[x] Defesas com inimigos aleatórios** (P72). Agora com humanos de ameaça variável (ladrões, salteadores e a guilda rival), além dos monstros e das defesas sociais (P89). A partir do dia 3, 20% de chance por noite. Os invasores são monstros do Buraco, em quatro temas com cartas do grupo 1. Vitória dá ouro; derrota custa até 20 de ouro.
+   - *Falta:* Cofre, portão de contenção e vigias reduzindo a ameaça; monstros na cola de missões fracassadas.
 
 9. **[~] Mestres na cidade** (P73, P74). Seis Mestres vendem boosters de 5 cartas da Disciplina por 60 de ouro. Uma visita na cidade por dia. Os seis têm retrato e diálogo: Chrome (Magitech), Gun'Liao (Holy Shadowmancy), Charles Goodwich (Necrodança), Mikeus (Temporal Warfare), Yaven (Space Wizardry) e Ko (Draconic Primalism).
    - **[x]** Ida à cidade conta só ao voltar; dentro dela, quantos Mestres quiser (P78). Diálogo como registro, com menu de falas já feitas (P78). Indicação de aventureiro depois de comprar um booster: Katya, Matador, 9S e Tsubaki (P79).

@@ -1,6 +1,6 @@
 # Dragão Amarelo: Inimigos · Grupo 1
 
-*v0.11 · complementa o design (v0.56) e as cartas (v0.18) · todos os números são provisórios*
+*v0.12 · complementa o design (v0.57) e as cartas (v0.18) · todos os números são provisórios*
 
 ---
 
@@ -188,3 +188,34 @@ Medido com o deck inicial novo (20 neutras fixas + 10 introdutórias, P53) e com
 | Bêbado Chato | Patrulha com Mikeus | Vaidade | 10 | Soluço Ofensivo, Cantoria Desafinada, Amigo de Bar, Conversa Fiada |
 | Figura Suspeita | Patrulha com Mikeus | Procedimento | 12 | Olhar Desconfiado, Resposta Evasiva, Álibi Ensaiado, Conversa Fiada, Proposta Imperdível |
 | Barão Ostrander | Credor, depois do terceiro andar | Procedimento | 22 | Notificação Oficial, Juros Compostos, Cláusula de Multa, Auditor da Coroa, Contador Implacável, Penhora |
+
+
+## Invasores humanos (protótipo, P72)
+
+Cartas inimigas novas, todas com a marcação Humano nas unidades:
+
+| Carta | Custo | Tipo | Stats | Texto |
+|---|---|---|---|---|
+| Pivete Ligeiro | 1 | Unidade | 1/1 | Avanço |
+| Vigia do Bando | 2 | Unidade | 1/3 | Guarda |
+| Arrombador | 2 | Unidade | 2/2 | Emboscada |
+| Bandido da Estrada | 2 | Unidade | 2/3 | |
+| Bomba de Fumaça | 2 | Feitiço | | Deixe uma unidade inimiga Imóvel |
+| Facada nas Costas | 2 | Feitiço | | Cause 3 de dano a uma unidade inimiga |
+| Ladra de Telhado | 3 | Unidade | 3/2 | Emboscada |
+| Besteiro | 3 | Unidade | 2/3 | Ao Entrar: cause 2 de dano ao protagonista |
+| Espadachim Rival | 3 | Unidade | 3/3 | Escudo |
+| Clérigo Rival | 3 | Unidade | 2/4 | Ao Entrar: o líder dele recupera 4 de vida |
+| Mestre das Chaves | 4 | Unidade | 3/4 | Ao Entrar: compre 1 carta |
+| Mercenário Brutamontes | 4 | Unidade | 4/5 | Guarda |
+| Rajada Arcana Rival | 4 | Feitiço | | Cause 2 de dano a todas as unidades inimigas |
+| Capitão do Bando | 5 | Unidade | 4/5 | Ao Entrar: dê +1/+1 às outras unidades aliadas |
+| Campeão dos Rivais | 6 | Unidade | 6/6 | Guarda. Ao Entrar: cause 2 de dano ao protagonista |
+
+| Bando | Líder | Fácil | Média | Difícil |
+|---|---|---|---|---|
+| Ladrões | Vesper, a Ladra-Chefe | Pivetes, Arrombadores, Vigias, Fumaça | entram Ladras de Telhado, Facadas e o Mestre das Chaves | mais Ladras e Chaves, e Brutamontes |
+| Bando da Estrada | Capitão Brega | Bandidos, Pivetes, Vigias, Besteiros | entram Brutamontes e Facadas | mais Besteiros e Brutamontes, e o Capitão do Bando |
+| Grifo Dourado | Aventureiros do Grifo Dourado | Espadachins, Bandidos, Clérigos, Vigias | entram Rajadas Arcanas e Besteiros | entram Brutamontes e o Campeão dos Rivais |
+
+Sinal do bot simples contra os decks iniciais das seis Disciplinas (60 lutas por linha): Fácil 97% a 100% de vitórias, Média 90% a 98%, Difícil 48% a 78% (os Ladrões são o bando mais leve no Difícil).

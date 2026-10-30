@@ -463,6 +463,10 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .parcela { margin: 2px 0 8px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ouro-vivo); background: color-mix(in srgb, var(--ouro-vivo) 10%, transparent); }
 .parcela.urgente { border-color: var(--vida); background: color-mix(in srgb, var(--vida) 10%, transparent); }
 .parcela.paga { color: var(--muted); border-color: var(--line); background: transparent; }
+.ameaca { display: inline-block; font-weight: 700; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.ameaca.t0 { color: var(--d-draconic); border-color: var(--d-draconic); }
+.ameaca.t1 { color: var(--ouro); border-color: var(--ouro-vivo); }
+.ameaca.t2 { color: var(--vida); border-color: var(--vida); }
 
 </style>
 </head>
@@ -623,6 +627,23 @@ def('ninhada', { name: 'Ninhada de Basilisco', cost: 3, type: 'structure', hp: 3
 def('filhote_bas', { name: 'Filhote de Basilisco', cost: 3, type: 'unit', atk: 3, hp: 3, text: 'Ao Evoluir: deixe uma unidade inimiga Imóvel.', onResonate(st, e) { const us = aliveUnits(st, opp(e.owner)).filter(x => !hasKw(x, 'emboscada')); if (us.length) { us.sort((a, b) => getAtk(st, b) - getAtk(st, a)); setImovel(st, us[0]); log(st, `${us[0].name} fica Imóvel.`); } } });
 def('cauda', { name: 'Cauda Sísmica', cost: 4, type: 'spell', text: 'Cause 2 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 2, src(s, { spell: true })); } });
 def('mordida_pet', { name: 'Mordida Petrificante', cost: 5, type: 'spell', target: () => 'enemyImovel', targetRequired: true, text: 'Destrua uma unidade Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
+
+// Humanos das defesas físicas (P72): ladrões, bandidos e aventureiros rivais
+def('h_pivete', { name: 'Pivete Ligeiro', cost: 1, type: 'unit', atk: 1, hp: 1, kw: ['avanco'], tags: ['Humano'], text: 'Avanço.' });
+def('h_vigia', { name: 'Vigia do Bando', cost: 2, type: 'unit', atk: 1, hp: 3, kw: ['guarda'], tags: ['Humano'], text: 'Guarda.' });
+def('h_arrombador', { name: 'Arrombador', cost: 2, type: 'unit', atk: 2, hp: 2, kw: ['emboscada'], tags: ['Humano'], text: 'Emboscada.' });
+def('h_ladra', { name: 'Ladra de Telhado', cost: 3, type: 'unit', atk: 3, hp: 2, kw: ['emboscada'], tags: ['Humano'], text: 'Emboscada.' });
+def('h_chaves', { name: 'Mestre das Chaves', cost: 4, type: 'unit', atk: 3, hp: 4, tags: ['Humano'], text: 'Ao Entrar: compre 1 carta.', onPlay(st, s) { draw(st, s, 1); } });
+def('h_fumaca', { name: 'Bomba de Fumaça', cost: 2, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Deixe uma unidade inimiga Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { setImovel(st, e); log(st, `${e.name} se perde na fumaça.`); } } });
+def('h_facada', { name: 'Facada nas Costas', cost: 2, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Cause 3 de dano a uma unidade inimiga.', onPlay(st, s, c) { dmg(st, c.target, 3, src(s, { spell: true })); } });
+def('h_bandido', { name: 'Bandido da Estrada', cost: 2, type: 'unit', atk: 2, hp: 3, tags: ['Humano'], text: '' });
+def('h_besteiro', { name: 'Besteiro', cost: 3, type: 'unit', atk: 2, hp: 3, tags: ['Humano'], text: 'Ao Entrar: cause 2 de dano ao protagonista.', onPlay(st, s) { dmg(st, { t: 'l', side: opp(s) }, 2, src(s, {})); } });
+def('h_bruto', { name: 'Mercenário Brutamontes', cost: 4, type: 'unit', atk: 4, hp: 5, kw: ['guarda'], tags: ['Humano'], text: 'Guarda.' });
+def('h_capitao', { name: 'Capitão do Bando', cost: 5, type: 'unit', atk: 4, hp: 5, tags: ['Humano'], text: 'Ao Entrar: dê +1/+1 às outras unidades aliadas.', onPlay(st, s, c) { aliveUnits(st, s).filter(x => x !== c.ent).forEach(x => buff(x, 1, 1)); } });
+def('h_espadachim', { name: 'Espadachim Rival', cost: 3, type: 'unit', atk: 3, hp: 3, kw: ['escudo'], tags: ['Humano'], text: 'Escudo.' });
+def('h_clerigo', { name: 'Clérigo Rival', cost: 3, type: 'unit', atk: 2, hp: 4, tags: ['Humano'], text: 'Ao Entrar: o líder dele recupera 4 de vida.', onPlay(st, s) { heal(st, s, 4); } });
+def('h_rajada', { name: 'Rajada Arcana Rival', cost: 4, type: 'spell', text: 'Cause 2 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 2, src(s, { spell: true })); } });
+def('h_campeao', { name: 'Campeão dos Rivais', cost: 6, type: 'unit', atk: 6, hp: 6, kw: ['guarda'], tags: ['Humano'], text: 'Guarda. Ao Entrar: cause 2 de dano ao protagonista.', onPlay(st, s) { dmg(st, { t: 'l', side: opp(s) }, 2, src(s, {})); } });
 
 // Recompensas e neutras de booster
 def('machado', { name: 'Machado de Mil Batalhas', cost: 4, type: 'weapon', atk: 3, hp: 3, disc: 'temporal', text: 'Arma 3/3. Sempre que o protagonista atacar com esta arma, invoque um Recruta de Outra Era.', onWeaponAttack(st, s) { summon(st, s, 'recruta'); } });
@@ -1663,7 +1684,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.18/design-v0.56/inimigos-v0.11/proto-2026-10-28';
+const RULES = 'cartas-v0.18/design-v0.57/inimigos-v0.12/proto-2026-10-28b';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -1972,7 +1993,7 @@ function infoPanel() {
   return `<section class="info" aria-label="Detalhes">${html || '<p class="info-vazia">Passe o mouse ou toque numa carta para ver os detalhes.</p>'}</section>`;
 }
 function logPanel() {
-  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(socTxt(l))}</li>`).join('')}</ol></section>`;
+  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(socTxt(st.ctx && st.ctx.mode !== 'run' ? l.replace('Você caiu na dungeon.', 'Você caiu.') : l))}</li>`).join('')}</ol></section>`;
 }
 function overPanel() {
   const win = st.over === 'P';
@@ -2216,7 +2237,32 @@ const DEF_TEMAS = [
   { leader: 'Colônia de Fungos', text: 'Algo cresce no porão e não para de crescer.', pool: { broto_cog: 5, toupeira: 3, esporos: 2, fungoide: 2, besouro: 4, mordida_inf: 2 } },
   { leader: 'Bicharada Solta', text: 'Uma porta mal fechada e a bicharada da dungeon invade o salão.', pool: { toupeira: 3, morcego: 3, aranha: 3, enxame: 2, lagarto: 3, besouro: 2, broto_cog: 2 } },
 ];
+/* Humanos com dificuldade variável (P72): a ameaça cresce com os andares concluídos e com o ouro no cofre (riqueza vira risco). */
+const DEF_HUMANOS = [
+  { id: 'ladroes', leader: 'Vesper, a Ladra-Chefe', text: 'Passos no telhado. Um bando de ladrões ouviu falar do que a guilda traz da dungeon e veio buscar.',
+    tiers: [{ h_pivete: 5, h_arrombador: 4, h_vigia: 3, h_fumaca: 2, h_bandido: 2 }, { h_pivete: 3, h_arrombador: 3, h_ladra: 4, h_vigia: 3, h_fumaca: 3, h_facada: 2, h_chaves: 2 }, { h_arrombador: 3, h_ladra: 4, h_vigia: 2, h_fumaca: 3, h_facada: 3, h_chaves: 3, h_bruto: 2 }],
+    win: 'A guarda da cidade leva o bando preso e paga o prêmio pela captura', lose: 'Os ladrões fogem pelo telhado com parte do cofre' },
+  { id: 'bando', leader: 'Capitão Brega, do Bando da Estrada', text: 'Um bando de salteadores cerca a guilda. Dizem que a estrada agora é deles, e a porta também.',
+    tiers: [{ h_bandido: 5, h_pivete: 4, h_vigia: 3, h_besteiro: 2 }, { h_bandido: 4, h_besteiro: 3, h_vigia: 3, h_bruto: 2, h_facada: 2, h_pivete: 2 }, { h_bandido: 3, h_besteiro: 4, h_bruto: 3, h_capitao: 2, h_facada: 2, h_vigia: 2 }],
+    win: 'Os salteadores debandam, e a cidade paga o prêmio pela cabeça do bando', lose: 'O bando saqueia o salão antes de ir embora' },
+  { id: 'rivais', leader: 'Aventureiros do Grifo Dourado', text: 'Aventureiros da guilda rival invadem o salão para “recuperar” um mapa que juram ser deles. Não é.',
+    tiers: [{ h_espadachim: 3, h_bandido: 4, h_clerigo: 2, h_vigia: 3, h_pivete: 3 }, { h_espadachim: 4, h_clerigo: 3, h_rajada: 2, h_vigia: 3, h_besteiro: 3 }, { h_espadachim: 4, h_clerigo: 3, h_rajada: 3, h_bruto: 2, h_besteiro: 2, h_campeao: 2 }],
+    win: 'Os rivais saem com o orgulho ferido, e a cidade multa a guilda deles em seu favor', lose: 'Os rivais levam o mapa e um bom pedaço da sua reputação' },
+];
+const TIER = [{ nome: 'Fácil', hp: 12, gold: [15, 25], multa: 15 }, { nome: 'Média', hp: 18, gold: [25, 40], multa: 25 }, { nome: 'Difícil', hp: 24, gold: [40, 60], multa: 35 }];
+function threatTier() {
+  const score = Object.keys(camp.cleared).length + Math.floor((camp.gold || 0) / 100);
+  let t = score <= 1 ? 0 : score <= 3 ? 1 : 2;
+  const r = rnd(); if (r < 0.2) t = Math.max(0, t - 1); else if (r > 0.8) t = Math.min(2, t + 1);
+  return t;
+}
+function newHumanDefense() {
+  const h = DEF_HUMANOS[Math.floor(rnd() * DEF_HUMANOS.length)]; const t = threatTier(); const T = TIER[t];
+  const deck = {}; Object.entries(h.tiers[t]).forEach(([id, n]) => { deck[id] = Math.max(1, n + rint(-1, 1)); });
+  return { human: h.id, tier: t, tierName: T.nome, leader: h.leader, text: h.text, hp: T.hp + rint(-1, 2), deck, gold: rint(T.gold[0], T.gold[1]), multa: T.multa, winText: h.win, loseText: h.lose };
+}
 function newDefense() {
+  if (rnd() < 0.5) return newHumanDefense();
   const t = DEF_TEMAS[Math.floor(rnd() * DEF_TEMAS.length)];
   const deck = {}; const ids = Object.keys(t.pool);
   ids.forEach(id => { deck[id] = Math.max(1, t.pool[id] + rint(-1, 1)); });
@@ -2241,9 +2287,9 @@ function startDefense() {
 function defenseDone() {
   const won = st.over === 'P'; const spec = camp.defense; st = null;
   let txt, delta;
-  if (won) { delta = spec.gold; camp.gold += delta; txt = `A guilda está a salvo. Os vizinhos agradecem com uma vaquinha: +${delta} de ouro.`; }
-  else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = `Os invasores fazem estrago antes de fugir. Conserto e multa da guarda: ${m} de ouro.`; }
-  hist({ k: 'defesa', leader: spec.leader, won, gold: delta });
+  if (won) { delta = spec.gold; camp.gold += delta; txt = spec.winText ? `${spec.winText}: +${delta} de ouro.` : `A guilda está a salvo. Os vizinhos agradecem com uma vaquinha: +${delta} de ouro.`; }
+  else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = spec.loseText ? `${spec.loseText}: ${m} de ouro a menos.` : `Os invasores fazem estrago antes de fugir. Conserto e multa da guarda: ${m} de ouro.`; }
+  hist({ k: 'defesa', leader: spec.leader, human: spec.human, tier: spec.tier, won, gold: delta });
   camp.defense = null; camp.pending = camp.pending.filter(p => p.kind !== 'defesa');
   saveCamp();
   ui.scene = { kind: 'msg', title: won ? 'Defesa bem-sucedida' : 'A guilda foi saqueada', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
@@ -2328,7 +2374,7 @@ function guildScene(sc) {
   }
   if (sc.kind === 'defesa') {
     const d = camp.defense;
-    return `<h2>Invasão na guilda!</h2><p>${esc(d.text)} À frente deles, ${esc(d.leader)} (${d.hp} de Vida).</p><p class="intro-dica">Defesas não gastam ações do dia. Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend">Defender a guilda</button></div>`;
+    return `<h2>Invasão na guilda!</h2><p>${esc(d.text)} À frente deles, ${esc(d.leader)} (${d.hp} de Vida).</p>${d.tierName ? `<p class="ameaca t${d.tier}">Ameaça: ${esc(d.tierName)}</p>` : ''}<p class="intro-dica">Defesas não gastam ações do dia.${d.human ? ' A ameaça cresce com os andares concluídos e com o ouro guardado no cofre.' : ''} Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend">Defender a guilda</button></div>`;
   }
   if (sc.kind === 'dia') {
     return `<h2>Dia ${camp.day}</h2>${sc.lines.length ? sc.lines.map(l => `<p>${esc(l)}</p>`).join('') : '<p>Um dia tranquilo na guilda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Continuar</button></div>`;

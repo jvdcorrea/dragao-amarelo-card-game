@@ -45,7 +45,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.18/design-v0.56/inimigos-v0.11/proto-2026-10-28';
+const RULES = 'cartas-v0.18/design-v0.57/inimigos-v0.12/proto-2026-10-28b';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -354,7 +354,7 @@ function infoPanel() {
   return `<section class="info" aria-label="Detalhes">${html || '<p class="info-vazia">Passe o mouse ou toque numa carta para ver os detalhes.</p>'}</section>`;
 }
 function logPanel() {
-  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(socTxt(l))}</li>`).join('')}</ol></section>`;
+  return `<section class="registro"><h2>Registro</h2><ol>${st.log.slice(-80).reverse().map(l => `<li>${esc(socTxt(st.ctx && st.ctx.mode !== 'run' ? l.replace('Você caiu na dungeon.', 'Você caiu.') : l))}</li>`).join('')}</ol></section>`;
 }
 function overPanel() {
   const win = st.over === 'P';
@@ -598,7 +598,32 @@ const DEF_TEMAS = [
   { leader: 'Colônia de Fungos', text: 'Algo cresce no porão e não para de crescer.', pool: { broto_cog: 5, toupeira: 3, esporos: 2, fungoide: 2, besouro: 4, mordida_inf: 2 } },
   { leader: 'Bicharada Solta', text: 'Uma porta mal fechada e a bicharada da dungeon invade o salão.', pool: { toupeira: 3, morcego: 3, aranha: 3, enxame: 2, lagarto: 3, besouro: 2, broto_cog: 2 } },
 ];
+/* Humanos com dificuldade variável (P72): a ameaça cresce com os andares concluídos e com o ouro no cofre (riqueza vira risco). */
+const DEF_HUMANOS = [
+  { id: 'ladroes', leader: 'Vesper, a Ladra-Chefe', text: 'Passos no telhado. Um bando de ladrões ouviu falar do que a guilda traz da dungeon e veio buscar.',
+    tiers: [{ h_pivete: 5, h_arrombador: 4, h_vigia: 3, h_fumaca: 2, h_bandido: 2 }, { h_pivete: 3, h_arrombador: 3, h_ladra: 4, h_vigia: 3, h_fumaca: 3, h_facada: 2, h_chaves: 2 }, { h_arrombador: 3, h_ladra: 4, h_vigia: 2, h_fumaca: 3, h_facada: 3, h_chaves: 3, h_bruto: 2 }],
+    win: 'A guarda da cidade leva o bando preso e paga o prêmio pela captura', lose: 'Os ladrões fogem pelo telhado com parte do cofre' },
+  { id: 'bando', leader: 'Capitão Brega, do Bando da Estrada', text: 'Um bando de salteadores cerca a guilda. Dizem que a estrada agora é deles, e a porta também.',
+    tiers: [{ h_bandido: 5, h_pivete: 4, h_vigia: 3, h_besteiro: 2 }, { h_bandido: 4, h_besteiro: 3, h_vigia: 3, h_bruto: 2, h_facada: 2, h_pivete: 2 }, { h_bandido: 3, h_besteiro: 4, h_bruto: 3, h_capitao: 2, h_facada: 2, h_vigia: 2 }],
+    win: 'Os salteadores debandam, e a cidade paga o prêmio pela cabeça do bando', lose: 'O bando saqueia o salão antes de ir embora' },
+  { id: 'rivais', leader: 'Aventureiros do Grifo Dourado', text: 'Aventureiros da guilda rival invadem o salão para “recuperar” um mapa que juram ser deles. Não é.',
+    tiers: [{ h_espadachim: 3, h_bandido: 4, h_clerigo: 2, h_vigia: 3, h_pivete: 3 }, { h_espadachim: 4, h_clerigo: 3, h_rajada: 2, h_vigia: 3, h_besteiro: 3 }, { h_espadachim: 4, h_clerigo: 3, h_rajada: 3, h_bruto: 2, h_besteiro: 2, h_campeao: 2 }],
+    win: 'Os rivais saem com o orgulho ferido, e a cidade multa a guilda deles em seu favor', lose: 'Os rivais levam o mapa e um bom pedaço da sua reputação' },
+];
+const TIER = [{ nome: 'Fácil', hp: 12, gold: [15, 25], multa: 15 }, { nome: 'Média', hp: 18, gold: [25, 40], multa: 25 }, { nome: 'Difícil', hp: 24, gold: [40, 60], multa: 35 }];
+function threatTier() {
+  const score = Object.keys(camp.cleared).length + Math.floor((camp.gold || 0) / 100);
+  let t = score <= 1 ? 0 : score <= 3 ? 1 : 2;
+  const r = rnd(); if (r < 0.2) t = Math.max(0, t - 1); else if (r > 0.8) t = Math.min(2, t + 1);
+  return t;
+}
+function newHumanDefense() {
+  const h = DEF_HUMANOS[Math.floor(rnd() * DEF_HUMANOS.length)]; const t = threatTier(); const T = TIER[t];
+  const deck = {}; Object.entries(h.tiers[t]).forEach(([id, n]) => { deck[id] = Math.max(1, n + rint(-1, 1)); });
+  return { human: h.id, tier: t, tierName: T.nome, leader: h.leader, text: h.text, hp: T.hp + rint(-1, 2), deck, gold: rint(T.gold[0], T.gold[1]), multa: T.multa, winText: h.win, loseText: h.lose };
+}
 function newDefense() {
+  if (rnd() < 0.5) return newHumanDefense();
   const t = DEF_TEMAS[Math.floor(rnd() * DEF_TEMAS.length)];
   const deck = {}; const ids = Object.keys(t.pool);
   ids.forEach(id => { deck[id] = Math.max(1, t.pool[id] + rint(-1, 1)); });
@@ -623,9 +648,9 @@ function startDefense() {
 function defenseDone() {
   const won = st.over === 'P'; const spec = camp.defense; st = null;
   let txt, delta;
-  if (won) { delta = spec.gold; camp.gold += delta; txt = `A guilda está a salvo. Os vizinhos agradecem com uma vaquinha: +${delta} de ouro.`; }
-  else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = `Os invasores fazem estrago antes de fugir. Conserto e multa da guarda: ${m} de ouro.`; }
-  hist({ k: 'defesa', leader: spec.leader, won, gold: delta });
+  if (won) { delta = spec.gold; camp.gold += delta; txt = spec.winText ? `${spec.winText}: +${delta} de ouro.` : `A guilda está a salvo. Os vizinhos agradecem com uma vaquinha: +${delta} de ouro.`; }
+  else { const m = Math.min(camp.gold, spec.multa); delta = -m; camp.gold -= m; txt = spec.loseText ? `${spec.loseText}: ${m} de ouro a menos.` : `Os invasores fazem estrago antes de fugir. Conserto e multa da guarda: ${m} de ouro.`; }
+  hist({ k: 'defesa', leader: spec.leader, human: spec.human, tier: spec.tier, won, gold: delta });
   camp.defense = null; camp.pending = camp.pending.filter(p => p.kind !== 'defesa');
   saveCamp();
   ui.scene = { kind: 'msg', title: won ? 'Defesa bem-sucedida' : 'A guilda foi saqueada', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0);
@@ -710,7 +735,7 @@ function guildScene(sc) {
   }
   if (sc.kind === 'defesa') {
     const d = camp.defense;
-    return `<h2>Invasão na guilda!</h2><p>${esc(d.text)} À frente deles, ${esc(d.leader)} (${d.hp} de Vida).</p><p class="intro-dica">Defesas não gastam ações do dia. Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend">Defender a guilda</button></div>`;
+    return `<h2>Invasão na guilda!</h2><p>${esc(d.text)} À frente deles, ${esc(d.leader)} (${d.hp} de Vida).</p>${d.tierName ? `<p class="ameaca t${d.tier}">Ameaça: ${esc(d.tierName)}</p>` : ''}<p class="intro-dica">Defesas não gastam ações do dia.${d.human ? ' A ameaça cresce com os andares concluídos e com o ouro guardado no cofre.' : ''} Vitória: +${d.gold} de ouro. Derrota: sem recompensa e até ${d.multa} de ouro de prejuízo.</p><div class="opcoes"><button class="botao principal" data-act="g-defend">Defender a guilda</button></div>`;
   }
   if (sc.kind === 'dia') {
     return `<h2>Dia ${camp.day}</h2>${sc.lines.length ? sc.lines.map(l => `<p>${esc(l)}</p>`).join('') : '<p>Um dia tranquilo na guilda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Continuar</button></div>`;

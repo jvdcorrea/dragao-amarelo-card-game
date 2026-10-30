@@ -145,6 +145,23 @@ def('filhote_bas', { name: 'Filhote de Basilisco', cost: 3, type: 'unit', atk: 3
 def('cauda', { name: 'Cauda Sísmica', cost: 4, type: 'spell', text: 'Cause 2 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 2, src(s, { spell: true })); } });
 def('mordida_pet', { name: 'Mordida Petrificante', cost: 5, type: 'spell', target: () => 'enemyImovel', targetRequired: true, text: 'Destrua uma unidade Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
 
+// Humanos das defesas físicas (P72): ladrões, bandidos e aventureiros rivais
+def('h_pivete', { name: 'Pivete Ligeiro', cost: 1, type: 'unit', atk: 1, hp: 1, kw: ['avanco'], tags: ['Humano'], text: 'Avanço.' });
+def('h_vigia', { name: 'Vigia do Bando', cost: 2, type: 'unit', atk: 1, hp: 3, kw: ['guarda'], tags: ['Humano'], text: 'Guarda.' });
+def('h_arrombador', { name: 'Arrombador', cost: 2, type: 'unit', atk: 2, hp: 2, kw: ['emboscada'], tags: ['Humano'], text: 'Emboscada.' });
+def('h_ladra', { name: 'Ladra de Telhado', cost: 3, type: 'unit', atk: 3, hp: 2, kw: ['emboscada'], tags: ['Humano'], text: 'Emboscada.' });
+def('h_chaves', { name: 'Mestre das Chaves', cost: 4, type: 'unit', atk: 3, hp: 4, tags: ['Humano'], text: 'Ao Entrar: compre 1 carta.', onPlay(st, s) { draw(st, s, 1); } });
+def('h_fumaca', { name: 'Bomba de Fumaça', cost: 2, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Deixe uma unidade inimiga Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { setImovel(st, e); log(st, `${e.name} se perde na fumaça.`); } } });
+def('h_facada', { name: 'Facada nas Costas', cost: 2, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Cause 3 de dano a uma unidade inimiga.', onPlay(st, s, c) { dmg(st, c.target, 3, src(s, { spell: true })); } });
+def('h_bandido', { name: 'Bandido da Estrada', cost: 2, type: 'unit', atk: 2, hp: 3, tags: ['Humano'], text: '' });
+def('h_besteiro', { name: 'Besteiro', cost: 3, type: 'unit', atk: 2, hp: 3, tags: ['Humano'], text: 'Ao Entrar: cause 2 de dano ao protagonista.', onPlay(st, s) { dmg(st, { t: 'l', side: opp(s) }, 2, src(s, {})); } });
+def('h_bruto', { name: 'Mercenário Brutamontes', cost: 4, type: 'unit', atk: 4, hp: 5, kw: ['guarda'], tags: ['Humano'], text: 'Guarda.' });
+def('h_capitao', { name: 'Capitão do Bando', cost: 5, type: 'unit', atk: 4, hp: 5, tags: ['Humano'], text: 'Ao Entrar: dê +1/+1 às outras unidades aliadas.', onPlay(st, s, c) { aliveUnits(st, s).filter(x => x !== c.ent).forEach(x => buff(x, 1, 1)); } });
+def('h_espadachim', { name: 'Espadachim Rival', cost: 3, type: 'unit', atk: 3, hp: 3, kw: ['escudo'], tags: ['Humano'], text: 'Escudo.' });
+def('h_clerigo', { name: 'Clérigo Rival', cost: 3, type: 'unit', atk: 2, hp: 4, tags: ['Humano'], text: 'Ao Entrar: o líder dele recupera 4 de vida.', onPlay(st, s) { heal(st, s, 4); } });
+def('h_rajada', { name: 'Rajada Arcana Rival', cost: 4, type: 'spell', text: 'Cause 2 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 2, src(s, { spell: true })); } });
+def('h_campeao', { name: 'Campeão dos Rivais', cost: 6, type: 'unit', atk: 6, hp: 6, kw: ['guarda'], tags: ['Humano'], text: 'Guarda. Ao Entrar: cause 2 de dano ao protagonista.', onPlay(st, s) { dmg(st, { t: 'l', side: opp(s) }, 2, src(s, {})); } });
+
 // Recompensas e neutras de booster
 def('machado', { name: 'Machado de Mil Batalhas', cost: 4, type: 'weapon', atk: 3, hp: 3, disc: 'temporal', text: 'Arma 3/3. Sempre que o protagonista atacar com esta arma, invoque um Recruta de Outra Era.', onWeaponAttack(st, s) { summon(st, s, 'recruta'); } });
 def('carga', { name: 'Carga Através dos Séculos', cost: 6, type: 'spell', disc: 'temporal', text: 'Suas unidades ganham +2/+0 e Acelerar neste turno.', onPlay(st, s) { aliveUnits(st, s).forEach(e => { e.tempAtk += 2; e.tempKw.investida = true; }); } });
