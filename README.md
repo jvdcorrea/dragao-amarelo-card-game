@@ -30,7 +30,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `src/art.js` | Arte provisória: ícones e mapeamento carta para ícone (gerado por `tools/arte/gen.py`) |
 | `tools/build.py` | Gera o `index.html` a partir de `src/` |
 | `tests/` | Testes em Node: partidas simuladas, todas as cartas do pool e um bot guloso para sinais de balanceamento |
-| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`) e lista de tarefas (`todo.md`) |
+| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e a proposta do grupo 2 (`grupo2-proposta.md`) |
 
 ## Desenvolvimento
 
