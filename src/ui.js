@@ -1299,7 +1299,7 @@ function bancaScene(sc) {
   const run = camp.run; const suc = run.sucata || 0; const disc = bancaDiscount(sc.nodeId); const tried = run.bancaTried && run.bancaTried[sc.nodeId];
   const rows = BANCA.map(b => { const p = bancaPrice(b.cost, sc.nodeId); return `<li class="npc"><div><b>${esc(b.label)}</b><p class="linha">${esc(b.dur)}</p></div><button class="botao" data-act="banca-buy" data-item="${b.id}" ${suc < p ? 'disabled' : ''}>${disc && p < b.cost ? `<s>${b.cost}</s> ` : ''}${p} de Sucata</button></li>`; }).join('');
   return `${HAS_IMG('kryoret') ? '<div class="npc-arte" role="img" aria-label="Kryoret, o Azer da banca" style="background-image: var(--img-kryoret)"></div>' : `<div class="intro-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.instalacoes : null)}</div>`}
-    <h2>Banca Azer</h2><p>Entre duas fornalhas apagadas, um Azer de barba em brasa arrumou uma bancada de ferramentas, placas e frascos. Uma placa de cobre diz, em três idiomas: “KRYORET. TROCO POR SUCATA. SEM FIADO.”</p>
+    <h2>Banca Azer</h2><p>Ao lado de uma fornalha que nunca apagou, um Azer de barba em brasa armou uma tenda cheia de espadas, machados e armaduras, e martela uma lâmina na bigorna sem tirar os olhos de você. Uma placa de cobre diz, em três idiomas: “KRYORET. TROCO POR SUCATA. SEM FIADO.”</p>
     <div class="fala"><span class="quem">Kryoret</span><p>${disc ? 'Você fala a língua do ofício. Para você, preço de amigo.' : tried ? 'Já conversamos. O preço é o preço.' : 'Sucata na mesa, vantagem na mão. Educação abaixa o preço. Falta dela aumenta.'}</p></div>
     <p class="destaque">Sucata: ${suc}. Vida: ${run.hp} de 30.${disc ? ' Desconto de 20% ativo.' : ''}</p>
     <ul class="lista-npc">${rows}</ul>
@@ -1471,7 +1471,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) e de Kryoret, o Azer da banca (Forja Esquecida) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>

@@ -94,7 +94,7 @@ Todos começam com 1 de mana a mais que o protagonista.
 ## Sucata e a Banca de Kryoret
 
 - **Sucata**: comuns dão 1 ou 2, Elites 3, Ignar 5; alguns eventos dão ou cobram. **Perde-se no fim da descida.**
-- **Kryoret** [retrato a caminho; por enquanto, um ícone de martelo]:
+- **Kryoret**, com retrato próprio na banca:
 
 | Vantagem | Duração | Sucata |
 |---|---|---|
@@ -174,7 +174,6 @@ Aparecem nas recompensas depois que o jogador conclui o andar 5 (boosters do and
 
 ## A decidir
 
-- Retrato do Kryoret.
 - Recompensa final da quest da Chrome (hoje 100 de ouro).
 - Ajuste fino depois de playtests humanos.
 - Grupo 3: o frio e o resgate de Ergos.

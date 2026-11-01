@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 28/10/2026 · acompanha o design v0.57*
+*Atualizada em 28/10/2026 · acompanha o design v0.58*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -59,6 +59,13 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [ ] Renegociar a taxa com o credor (P30), com Suborno Discreto virando contra quem tenta.
 - [ ] Vitória graduada: a Compostura que sobra define o acordo (gorjeta, desconto, informação extra).
 - [ ] Clientes recorrentes no Quadro de Missões que às vezes exigem negociação para pagar.
+
+## Grupo 2: A Forja Esquecida
+
+- [x] Andares 6 a 10, inimigos, Elites e Ignar, Blindagem (limiar), Superaquecer e Perfurar, 28 cartas novas, Sucata e a Banca de Kryoret (com retrato), eventos, notas, cofre de Ergos, segunda parcela (700) e tesouro (800) (P91).
+- [ ] Recompensa final da quest da Chrome (hoje 100 de ouro).
+- [ ] Playtests humanos do grupo 2 para o ajuste fino.
+- [ ] Grupo 3: o frio e o resgate de Ergos.
 
 ## Decisões minhas que valem revisão
 
