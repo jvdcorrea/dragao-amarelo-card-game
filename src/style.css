@@ -456,3 +456,6 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .ameaca.t0 { color: var(--d-draconic); border-color: var(--d-draconic); }
 .ameaca.t1 { color: var(--ouro); border-color: var(--ouro-vivo); }
 .ameaca.t2 { color: var(--vida); border-color: var(--vida); }
+.grupo-andares { margin: 6px 0 10px; }
+.grupo-andares h3 { margin: 4px 0 6px; font-size: 1rem; color: var(--muted); }
+.quest.feita { opacity: .6; text-decoration: line-through; }

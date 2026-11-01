@@ -33,9 +33,20 @@ const RARITY = {
   felix: 'C', tocha: 'C', rede: 'C', curandeira: 'C', guardiao: 'C', espada: 'C', coletor: 'C', pocao: 'C', lanceiro: 'C', bombardeiro: 'C', racao: 'C', bumerangue: 'C',
   investida_coord: 'I', capita: 'I', formacao: 'I', lamina_enc: 'I', elixir: 'I', barril: 'I',
   mapa_ergos: 'R', gigante: 'R',
+  // Grupo 2: A Forja Esquecida (só a partir do andar 6)
+  martelo_forja: 'I', gato_ferreiro: 'C', brasa_guardada: 'C', lingote: 'C',
+  golpe_vem: 'I', ferreiro_eras: 'C', veterano_bigorna: 'R', ensaio: 'C',
+  dragao_escoria: 'I', sopro_magma: 'I', ovo_incandescente: 'C', wyrm_ferro: 'R',
+  ferreiro_esqueletico: 'C', requiem_bigorna: 'R', martelo_funebre: 'C', cinzas_dancam: 'I',
+  sacerdote_brasa: 'C', ritual_metal: 'R', lamina_obsidiana: 'C', penitente_forja: 'I',
+  nucleo_escoria: 'C', golem_amigo: 'I', bancada_rebites: 'C', automato_fundidor: 'R',
+  meteoro_ferroso: 'I', astro_fundido: 'C', faisca_magnetica: 'C', cometa_ferro: 'R',
 };
+/* Grupo de cartas liberado e chance de Rara na vaga Incomum/Rara (P91: 50% nos andares 6 a 10). */
+let GRUPO_MAX = 1, RARE_P = 0.35;
+function setGrupo(g, rareP) { GRUPO_MAX = g || 1; RARE_P = rareP || 0.35; }
 const DISCS = ['temporal', 'draconic', 'necro', 'holy', 'tech', 'space'];
-function poolOf(group) { return Object.keys(RARITY).filter(id => (E.DEF[id].disc || 'neutra') === group); }
+function poolOf(group) { return Object.keys(RARITY).filter(id => (E.DEF[id].disc || 'neutra') === group && (E.DEF[id].grupo || 1) <= GRUPO_MAX); }
 function pick(rng, a) { return a[Math.floor(rng() * a.length)]; }
 function rollRarity(rng, w) { const r = rng(); return r < w.C ? 'C' : r < w.C + w.I ? 'I' : 'R'; }
 function cardFrom(rng, groups, rar) {
@@ -47,7 +58,7 @@ function cardFrom(rng, groups, rar) {
 /* Booster: 3 Comuns, 1 Incomum e 1 vaga que vira Rara em 35% das vezes. */
 function openPack(rng, type) {
   const groups = type === 'geral' ? DISCS.concat(['neutra']) : [type];
-  const slots = ['C', 'C', 'C', 'I', rng() < 0.35 ? 'R' : 'I'];
+  const slots = ['C', 'C', 'C', 'I', rng() < RARE_P ? 'R' : 'I'];
   return slots.map(r => cardFrom(rng, groups, r));
 }
 /* Escolha com peso: cartas que o jogador ainda não tem valem o dobro. */
@@ -62,11 +73,11 @@ function weightedFrom(rng, groups, rar, coll) {
 }
 /* Booster do andar: geral, com 2 cartas garantidas da Disciplina do deck (1 Comum e a vaga Incomum/Rara). */
 function openFloorPack(rng, disc, coll) {
-  const all = DISCS.concat(['neutra']); const top = rng() < 0.35 ? 'R' : 'I';
+  const all = DISCS.concat(['neutra']); const top = rng() < RARE_P ? 'R' : 'I';
   return [weightedFrom(rng, [disc], 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'C', coll), weightedFrom(rng, all, 'I', coll), weightedFrom(rng, [disc], top, coll)];
 }
 /* Booster de Mestre: 5 cartas da Disciplina. */
-function openDiscPack(rng, disc, coll) { const top = rng() < 0.35 ? 'R' : 'I'; return ['C', 'C', 'C', 'I', top].map(rr => weightedFrom(rng, [disc], rr, coll)); }
+function openDiscPack(rng, disc, coll) { const top = rng() < RARE_P ? 'R' : 'I'; return ['C', 'C', 'C', 'I', top].map(rr => weightedFrom(rng, [disc], rr, coll)); }
 function eliteChoices(rng, disc) { return [0, 1, 2].map(() => cardFrom(rng, [disc, 'neutra'], rng() < 0.3 ? 'R' : 'I')); }
 function treasureCard(rng, disc) { return cardFrom(rng, [disc, 'neutra'], rollRarity(rng, { C: 0.55, I: 0.35 })); }
 
@@ -98,11 +109,19 @@ const FLOORS = {
   3: { commons: ['revoada', 'jardim', 'bicharada'], elites: ['imperatriz', 'fungo'], final: 'elite' },
   4: { commons: ['revoada', 'jardim', 'bicharada', 'toca'], elites: ['imperatriz', 'fungo'], final: 'elite' },
   5: { commons: ['revoada', 'jardim', 'bicharada', 'toca'], elites: ['imperatriz', 'fungo'], final: 'basilisco' },
+  6: { commons: ['oficina'], elites: [], final: 'oficina', finalBonus: 4 },
+  7: { commons: ['oficina', 'bocas'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'elite' },
+  8: { commons: ['oficina', 'bocas', 'fundicao'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'elite' },
+  9: { commons: ['oficina', 'bocas', 'fundicao', 'patrulha_azer'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'elite' },
+  10: { commons: ['oficina', 'bocas', 'fundicao', 'patrulha_azer'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'ignar' },
 };
+const GRUPOS = { 1: { nome: 'As Grutas Vivas', andares: [1, 2, 3, 4, 5] }, 2: { nome: 'A Forja Esquecida', andares: [6, 7, 8, 9, 10] } };
+const grupoDo = floor => (floor >= 6 ? 2 : 1);
+const MAX_FLOOR = 10;
 const NODE = {
   batalha: { label: 'Batalha', icon: '⚔' }, elite: { label: 'Elite', icon: '✦' }, evento: { label: 'Evento', icon: '?' },
   acampamento: { label: 'Acampamento', icon: '♨' }, tesouro: { label: 'Tesouro', icon: '◆' }, nota: { label: 'Nota de Ergos', icon: '✎' },
-  chefe: { label: 'Chefe', icon: '☠' },
+  chefe: { label: 'Chefe', icon: '☠' }, banca: { label: 'Banca Azer', icon: '⚒' },
 };
 function genMap(rng, floor, withNote) {
   const ROWS = 6, COLS = 4;
@@ -131,7 +150,7 @@ function genMap(rng, floor, withNote) {
   const F = FLOORS[floor];
   const parents = id => nodes.filter(n => n.next.includes(id));
   nodes.forEach(n => {
-    if (n.final) { n.type = floor === 5 ? 'chefe' : 'elite'; return; }
+    if (n.final) { n.type = floor === 5 || floor === 10 ? 'chefe' : 'elite'; return; }
     if (n.row === 0) { n.type = 'batalha'; return; }
     if (n.row === ROWS - 1) { n.type = rng() < 0.6 ? 'acampamento' : 'batalha'; return; }
     const w = [['batalha', 45], ['evento', 22], ['tesouro', 10], ['acampamento', 10]];
@@ -143,6 +162,11 @@ function genMap(rng, floor, withNote) {
     const mids = nodes.filter(n => n.row >= 1 && n.row <= 4);
     pick(rng, mids).type = 'nota';
   }
+  if (floor >= 6) {
+    const cand = nodes.filter(n => n.row >= 2 && n.row <= 4 && n.type !== 'nota' && n.type !== 'elite');
+    const k = Math.min(cand.length, rng() < 0.5 ? 1 : 2);
+    for (let i = 0; i < k; i++) { const c = cand.splice(Math.floor(rng() * cand.length), 1)[0]; c.type = 'banca'; }
+  }
   nodes.forEach(n => {
     if (n.type === 'batalha') n.enc = pick(rng, F.commons);
     if (n.type === 'elite' && !n.final) n.enc = pick(rng, F.elites);
@@ -153,6 +177,7 @@ function genMap(rng, floor, withNote) {
 
 /* ---------------- Eventos e notas ---------------- */
 const EVENTS = [
+  // Grupo 1: As Grutas Vivas
   { id: 'cogumelos', title: 'Cogumelos Luminosos', text: 'Um tapete de cogumelos brilha num tom convidativo demais.',
     choices: [{ id: 'comer', label: 'Comer um (50%: recupere 10 de Vida; 50%: perca 4)' }, { id: 'colher', label: 'Colher para a viagem (ganhe uma Ração de Viagem)' }, { id: 'sair', label: 'Seguir em frente' }] },
   { id: 'teia', title: 'Gato na Teia', text: 'Um Felino da Guilda pende de uma teia grossa, miando ofendido.',
@@ -166,15 +191,39 @@ const EVENTS = [
   { id: 'eco', title: 'Eco de Passos', text: 'Passos ecoam à frente, no ritmo exato dos seus. Você para. Eles param.',
     choices: [{ id: 'seguir', label: 'Seguir o eco (na próxima luta, comece com 1 carta a mais)' }, { id: 'sair', label: 'Voltar pelo caminho conhecido' }] },
 ];
+EVENTS.forEach(e => { e.grupo = 1; });
+/* Grupo 2: A Forja Esquecida. Cada evento tem uma escolha segura e uma arriscada. */
+const EVENTS2 = [
+  { id: 'bigorna', grupo: 2, title: 'Bigorna Abandonada', text: 'Uma bigorna ainda quente, com um martelo pendurado num prego. Alguém saiu no meio do serviço.',
+    choices: [{ id: 'cuidado', label: 'Bater com cuidado (+1 de Sucata)' }, { id: 'tudo', label: 'Forjar com tudo (50%: uma arma ou Módulo Raro; 50%: perca 8 de Vida)' }, { id: 'sair', label: 'Deixar o martelo onde está' }] },
+  { id: 'rio', grupo: 2, title: 'Rio de Metal Derretido', text: 'Um rio de ferro líquido corta o salão. Há uma ponte, se dá para chamar aquilo de ponte.',
+    choices: [{ id: 'contornar', label: 'Contornar pelas beiradas (perca 2 de Vida)' }, { id: 'ponte', label: 'Atravessar a ponte instável (60%: +4 de Sucata; 40%: perca 10 de Vida)' }] },
+  { id: 'golem', grupo: 2, title: 'Golem Adormecido', text: 'Um golem enorme dorme encostado na parede. As placas dele valem uma fortuna em sucata.',
+    choices: [{ id: 'desmontar', label: 'Desmontar para Sucata (+5 de Sucata; 50%: ele acorda e você luta)' }, { id: 'sair', label: 'Passar na ponta dos pés' }] },
+  { id: 'altar_fogo', grupo: 2, title: 'Altar do Fogo Eterno', text: 'Uma chama que não consome nada arde sobre uma pedra gravada com runas Azer.',
+    choices: [{ id: 'ouro', label: 'Oferecer 20 de ouro (recupere 10 de Vida)' }, { id: 'vida', label: 'Oferecer 6 de Vida (na próxima luta, comece com +1 de mana máxima)' }, { id: 'sair', label: 'Não mexer com fogo' }] },
+  { id: 'prisioneiro', grupo: 2, title: 'Prisioneiro Azer', text: 'Um Azer acorrentado a uma fornalha fria pede ajuda. O guarda dele, outro Azer, cruza os braços.',
+    choices: [{ id: 'negociar', label: 'Negociar com o guarda (luta social: +4 de Sucata e desconto nas Bancas desta descida)' }, { id: 'sair', label: 'Não se meter' }] },
+  { id: 'vapor', grupo: 2, title: 'Respiro de Vapor', text: 'Uma rachadura no chão solta vapor quente em intervalos regulares. O outro lado parece promissor.',
+    choices: [{ id: 'esperar', label: 'Esperar o intervalo certo (recupere 3 de Vida no calor seco)' }, { id: 'correr', label: 'Correr no meio do vapor (perca 5 de Vida; na próxima luta, comece com 2 cartas a mais)' }] },
+];
+/* Evento garantido nos andares 7 ou 8: o cofre de Ergos com a engrenagem da Chrome. */
+const COFRE = { id: 'cofre', grupo: 2, title: 'O Cofre de Ergos', text: 'Entre duas bigornas, um cofre pequeno com o brasão do Dragão Amarelo. A fechadura reconhece o seu sangue com um estalo.',
+  choices: [{ id: 'abrir', label: 'Abrir o cofre' }] };
 const NOTES = {
   1: 'Dia 1. O buraco respondeu ao meu sangue como uma porta que reconhece a chave. Felix acha que é má ideia. Felix acha tudo que é interessante má ideia.',
   2: 'Os cogumelos daqui crescem rápido demais. Se o broto não for cortado na hora, vira problema. Anotei para não esquecer. De novo.',
   3: 'Achei uma estrutura que solta morcegos sem parar. Quebre o ninho antes de brigar com a revoada. Sim, isso vale para a vida também.',
   4: 'Algo grande passou por aqui deixando estátuas. Estátuas com cara de surpresa. Não gosto de estátuas com cara de surpresa.',
   5: 'O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.',
+  6: 'Os golens daqui têm placas. Aço não sente arranhão: só magia passa direto, ou um golpe forte de verdade. Anotei duas vezes, porque esqueci da primeira.',
+  7: 'Os elementais de fogo se consomem sozinhos. Se eu aguentar uns turnos, eles se apagam. Se eu não aguentar, quem se apaga sou eu. Escondi a engrenagem da Chrome num cofre perto das bigornas; devolvo quando voltar. Ela vai cobrar juros.',
+  8: 'Achei um Azer que não tenta me matar. Troca qualquer coisa por sucata e cobra caro de quem chega sem educação. Cheguei sem educação.',
+  9: 'As forjas no meio dos salões alimentam tudo em volta. Quebrar a forja primeiro. Sempre a forja primeiro. Esqueci na hora, claro.',
+  10: 'Lá embaixo o calor some. O que vem depois da forja me assusta de um jeito que nada aqui assustou. Se eu não voltar, Felix, a culpa é do frio, não sua.',
 };
 
-const RunLib = { RAR, RARITY, DISCS, poolOf, openPack, openFloorPack, openDiscPack, weightedFrom, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
+const RunLib = { setGrupo, GRUPOS, grupoDo, MAX_FLOOR, EVENTS2, COFRE, RAR, RARITY, DISCS, poolOf, openPack, openFloorPack, openDiscPack, weightedFrom, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };
 if (typeof module !== 'undefined' && module.exports) module.exports = RunLib;
 else root.RunLib = RunLib;
 })(typeof window !== 'undefined' ? window : globalThis);

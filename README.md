@@ -30,7 +30,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `src/art.js` | Arte provisória: ícones e mapeamento carta para ícone (gerado por `tools/arte/gen.py`) |
 | `tools/build.py` | Gera o `index.html` a partir de `src/` |
 | `tests/` | Testes em Node: partidas simuladas, todas as cartas do pool e um bot guloso para sinais de balanceamento |
-| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e a proposta do grupo 2 (`grupo2-proposta.md`) |
+| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e o grupo 2 (`grupo2.md`) |
 
 ## Desenvolvimento
 
@@ -43,7 +43,7 @@ node tests/greedy.js            # taxas de vitória de um bot guloso por Discipl
 
 ## Versões dos documentos
 
-Design v0.57, cartas v0.18, inimigos v0.12. Lista de tarefas em `docs/todo.md`.
+Design v0.58, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
 
 ## Créditos
 

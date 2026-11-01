@@ -45,7 +45,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.18/design-v0.57/inimigos-v0.12/proto-2026-10-28b';
+const RULES = 'cartas-v0.19/design-v0.58/inimigos-v0.13/proto-2026-10-29';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -436,7 +436,7 @@ function startRunBattle(b) {
   const run = camp.run;
   if (!b.gold) b.gold = goldFor(b.type);
   run.inBattle = b;
-  st = E.newGame(camp.deck.disc, b.enc, null, { deck: R.deckList(camp.deck), hp: run.hp, encBonus: b.encBonus || 0, extraHand: run.bonus.hand || 0, extraMana: run.bonus.mana || 0 });
+  st = E.newGame(camp.deck.disc, b.enc, null, { deck: R.deckList(camp.deck), hp: run.hp, encBonus: b.encBonus || 0, extraHand: (run.bonus.hand || 0) + (run.allHand || 0), extraMana: run.bonus.mana || 0, firstMana: run.bonus.manaFirst || 0 });
   st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   st.ctx = { mode: 'run', camp: camp.id, day: camp.day, floor: run.floor, node: b.type, final: !!b.final, revisit: run.revisit, hpStart: run.hp, bonus: Object.assign({}, run.bonus) };
   run.bonus = {};
@@ -451,13 +451,16 @@ function enterNode(id) {
   saveCamp();
   if (n.type === 'batalha' || n.type === 'elite' || n.type === 'chefe') { startRunBattle({ nodeId: id, enc: n.enc, encBonus: n.encBonus || 0, type: n.type, final: !!n.final }); return; }
   if (n.type === 'evento') {
-    const left = R.EVENTS.filter(e => !run.evUsed.includes(e.id));
-    const ev = (left.length ? left : R.EVENTS)[Math.floor(rnd() * (left.length || R.EVENTS.length))];
+    const POOL = run.floor >= 6 ? R.EVENTS2 : R.EVENTS;
+    const left = POOL.filter(e => !run.evUsed.includes(e.id));
+    let ev = (left.length ? left : POOL)[Math.floor(rnd() * (left.length || POOL.length))];
+    if ((run.floor === 7 || run.floor === 8) && !camp.flags.engrenagem && !run.evUsed.includes('cofre') && !run.revisit) ev = R.COFRE;
     run.evUsed.push(ev.id); saveCamp();
     ui.scene = { kind: 'event', ev }; ui.screen = 'scene'; render(); return;
   }
   if (n.type === 'tesouro') { const c = R.treasureCard(rnd, camp.deck.disc); ui.scene = { kind: 'treasure', card: c, text: reward([c], 'tesouro') }; saveCamp(); ui.screen = 'scene'; render(); return; }
   if (n.type === 'acampamento') { ui.scene = { kind: 'camp' }; ui.screen = 'scene'; render(); return; }
+  if (n.type === 'banca') { ui.scene = { kind: 'banca', nodeId: id }; ui.screen = 'scene'; render(); return; }
   if (n.type === 'nota') {
     const first = !camp.notes.includes(run.floor);
     if (first) { camp.notes.push(run.floor); run.bonus.hand = (run.bonus.hand || 0) + 1; hist({ k: 'nota', floor: run.floor }); saveCamp(); }
@@ -479,6 +482,21 @@ function resolveEvent(choice) {
     if (rnd() < 0.6) txt = 'Entre penas e ossos, algo útil. ' + reward([R.cardFrom(rnd, [camp.deck.disc, 'neutra'], 'I')], 'evento');
     else { hist({ k: 'evento', id: ev.id, choice, res: 'luta' }); saveCamp(); const F = R.FLOORS[run.floor]; toast('Os donos do ninho voltaram!'); startRunBattle({ nodeId: run.pos, enc: F.commons[Math.floor(rnd() * F.commons.length)], encBonus: 0, type: 'batalha', final: false, fromEvent: true }); return; }
   }
+  else if (ev.id === 'bigorna' && choice === 'cuidado') { run.sucata = (run.sucata || 0) + 1; txt = 'Uma batida certa, e uma lasca de metal útil se solta: +1 de Sucata.'; }
+  else if (ev.id === 'bigorna' && choice === 'tudo') { if (rnd() < 0.5) { const eq = Object.keys(R.RARITY).filter(id => R.RARITY[id] === 'R' && (E.DEF[id].type === 'weapon' || E.DEF[id].module) && (E.DEF[id].grupo || 1) <= 2); const pool2 = eq.length ? eq : Object.keys(R.RARITY).filter(id => E.DEF[id].type === 'weapon'); txt = 'O metal canta, e sai da bigorna algo que dá orgulho. ' + reward([pool2[Math.floor(rnd() * pool2.length)]], 'evento'); } else { hpChange(-8); txt = 'Uma fagulha acerta onde não devia. Você perde 8 de Vida.'; } }
+  else if (ev.id === 'rio' && choice === 'contornar') { hpChange(-2); txt = 'Pelas beiradas quentes, devagar. Você perde 2 de Vida.'; }
+  else if (ev.id === 'rio' && choice === 'ponte') { if (rnd() < 0.6) { run.sucata = (run.sucata || 0) + 4; txt = 'A ponte aguenta, e do outro lado há sucata boa: +4 de Sucata.'; } else { hpChange(-10); txt = 'A ponte cede no meio do caminho. Você chega queimado: perde 10 de Vida.'; } }
+  else if (ev.id === 'golem' && choice === 'desmontar') {
+    run.sucata = (run.sucata || 0) + 5;
+    if (rnd() < 0.5) { hist({ k: 'evento', id: ev.id, choice, res: 'luta' }); saveCamp(); toast('O golem acorda! +5 de Sucata, se você sair vivo.'); startRunBattle({ nodeId: run.pos, enc: 'oficina', encBonus: -6, type: 'batalha' }); return; }
+    txt = 'Placa por placa, sem um rangido: +5 de Sucata.';
+  }
+  else if (ev.id === 'altar_fogo' && choice === 'ouro') { if (camp.gold >= 20) { camp.gold -= 20; hpChange(10); txt = 'A chama aceita o ouro e devolve calor: você recupera 10 de Vida.'; } else txt = 'Você não tem 20 de ouro para oferecer. A chama não se ofende.'; }
+  else if (ev.id === 'altar_fogo' && choice === 'vida') { hpChange(-6); run.bonus.mana = (run.bonus.mana || 0) + 1; txt = 'A chama toma um pouco de você e devolve fôlego: na próxima luta, comece com +1 de mana máxima.'; }
+  else if (ev.id === 'prisioneiro' && choice === 'negociar') { hist({ k: 'evento', id: ev.id, choice, res: 'negociacao' }); saveCamp(); if (socialProblems().length) { txt = 'Seu deck social não está pronto para essa conversa. O guarda nem olha para você.'; } else { startSocial('guarda_azer', { prisioneiro: true, enc: 'guarda_azer' }); return; } }
+  else if (ev.id === 'vapor' && choice === 'esperar') { hpChange(3); txt = 'Paciência e calor seco: você recupera 3 de Vida.'; }
+  else if (ev.id === 'vapor' && choice === 'correr') { hpChange(-5); run.bonus.hand = (run.bonus.hand || 0) + 2; txt = 'Queima, mas você chega antes de tudo: na próxima luta, comece com 2 cartas a mais.'; }
+  else if (ev.id === 'cofre' && choice === 'abrir') { camp.flags.engrenagem = true; txt = 'Dentro, embrulhada num pano com cheiro de óleo, está uma engrenagem que brilha em roxo: a engrenagem mágica da Chrome. Junto, um bilhete: “Juros inclusos. E.”'; hist({ k: 'item', id: 'engrenagem' }); }
   hist({ k: 'evento', id: ev.id, choice, res: txt });
   saveCamp();
   ui.scene = { kind: 'event', ev, result: txt }; render();
@@ -490,7 +508,8 @@ function battleDone() {
   if (!won) { floorFailed('Você caiu na luta.'); return; }
   const gg = b.gold || goldFor(b.type); camp.gold = (camp.gold || 0) + gg; run.gold = (run.gold || 0) + gg; hist({ k: 'ouro', from: b.type, gold: gg });
   run.hp = Math.min(30, hpEnd + 6);
-  toast(`+${gg} de ouro.`);
+  let sc = 0; if (run.floor >= 6) { const r = SUCATA[b.type] || SUCATA.batalha; sc = rint(r[0], r[1]); run.sucata = (run.sucata || 0) + sc; }
+  toast(`+${gg} de ouro${sc ? ` e +${sc} de Sucata` : ''}.`);
   if (b.final) { floorCleared(); return; }
   if (b.type === 'elite' && !run.revisit) { ui.scene = { kind: 'elite', cards: R.eliteChoices(rnd, camp.deck.disc) }; ui.screen = 'scene'; saveCamp(); render(); return; }
   saveCamp(); ui.screen = 'map'; render(); window.scrollTo(0, 0);
@@ -502,7 +521,13 @@ function floorCleared() {
   camp.cleared[run.floor] = true; camp.floor = Math.max(camp.floor, run.floor + 1);
   hist({ k: 'andar', floor: run.floor, res: 'concluido', mochila: run.mochila.slice() });
   if (run.floor === 3 && !camp.debt && !camp.pending.some(p => p.kind === 'credor')) camp.pending.push({ kind: 'credor' });
-  let treasure = 0; if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = 300; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
+  if (run.floor === 8 && !camp.flags.parcela2 && !camp.pending.some(p => p.kind === 'credor')) {
+    camp.flags.parcela2 = true;
+    if (debtOpen()) camp.debt.amount += 700; else camp.debt = { amount: 700, status: 'pendente', stage: 2, overdue: 0 };
+    camp.debt.stage = 2; camp.pending.push({ kind: 'credor', segunda: true });
+  }
+  if (run.floor === 10 && !camp.flags.ignarTesouro) { camp.gold += 800; camp.flags.ignarTesouro = true; hist({ k: 'tesouro', from: 'ignar', gold: 800 }); }
+  let treasure = run.floor === 10 && camp.flags.ignarTesouro && !run.revisit ? 800 : 0; if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = 300; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
   const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
   hist({ k: 'booster', type: 'andar', disc: camp.deck.disc, cards: pack });
   ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0, treasure };
@@ -527,8 +552,10 @@ function logsHtml() {
 function gearBtn() { return `<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
 /* ===== Guilda: dia, ouro, aventureiros, instalações, defesas e cidade ===== */
 const GOLD = { batalha: [8, 12], elite: [20, 25], chefe: [50, 50] };
+const GOLD2 = { batalha: [12, 16], elite: [30, 35], chefe: [50, 50] };
+const SUCATA = { batalha: [1, 2], elite: [3, 3], chefe: [5, 5] };
 const rint = (a, b) => a + Math.floor(rnd() * (b - a + 1));
-function goldFor(type) { const g = GOLD[type] || GOLD.batalha; return rint(g[0], g[1]); }
+function goldFor(type) { const T = camp && camp.run && camp.run.floor >= 6 ? GOLD2 : GOLD; const g = T[type] || T.batalha; return rint(g[0], g[1]); }
 const ACT_LABEL = { descer: 'Descer', npc: 'Ida à cidade', despachar: 'Despacho', construir: 'Obra' };
 const FAC = {
   quadro: { name: 'Quadro de Missões', desc: 'Pedidos de clientes e do governo. Despache aventureiros.' },
@@ -712,7 +739,7 @@ function pendingScene() {
   if (p.kind === 'primeiro-aventureiro') return { kind: 'primeiro-aventureiro' };
   if (p.kind === 'sugestao-taverna') return { kind: 'sugestao-taverna' };
   if (p.kind === 'cliente-tutorial') return { kind: 'cliente-tutorial' };
-  if (p.kind === 'credor') return { kind: 'credor', volta: !!p.volta };
+  if (p.kind === 'credor') return { kind: 'credor', volta: !!p.volta, segunda: !!p.segunda };
   if (p.kind === 'felix-divida' && debtOpen()) return { kind: 'felix-divida' };
   if (p.kind === 'defesa' && camp.defense) return { kind: 'defesa' };
   camp.pending.shift(); saveCamp(); return pendingScene();
@@ -721,6 +748,8 @@ function guildScene(sc) {
   if (sc.kind === 'cliente-tutorial') return socialTutScene();
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
+  if (sc.kind === 'banca') return bancaScene(sc);
+  if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'banca-back' : 'scene-ok'}">Continuar</button></div>`;
   if (sc.kind === 'felix-divida') return felixDebtScene();
   if (sc.kind === 'passeio') return passeioScene(sc);
   if (sc.kind === 'primeiro-aventureiro') {
@@ -802,6 +831,7 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. Se lembrar de falar por favor e obrigado, mais justo ainda.'] },
       { id: 'e', after: ['a', 'b', 'c'], laterDay: true, label: 'Você conhecia Ergos?', reply: ['Sim, o antigo dono da Dragão Amarelo. Desapareceu me devendo uma engrenagem mágica, acredita? Espero que ele esteja bem. Era um Cartomante como você.'] },
       { id: 'f', requires: 'e', label: 'Ele é meu tio, eu herdei a guilda dele, junto com as dívidas.', reply: ['Oh. Entendi agora, você é do sangue dele. Significa que você vai achar aquela engrenagem pra mim?'], quest: { id: 'engrenagem', title: 'A engrenagem da Chrome', desc: 'Achar a engrenagem mágica que Ergos ficou devendo à Chrome.' } },
+      { id: 'h', needFlag: 'engrenagem', notFlag: 'engrenagemEntregue', label: 'Achei a sua engrenagem mágica!', reply: ['>Chrome segura a engrenagem contra a luz, e os olhos dela brilham no mesmo roxo.', 'Ora, ora. Pontual como um Ergos nunca foi. Sabe o que isso é? O núcleo do meu primeiro autômato. Achei que nunca mais ia ver.', 'Dívida quitada, e com juros: tome 100 de ouro. E, de hoje em diante, você é cliente preferencial da ACT.'], questDone: 'engrenagem', gold: 100 },
       { id: 'g', label: 'Posso pagar depois?', reply: ['Poderia, com juros, mas você tem nome sujo no CERASA. Limpa teu nome antes de sair colecionando credores.'] },
       { id: 'd', requires: 'a', label: 'Quero minha consulta grátis', reply: ['Quem está sintonizado com um baralho como esse e sabe usá-lo é chamado de Cartomante. A comunidade mágica ainda discute se a Cartomancia é ou não uma Disciplina, mas, sinceramente, esses detalhes pouco me importam. O que importa é que um Cartomante pode usar as propriedades do baralho como alavanca para manifestar poderes mágicos com facilidade, e até se sintonizar com uma Disciplina. Eu recomendaria a Magitech, a melhor de todas, obviamente. Há registros de Cartomantes que dominaram mais de uma Disciplina no passado, mas nada que possamos confirmar. Cartomantes já são raros por natureza; os excepcionais são ainda mais raros, e por isso mesmo difíceis de documentar.', 'Por enquanto, foque em equilibrar os custos das cartas para não perder um turno sem fazer nada, depois pense em fazer uma sinergia em suas cartas. Não tenha medo de experimentar cartas diferentes e veja o que funciona melhor.'] },
     ] },
@@ -920,6 +950,13 @@ const FELIX_TIPS = {
   bicharada: 'A Toupeira Rainha compra uma carta extra sempre que tem menos unidades que você. Quando estiver na frente no campo, mire na Vida dela e feche a luta rápido.',
   imperatriz: 'Com a Centopeia Imperatriz, tudo que tem Letal fica mais barato e mais resistente. Troque as Centopeias com unidades baratas e guarde as grandes para depois.',
   fungo: 'No Fungo Colossal, os Cogumelos Adultos ganham Guarda, e o Fungo Colossal faz todos os Brotos brotarem quando entra. Limpe os Brotos sempre; dano em área ajuda muito.',
+  oficina: 'Na Oficina, os Golens têm Blindagem 2: golpes de 1 não passam. Use feitiços, que ignoram a Blindagem, ou golpes de 2 ou mais. E corte as Pilhas de Sucata antes que virem golem.',
+  bocas: 'Os Elementais das Bocas de Fogo superaquecem: ganham Ataque e perdem Vida a cada turno. Se não der para matar cedo, aguente atrás de Guarda até eles se apagarem.',
+  patrulha_azer: 'A Patrulha Azer reforça uma unidade por turno com Ataque e Blindagem, que acumula. Não deixe nenhuma crescer: concentre o dano.',
+  fundicao: 'A Fundição começa com uma Forja Ardente, que tempera uma unidade por turno. Quebre a Forja primeiro. Sempre a Forja primeiro.',
+  colosso_ferro: 'O Colosso tem Blindagem 3 enquanto houver Forja em campo: golpes de 1 e 2 não passam. Derrube a Forja e ele fica exposto.',
+  matriarca_azer: 'A Matriarca tempera a unidade mais fraca dela a cada turno. Mate primeiro as pequenas, antes que virem um problema blindado.',
+  ignar: 'Ignar tem Blindagem 3 até cair para 25 de Vida e cria um Elemental de Escória por turno. Depois ele derrete: perde a Blindagem, mas esquenta a mesa inteira. Guarde feitiços para a primeira fase e seja rápido na segunda.',
   basilisco: 'O Olhar do Basilisco deixa Imóvel a sua unidade de maior Ataque, e a Mordida Petrificante destrói unidades Imóveis. Espalhe o Ataque em várias unidades médias. A Estátua Antiga protege o Basilisco enquanto estiver em campo, e com 20 de Vida ou menos ele troca de pele e recupera 8: guarde dano para depois disso.',
 };
 function felixLines(kind) {
@@ -948,11 +985,12 @@ function felixLines(kind) {
     else out.push(`A curva do deck está boa: custo médio de ${avgCost.toFixed(1).replace('.', ',')}.${top.length ? ' O problema não é o baralho. Talvez seja quem segura.' : ''}`);
     return out;
   }
-  const floor = camp.cleared[5] ? null : Math.min(camp.floor, 5);
+  const floor = camp.cleared[R.MAX_FLOOR] ? null : Math.min(camp.floor, R.MAX_FLOOR);
   if (!floor) return ['Você já atravessou as Grutas Vivas inteiras. O que vem depois, nem eu sei. Ainda.'];
   const F = R.FLOORS[floor]; const out = [`O andar ${floor} tem ${F.commons.map(encName).join(', ').replace(/, ([^,]*)$/, ' e $1')} nas lutas comuns.`];
-  if (F.final === 'elite') out.push(`No fim, uma Elite: ${F.elites.map(encName).join(' ou ')}. Se for o Fungo, limpe os Brotos sempre, de preferência com dano em área. Se for a Imperatriz, troque as Centopeias com unidades baratas e guarde as grandes para depois.`);
-  else if (F.final === 'basilisco') out.push(`No fim, o ${encName('basilisco')}. ${FELIX_TIPS.basilisco}`);
+  if (F.final === 'elite' && floor >= 6) out.push(`No fim, uma Elite: ${F.elites.map(encName).join(' ou ')}. ${FELIX_TIPS.colosso_ferro} ${FELIX_TIPS.matriarca_azer}`);
+  else if (F.final === 'elite') out.push(`No fim, uma Elite: ${F.elites.map(encName).join(' ou ')}. Se for o Fungo, limpe os Brotos sempre, de preferência com dano em área. Se for a Imperatriz, troque as Centopeias com unidades baratas e guarde as grandes para depois.`);
+  else if (F.final === 'basilisco' || F.final === 'ignar') out.push(`No fim, ${F.final === 'ignar' ? 'Ignar, o Coração da Forja' : 'o ' + encName('basilisco')}. ${FELIX_TIPS[F.final]}`);
   else if (FELIX_TIPS[F.final]) out.push(FELIX_TIPS[F.final]);
   return out;
 }
@@ -988,6 +1026,8 @@ function optOk(o, id) {
   if (o.met && !(((f.visits || {})[o.met] || 0) > 0)) return false;
   if (o.reqOther && !(((f.said || {})[o.reqOther.npc]) || []).includes(o.reqOther.opt)) return false;
   if (o.needBoss && !camp.cleared[5]) return false;
+  if (o.needFlag && !camp.flags[o.needFlag]) return false;
+  if (o.notFlag && camp.flags[o.notFlag]) return false;
   return true;
 }
 function npcOpts(id, mi, d) {
@@ -1050,6 +1090,13 @@ async function guildClick(act, ds) {
   if (act === 'g-ok-taverna') { camp.pending.shift(); camp.flags.facilities = true; if (camp.fac.taverna === 'bloq') camp.fac.taverna = 'suja'; saveCamp(); ui.screen = 'instalacoes'; render(); return true; }
   if (act === 'g-defend') { startDefense(); return true; }
   if (act === 'g-credor') { startSocial('credor', { credor: true, volta: !!ds.volta, enc: 'credor' }); return true; }
+  if (act === 'banca-buy') {
+    const run = camp.run; const sc = ui.scene; const b = BANCA.find(x => x.id === ds.item); if (!run || !b || !sc) return true;
+    const p = bancaPrice(b.cost, sc.nodeId); if ((run.sucata || 0) < p) return true;
+    run.sucata -= p; b.apply(run); hist({ k: 'banca', item: b.id, price: p }); saveCamp(); render(); toast(`${b.label}: feito.`); return true;
+  }
+  if (act === 'banca-neg') { if (socialProblems().length) { toast('Ajuste o deck social antes: ' + socialProblems()[0]); return true; } const run = camp.run; run.bancaTried = run.bancaTried || {}; run.bancaTried[ui.scene.nodeId] = true; saveCamp(); startSocial('kryoret', { banca: true, enc: 'kryoret', nodeId: ui.scene.nodeId }); return true; }
+  if (act === 'banca-back') { ui.scene = { kind: 'banca', nodeId: ui.scene.nodeId }; ui.screen = 'scene'; render(); return true; }
   if (act === 'g-pay') { if (payDebt()) { ui.scene = { kind: 'msg', title: 'Parcela paga', text: `O Barão Ostrander confere cada moeda, anota no livro-caixa e, por um instante, quase sorri. “Pontual. Que novidade.” Restam ${camp.gold} de ouro no cofre.` }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); } else toast('Ouro insuficiente para a parcela.'); return true; }
   if (act === 'g-defend-social') { if (camp.defense && camp.defense.social) startSocial(camp.defense.enc, { defesa: true, enc: camp.defense.enc }); return true; }
   if (act === 'g-end-day') {
@@ -1111,6 +1158,7 @@ async function guildClick(act, ds) {
       if (o.rot) { camp.flags.rot = camp.flags.rot || {}; const key = ds.npc + ':' + o.id; const k = camp.flags.rot[key] || 0; reply = reply.map(r => r.replace('{rot}', o.rot[k % o.rot.length])); camp.flags.rot[key] = k + 1; }
       reply.filter(r => r[0] === '>').forEach(r => ents.push({ t: 'narra', text: r.slice(1) }));
       const ls = reply.filter(r => r[0] !== '>'); if (ls.length) ents.push({ t: 'fala', name: mi.name, lines: ls });
+      if (o.questDone) { camp.flags.engrenagemEntregue = true; const q = camp.quests.find(x => x.id === o.questDone); if (q) q.done = true; if (o.gold) camp.gold += o.gold; ents.push({ t: 'narra', text: `Quest concluída: ${q ? q.title : 'pedido'}.${o.gold ? ` +${o.gold} de ouro.` : ''}` }); hist({ k: 'quest-ok', id: o.questDone }); }
       if (o.quest && !camp.quests.some(q => q.id === o.quest.id)) { camp.quests.push(Object.assign({ day: camp.day, from: ds.npc }, o.quest)); ents.push({ t: 'narra', text: `Nova quest: ${o.quest.title}.` }); hist({ k: 'quest', id: o.quest.id }); setTimeout(() => toast(`Nova quest: ${o.quest.title}.`), 30); }
     }
     ui.talkLogs = ui.talkLogs || {}; (ui.talkLogs[ds.npc] = ui.talkLogs[ds.npc] || []).push(...ents);
@@ -1189,9 +1237,21 @@ function socialDone() {
   } else if (ctx.passeio) {
     if (won) { const g = rint(5, 10); camp.gold += g; txt = `A conversa termina do seu jeito, e o sujeito ainda paga uma rodada para fazer as pazes: +${g} de ouro. Mikeus assente: “Bom. Da outra vez você precisou de mais palavras.”`; hist({ k: 'social', enc: ctx.enc, won, gold: g }); }
     else { txt = 'A conversa não leva a lugar nenhum. Vocês deixam para lá e seguem caminho. Mikeus não comenta, o que é pior.'; hist({ k: 'social', enc: ctx.enc, won }); }
+  } else if (ctx.banca || ctx.prisioneiro) {
+    const run = camp.run;
+    if (ctx.banca) {
+      if (won) { run.bancaNeg = run.bancaNeg || {}; run.bancaNeg[ctx.nodeId] = true; txt = 'Kryoret ri pela primeira vez, um som de fole velho. “Você entende de ofício. Preço de amigo.” Desconto de 20% nesta banca.'; }
+      else txt = 'Kryoret cruza os braços. “Educação se aprende. O preço não muda.”';
+      hist({ k: 'social', enc: 'kryoret', won }); saveCamp();
+      ui.scene = { kind: 'run-msg', title: won ? 'Preço de amigo' : 'Preço cheio', text: txt, back: 'banca', nodeId: ctx.nodeId }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return;
+    }
+    if (won) { run.sucata = (run.sucata || 0) + 4; run.bancaDescDescida = true; txt = 'O guarda solta as correntes resmungando sobre regulamentos. O prisioneiro agradece com 4 de Sucata e uma promessa: as Bancas Azer desta descida vão te dar preço de amigo.'; }
+    else txt = 'O guarda não se convence. O prisioneiro suspira; ele já ouviu argumentos piores.';
+    hist({ k: 'social', enc: 'guarda_azer', won }); saveCamp();
+    ui.scene = { kind: 'run-msg', title: won ? 'Prisioneiro libertado' : 'O guarda não cede', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return;
   } else if (ctx.credor) {
     const d = camp.debt || (camp.debt = { amount: 300, status: 'aberta', overdue: 0 });
-    const days = won ? (ctx.volta ? 3 : 4) : 2;
+    const days = won ? (ctx.volta ? 3 : 4) : 2; if (d.status === 'pendente') d.status = 'aberta';
     if (!won && ctx.volta) d.amount = Math.round(d.amount * 1.1);
     d.due = camp.day + days; d.status = 'aberta'; d.felixTip = false;
     camp.pending = camp.pending.filter(p => p.kind !== 'credor');
@@ -1212,6 +1272,7 @@ function payDebt() {
 }
 function credorScene(sc) {
   const d = camp.debt;
+  if (sc.segunda && !sc.volta) return `<h2>A segunda parcela</h2><p>O calor da forja ainda está nas suas roupas quando o Barão Ostrander aparece na porta, pontual como sempre.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>A guilda sobreviveu ao primeiro prazo. Parabéns. A Coroa agora espera a parcela cheia: ${d.amount} de ouro.</p><p>Vamos combinar o prazo. Combinar, aqui, significa você me convencer.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: 4 dias de prazo. Derrota: 2 dias.</p><div class="opcoes"><button class="botao principal" data-act="g-credor">${bi('social')}Negociar o prazo</button></div>`;
   if (sc.volta) return `<h2>O credor voltou</h2><p>O prazo venceu, e o Barão Ostrander está de novo na porta da guilda, agora com dois auditores e um sorriso que não chega aos olhos.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>Prazos existem para serem cumpridos. Como este não foi, a parcela agora é de ${d.amount} de ouro. Vamos conversar sobre quando você pretende pagar.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: mais 3 dias de prazo. Derrota: 2 dias, e a parcela sobe mais 10%.</p><div class="opcoes"><button class="botao principal" data-act="g-credor" data-volta="1">${bi('social')}Negociar</button></div>`;
   return `<h2>O credor</h2><p>Mal você volta do terceiro andar, um homem de casaca impecável espera na porta da guilda, com um livro-caixa debaixo do braço e a paciência de quem nunca perdeu uma cobrança.</p>
     <div class="fala"><span class="quem">Barão Ostrander</span><p>Barão Ostrander, do Banco da Coroa. A dívida de Ergos não sumiu junto com ele. Agora ela é sua.</p><p>Como a guilda acabou de reabrir, a Coroa aceita uma primeira parcela reduzida: 300 de ouro. Resta saber em quanto tempo. E eu reconheço um devedor que vai tentar enrolar só de olhar.</p></div>
@@ -1223,6 +1284,27 @@ function credorResScene(sc) {
   const d = camp.debt;
   return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><p class="destaque">Parcela: ${d.amount} de ouro até o fim do dia ${d.due}. Você tem ${camp.gold}.</p><p class="intro-dica">O pagamento é feito no Banco da Coroa, na cidade${camp.gold >= d.amount ? ', ou agora mesmo' : ''}.</p>
     <div class="opcoes">${camp.gold >= d.amount ? `<button class="botao principal" data-act="g-pay">Pagar agora (${d.amount} de ouro)</button>` : ''}<button class="botao ${camp.gold >= d.amount ? '' : 'principal'}" data-act="home">Voltar à guilda</button></div>`;
+}
+const BANCA = [
+  { id: 'carta1', label: '+1 carta na mão inicial', dur: 'próxima luta', cost: 2, apply(run) { run.bonus.hand = (run.bonus.hand || 0) + 1; } },
+  { id: 'mana1', label: '+1 de mana no primeiro turno', dur: 'próxima luta', cost: 3, apply(run) { run.bonus.manaFirst = (run.bonus.manaFirst || 0) + 1; } },
+  { id: 'cura8', label: 'Recuperar 8 de Vida', dur: 'na hora', cost: 3, apply() { hpChange(8); } },
+  { id: 'carta2', label: '+2 cartas na mão inicial', dur: 'próxima luta', cost: 4, apply(run) { run.bonus.hand = (run.bonus.hand || 0) + 2; } },
+  { id: 'cristal', label: '+1 Cristal (+1 de mana máxima)', dur: 'próxima luta', cost: 5, apply(run) { run.bonus.mana = (run.bonus.mana || 0) + 1; } },
+  { id: 'cartaAll', label: '+1 carta na mão inicial', dur: 'todas as lutas desta descida', cost: 8, apply(run) { run.allHand = (run.allHand || 0) + 1; } },
+];
+function bancaDiscount(nodeId) { const run = camp.run; return !!(run.bancaDescDescida || (run.bancaNeg && run.bancaNeg[nodeId])); }
+function bancaPrice(cost, nodeId) { return bancaDiscount(nodeId) ? Math.max(1, Math.round(cost * 0.8)) : cost; }
+function bancaScene(sc) {
+  const run = camp.run; const suc = run.sucata || 0; const disc = bancaDiscount(sc.nodeId); const tried = run.bancaTried && run.bancaTried[sc.nodeId];
+  const rows = BANCA.map(b => { const p = bancaPrice(b.cost, sc.nodeId); return `<li class="npc"><div><b>${esc(b.label)}</b><p class="linha">${esc(b.dur)}</p></div><button class="botao" data-act="banca-buy" data-item="${b.id}" ${suc < p ? 'disabled' : ''}>${disc && p < b.cost ? `<s>${b.cost}</s> ` : ''}${p} de Sucata</button></li>`; }).join('');
+  return `${HAS_IMG('kryoret') ? '<div class="npc-arte" role="img" aria-label="Kryoret, o Azer da banca" style="background-image: var(--img-kryoret)"></div>' : `<div class="intro-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.instalacoes : null)}</div>`}
+    <h2>Banca Azer</h2><p>Entre duas fornalhas apagadas, um Azer de barba em brasa arrumou uma bancada de ferramentas, placas e frascos. Uma placa de cobre diz, em três idiomas: “KRYORET. TROCO POR SUCATA. SEM FIADO.”</p>
+    <div class="fala"><span class="quem">Kryoret</span><p>${disc ? 'Você fala a língua do ofício. Para você, preço de amigo.' : tried ? 'Já conversamos. O preço é o preço.' : 'Sucata na mesa, vantagem na mão. Educação abaixa o preço. Falta dela aumenta.'}</p></div>
+    <p class="destaque">Sucata: ${suc}. Vida: ${run.hp} de 30.${disc ? ' Desconto de 20% ativo.' : ''}</p>
+    <ul class="lista-npc">${rows}</ul>
+    <div class="opcoes">${!disc && !tried ? `<button class="botao" data-act="banca-neg">${bi('social')}Negociar o preço (luta social)</button>` : ''}<button class="botao principal" data-act="scene-ok">Seguir caminho</button></div>
+    <p class="intro-dica">A Sucata se perde no fim da descida, então vale gastar.</p>`;
 }
 function felixDebtScene() {
   const d = camp.debt;
@@ -1348,24 +1430,25 @@ function renderHome() {
   if (debtOpen() && camp.gold >= camp.debt.amount && !camp.debt.felixTip && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.felixTip = true; camp.pending.unshift({ kind: 'felix-divida' }); saveCamp(); }
   const ps = pendingScene(); if (ps) { ui.scene = ps; ui.screen = 'scene'; renderScene(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
-  const next = Math.min(camp.floor, 5);
-  const allDone = camp.cleared[5];
-  const floors = [1, 2, 3, 4, 5].map(f => {
+  const next = Math.min(camp.floor, R.MAX_FLOOR);
+  const allDone = camp.cleared[R.MAX_FLOOR];
+  const floorCard = f => {
     const done = camp.cleared[f]; const cur = !done && f === camp.floor;
     return `<div class="andar ${done ? 'feito' : cur ? 'atual' : 'bloq'}"><b>${f}</b><span>${done ? 'Concluído' : cur ? 'Próximo' : 'Bloqueado'}</span>${done ? `<button class="botao discreto" data-floor="${f}" data-revisit="1" aria-label="Revisitar o andar ${f}" title="Revisitar o andar ${f}" ${camp.acts.descer || camp.run ? 'disabled' : ''}>${bi('revisitar')}<span class="rev-txt">Revisitar</span></button>` : ''}</div>`;
-  }).join('');
+  };
+  const floors = Object.entries(R.GRUPOS).filter(([g]) => +g === 1 || camp.cleared[5]).map(([g, G]) => `<div class="grupo-andares"><h3>${esc(G.nome)}</h3><div class="andares">${G.andares.map(floorCard).join('')}</div></div>`).join('');
   const mainBtn = camp.run ? `<button class="botao principal" data-act="continue-run">${bi('descer')}Continuar descida (andar ${camp.run.floor})</button>`
-    : allDone ? `<p class="destaque">Grupo 1 concluído: Ergos não estava nas Grutas. O caminho segue mais fundo.</p>`
+    : allDone ? `<p class="destaque">A Forja Esquecida está para trás. Lá embaixo o calor some, e Ergos espera no frio. O caminho segue mais fundo.</p>`
     : camp.acts.descer ? `<button class="botao principal" disabled>${bi('descer')}Você já desceu hoje</button>`
     : `<button class="botao principal" data-floor="${next}" ${valid ? '' : 'disabled'}>${bi('descer')}Descer ao andar ${next}</button>`;
-  const cab = `<h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}As Grutas Vivas</p>`;
+  const cab = `<h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}${esc(R.GRUPOS[R.grupoDo(next)].nome)}</p>`;
   $('#app').innerHTML = `${gearBtn()}${HAS_IMG('warroom') ? `<header class="guilda-hero" role="img" aria-label="Sala de guerra da guilda: mesa com mapa, lareira acesa e Felix dormindo na poltrona"><div>${cab}</div></header>` : `<header class="abertura">${cab}</header>`}
     <section class="painel-camp">
       <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
       ${guildStatus()}
       ${camp.debt && camp.debt.due != null ? `<p class="parcela ${debtOpen() ? (camp.debt.due - camp.day <= 1 ? 'urgente' : '') : 'paga'}">${debtOpen() ? `Parcela da dívida: <b>${camp.debt.amount} de ouro</b> até o fim do dia ${camp.debt.due}${camp.debt.due === camp.day ? ' (hoje!)' : ''}. Pague no Banco da Coroa, na cidade.` : `Parcela de ${camp.debt.amount} de ouro paga no dia ${camp.debt.paidDay}.`}</p>` : ''}
-      ${camp.quests && camp.quests.length ? `<div class="quests"><b>Quests:</b> ${camp.quests.map(q => `<span class="quest" title="${esc(q.desc)}">${esc(q.title)}</span>`).join('')}</div>` : ''}
-      <div class="andares">${floors}</div>
+      ${camp.quests && camp.quests.length ? `<div class="quests"><b>Quests:</b> ${camp.quests.map(q => `<span class="quest ${q.done ? 'feita' : ''}" title="${esc(q.desc)}">${esc(q.title)}${q.done ? ' (concluída)' : ''}</span>`).join('')}</div>` : ''}
+      ${floors}
       <div class="acoes-setup">${mainBtn}</div>
       <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
       <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Editar deck social</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
@@ -1431,7 +1514,7 @@ function renderIntro() {
   const inp = $('#intro-nome'); if (inp) { inp.focus(); inp.addEventListener('input', () => { ui.intro.name = inp.value; }); inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); runClick({ act: 'intro-next' }); } }); }
 }
 function renderTitle() {
-  const save = camp ? `${camp.name ? esc(camp.name) + ', ' : ''}dia ${camp.day}, ${camp.cleared[5] ? 'Grutas concluídas' : 'andar ' + Math.min(camp.floor, 5)}${camp.run ? ' (descida em andamento)' : ''}` : 'Nenhum jogo salvo.';
+  const save = camp ? `${camp.name ? esc(camp.name) + ', ' : ''}dia ${camp.day}, ${camp.cleared[R.MAX_FLOOR] ? 'Forja concluída' : 'andar ' + Math.min(camp.floor, R.MAX_FLOOR)}${camp.run ? ' (descida em andamento)' : ''}` : 'Nenhum jogo salvo.';
   const arte = HAS_IMG('guilda');
   $('#app').innerHTML = `${gearBtn()}<section class="titulo-tela${arte ? ' com-arte' : ''}">
     ${arte ? '<div class="titulo-fundo" role="img" aria-label="Fachada da guilda Dragão Amarelo à noite, com a placa iluminada e as janelas acesas"></div>' : `<div class="titulo-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.titulo : null)}</div>`}
@@ -1470,7 +1553,7 @@ function renderCheats() {
     body = `<h2>Valores</h2>
       ${num('ch-gold', camp.gold, 'ch-gold', 'Ouro')}
       ${num('ch-day', camp.day, 'ch-day', 'Dia', 'min="1"')}
-      <div class="cheat-linha"><label for="ch-floor">Andares concluídos</label><select id="ch-floor">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${n === nCleared ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-floor">Aplicar</button></div>
+      <div class="cheat-linha"><label for="ch-floor">Andares concluídos</label><select id="ch-floor">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${n === nCleared ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-floor">Aplicar</button></div>
       ${camp.run ? num('ch-hp', camp.run.hp, 'ch-hp', 'Vida na descida', 'min="1" max="30"') : ''}
       <div class="cheat-linha"><label for="ch-aloj">Nível do Alojamento</label><select id="ch-aloj">${[0, 1, 2, 3].map(n => `<option value="${n}" ${n === (camp.fac.alojamento || 0) ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="botao" data-act="ch-aloj">Aplicar</button></div>
       <div class="cheat-linha"><label for="ch-card">Carta</label><select id="ch-card">${opts}</select><button class="botao" data-act="ch-card-add">+1</button><button class="botao" data-act="ch-card-rem">−1</button></div>
@@ -1583,10 +1666,10 @@ function renderMap() {
   }).join('');
   const bonus = []; if (run.bonus.hand) bonus.push(`+${run.bonus.hand} carta na próxima luta`); if (run.bonus.mana) bonus.push(`+${run.bonus.mana} de mana máxima na próxima luta`);
   const resume = run.inBattle ? `<div class="faixa"><span>Uma luta ficou pela metade.</span><button class="botao principal" data-act="run-resume">Retomar a luta</button></div>` : '';
-  $('#app').innerHTML = `<header class="abertura"><h1>Andar ${run.floor}${run.revisit ? ' (revisita)' : ''}</h1><p class="sub">As Grutas Vivas, dia ${camp.day}</p></header>
+  $('#app').innerHTML = `<header class="abertura"><h1>Andar ${run.floor}${run.revisit ? ' (revisita)' : ''}</h1><p class="sub">${esc(R.GRUPOS[R.grupoDo(run.floor)].nome)}, dia ${camp.day}</p></header>
     <section class="painel-camp mapa-topo">
       <span class="voce-vida"><b>${run.hp}</b><span class="conta">de 30</span><span class="barra"><i style="width:${Math.round(100 * run.hp / 30)}%"></i></span></span>
-      <span title="${esc(run.mochila.map(id => E.DEF[id].name).join(', '))}">Mochila: ${run.mochila.length} carta${run.mochila.length === 1 ? '' : 's'}</span>
+      <span title="${esc(run.mochila.map(id => E.DEF[id].name).join(', '))}">${run.floor >= 6 ? `Sucata: ${run.sucata || 0} · ` : ''}Mochila: ${run.mochila.length} carta${run.mochila.length === 1 ? '' : 's'}</span>
       <span class="ouro">Ouro na descida: ${run.gold || 0}</span>
       ${bonus.length ? `<span class="destaque">${esc(bonus.join('; '))}</span>` : ''}
       <button class="botao" data-act="run-giveup">Desistir da descida</button>
@@ -1604,7 +1687,7 @@ function renderScene() {
   } else if (sc.kind === 'treasure') {
     body = `<h2>Tesouro</h2><div class="prever-lista">${cardById(sc.card)}</div><p class="destaque">${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="scene-ok">Continuar</button></div>`;
   } else if (sc.kind === 'camp') {
-    body = `<h2>Acampamento</h2><p>Uma fenda seca, longe dos cogumelos. Felix já se acomodou na sua mochila.</p><div class="opcoes coluna"><button class="botao" data-evc="descansar">Descansar (recupere 12 de Vida)</button><button class="botao" data-evc="preparar">Preparar (na próxima luta, comece com 1 carta a mais)</button></div>`;
+    body = `<h2>Acampamento</h2><p>Uma fenda seca, longe dos cogumelos. Felix já se acomodou na sua mochila.</p><div class="opcoes coluna"><button class="botao" data-evc="descansar">Descansar (recupere ${camp.run && camp.run.floor >= 6 ? 10 : 12} de Vida)</button><button class="botao" data-evc="preparar">Preparar (na próxima luta, comece com 1 carta a mais)</button></div>`;
   } else if (sc.kind === 'nota') {
     body = `<h2>Nota de Ergos</h2><blockquote class="nota">${esc(R.NOTES[sc.floor])}</blockquote><p class="destaque">${sc.first ? 'Felix guarda a anotação. Na próxima luta, comece com 1 carta a mais.' : 'Você já leu esta nota.'}</p><div class="opcoes"><button class="botao principal" data-act="scene-ok">Continuar</button></div>`;
   } else if (sc.kind === 'elite') {
@@ -1614,11 +1697,11 @@ function renderScene() {
       <div class="opcoes"><button class="botao principal disc-${camp.deck.disc}" data-pack="${camp.deck.disc}">Booster de ${esc(DISC_NAME[camp.deck.disc])}</button><button class="botao" data-pack="geral">Booster Geral</button></div>
       <p class="intro">Cada booster tem 5 cartas: 3 Comuns, 1 Incomum e 1 Incomum ou Rara. O Geral pode trazer qualquer Disciplina ou neutra.</p>`;
   } else if (sc.kind === 'booster') {
-    const intro = sc.type === 'andar' ? `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Ouro das lutas: ${sc.gold}.</p>${sc.treasure ? `<p class="destaque">No covil do Basilisco, entre ossos e escamas trocadas, você encontra o tesouro dele: +${sc.treasure} de ouro.</p>` : ''}<h3>Booster do andar</h3><p class="intro-dica">2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.</p>` : `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2>`;
+    const intro = sc.type === 'andar' ? `<h2>Andar ${sc.floor} concluído</h2><p>${sc.mochila.length ? `Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : 'A mochila voltou vazia.'} Ouro das lutas: ${sc.gold}.</p>${sc.treasure ? `<p class="destaque">${sc.floor === 10 ? 'No coração apagado da forja, entre lingotes que Ignar guardava há séculos, você encontra o tesouro dele' : 'No covil do Basilisco, entre ossos e escamas trocadas, você encontra o tesouro dele'}: +${sc.treasure} de ouro.</p>` : ''}<h3>Booster do andar</h3><p class="intro-dica">2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.</p>` : `<h2>${sc.type === 'geral' ? 'Booster Geral' : 'Booster de ' + esc(DISC_NAME[sc.type])}</h2>`;
     const back = sc.back === 'npc' ? `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">Voltar ao mestre</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>';
     body = `${intro}<div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : 'Nova')).join('')}</div><p class="destaque">As cartas já estão na sua coleção.</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">Editar deck</button></div>`;
   } else if (sc.kind === 'msg') {
-    body = `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="home">Voltar à guilda</button></div>`;
+    body = `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${camp && camp.run ? 'scene-ok' : 'home'}">${camp && camp.run ? 'Continuar' : 'Voltar à guilda'}</button></div>`;
   } else if (sc.kind === 'notes') {
     body = `<h2>Notas de Ergos</h2>${camp.notes.length ? camp.notes.slice().sort().map(f => `<p class="linha">Andar ${f}</p><blockquote class="nota">${esc(R.NOTES[f])}</blockquote>`).join('') : '<p>Nenhuma nota ainda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Voltar</button></div>`;
   }
@@ -1699,7 +1782,7 @@ async function runClick(ds) {
   if (act === 'run-giveup') { const c = await choose('Desistir da descida', 'Conta como derrota: você volta à superfície e o andar recomeça amanhã.', [{ v: 'sim', label: 'Desistir' }]); if (c === 'sim') floorFailed('Você desistiu da descida.'); return true; }
   if (ds.evc) {
     if (ui.scene.kind === 'camp') {
-      if (ds.evc === 'descansar') { hpChange(12); hist({ k: 'acampamento', choice: 'descansar' }); }
+      if (ds.evc === 'descansar') { hpChange(camp.run.floor >= 6 ? 10 : 12); hist({ k: 'acampamento', choice: 'descansar' }); }
       else { camp.run.bonus.hand = (camp.run.bonus.hand || 0) + 1; hist({ k: 'acampamento', choice: 'preparar' }); }
       saveCamp(); ui.screen = 'map'; render(); return true;
     }
@@ -1722,7 +1805,9 @@ function mulliganHtml() {
   const cards = p.hand.map((inst, i) => cardHtml(inst, i, '', `data-info="h:${i}" tabindex="-1"`)).join('');
   return `<div class="veu"><div class="janela larga" role="dialog" aria-modal="true" aria-labelledby="mu-t"><h2 id="mu-t">Mão inicial</h2><p>Mantenha ou troque a mão inteira. A primeira troca é grátis; cada troca seguinte vem com uma carta a menos.${st.mulligans ? ` Trocas feitas: ${st.mulligans}.` : ''}</p><div class="prever-lista">${cards || '<span class="vazio">Mão vazia</span>'}</div><div class="opcoes"><button class="botao principal" data-act="keep">Manter</button><button class="botao" data-act="mull" ${p.hand.length ? '' : 'disabled'}>Trocar (${next} carta${next === 1 ? '' : 's'})</button></div></div></div>`;
 }
+function syncGrupo() { if (!camp) return R.setGrupo(1, 0.35); R.setGrupo(camp.cleared[5] || camp.floor > 5 ? 2 : 1, camp.run && camp.run.floor >= 6 ? 0.5 : 0.35); }
 function render() {
+  syncGrupo();
   if (ui.screen !== 'battle' || !st) { renderScreen(); $('#app').insertAdjacentHTML('beforeend', (ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : '') + (ui.modal ? modalHtml() : '')); return; }
   persist();
   const handScroll = $('.mao') ? $('.mao').scrollLeft : 0;

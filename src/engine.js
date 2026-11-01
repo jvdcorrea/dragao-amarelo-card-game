@@ -162,6 +162,44 @@ def('h_clerigo', { name: 'Clérigo Rival', cost: 3, type: 'unit', atk: 2, hp: 4,
 def('h_rajada', { name: 'Rajada Arcana Rival', cost: 4, type: 'spell', text: 'Cause 2 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 2, src(s, { spell: true })); } });
 def('h_campeao', { name: 'Campeão dos Rivais', cost: 6, type: 'unit', atk: 6, hp: 6, kw: ['guarda'], tags: ['Humano'], text: 'Guarda. Ao Entrar: cause 2 de dano ao protagonista.', onPlay(st, s) { dmg(st, { t: 'l', side: opp(s) }, 2, src(s, {})); } });
 
+// Grupo 2: cartas novas da Forja (P91). grupo: 2 = só aparecem em recompensas a partir do andar 6.
+const g2 = (id, o) => def(id, Object.assign({ grupo: 2 }, o));
+const blindGive = (e, n) => { if (e) { e.blind = Math.max(e.blind || 0, n); } };
+g2('martelo_forja', { name: 'Martelo de Forja', cost: 3, type: 'weapon', atk: 3, hp: 2, pierce: true, disc: 'neutra', text: 'Arma 3/2. Perfurar.' });
+g2('gato_ferreiro', { name: 'Gato Ferreiro', cost: 3, type: 'unit', atk: 2, hp: 3, tags: ['Felino'], disc: 'neutra', text: 'Felino. Ao Entrar: dê Blindagem 2 a outro Felino aliado.', onPlay(st, s, c) { const o = pick(st, aliveUnits(st, s).filter(x => x !== c.ent && x.tags.includes('Felino'))); if (o) { blindGive(o, 2); log(st, `${o.name} ganha Blindagem 2.`); } } });
+g2('brasa_guardada', { name: 'Brasa Guardada', cost: 2, type: 'spell', disc: 'neutra', target: () => 'enemyUnit', targetRequired: true, text: 'Cause 2 de dano a uma unidade inimiga. Se ela morrer, compre 1 carta.', onPlay(st, s, c) { const e = ent(st, c.target); dmg(st, c.target, 2, src(s, { spell: true })); if (e && isDead(e)) draw(st, s, 1); } });
+g2('lingote', { name: 'Lingote Temperado', cost: 1, type: 'spell', disc: 'neutra', target: () => 'friendlyUnit', targetRequired: true, text: 'Dê +0/+1 e Blindagem 2 a uma unidade aliada.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { buff(e, 0, 1); blindGive(e, 2); } } });
+// Temporal
+g2('golpe_vem', { name: 'Golpe que Ainda Vem', cost: 3, type: 'spell', disc: 'temporal', text: 'Atraso. No início do seu próximo turno, cause 5 de dano a um inimigo aleatório.', onPlay(st, s) { const sd = S(st, s); sd.strikes = sd.strikes || []; sd.strikes.push(5); log(st, 'Um golpe parte para o futuro.'); } });
+g2('ferreiro_eras', { name: 'Ferreiro de Outras Eras', cost: 3, type: 'unit', atk: 3, hp: 3, kw: ['eco'], disc: 'temporal', text: 'Eco. Ao Entrar: sua arma ganha +1/+0.', onPlay(st, s) { const w = S(st, s).weapon; if (w) { w.atk += 1; log(st, `${w.name} ganha +1 de Ataque.`); } } });
+g2('veterano_bigorna', { name: 'Veterano da Bigorna', cost: 4, type: 'unit', atk: 4, hp: 3, kw: ['acelerar', 'perfurar'], disc: 'temporal', text: 'Acelerar. Perfurar.' });
+g2('ensaio', { name: 'Ensaio de Batalha', cost: 1, type: 'spell', disc: 'temporal', text: 'Prever 2. Se você controlar uma unidade com Acelerar, compre 1 carta.', onPlay(st, s) { prever(st, s, 2); if (aliveUnits(st, s).some(x => hasKw(x, 'acelerar'))) draw(st, s, 1); } });
+// Draconic
+g2('dragao_escoria', { name: 'Dragão de Escória', cost: 5, type: 'unit', atk: 5, hp: 5, kw: ['guarda'], tags: ['Dragão'], disc: 'draconic', text: 'Dragão. Guarda. Despertar: ganha Blindagem 3.', onPlay(st, s, c) { if (despertar(st, s)) blindGive(c.ent, 3); } });
+g2('sopro_magma', { name: 'Sopro de Magma', cost: 3, type: 'spell', disc: 'draconic', text: 'Cause 2 de dano a todos os inimigos. Despertar: 3.', onPlay(st, s) { aoeAll(st, s, despertar(st, s) ? 3 : 2, src(s, { spell: true })); } });
+g2('ovo_incandescente', { name: 'Ovo Incandescente', cost: 2, type: 'unit', atk: 0, hp: 3, kw: ['guarda'], disc: 'draconic', text: 'Guarda. Ao Morrer: ganhe 1 Cristal.', onDeath(st, e) { cristal(st, e.owner); } });
+g2('wyrm_ferro', { name: 'Wyrm de Ferro', cost: 7, type: 'unit', atk: 6, hp: 7, blind: 2, tags: ['Dragão'], disc: 'draconic', text: 'Dragão. Blindagem 2. Despertar: ganha Perfurar.', onPlay(st, s, c) { if (despertar(st, s) && c.ent) c.ent.kw.perfurar = true; } });
+// Necrodance
+g2('ferreiro_esqueletico', { name: 'Ferreiro Esquelético', cost: 2, type: 'unit', atk: 2, hp: 2, disc: 'necro', text: 'Ao Morrer: dê Blindagem 2 a uma unidade aliada aleatória.', onDeath(st, e) { const o = pick(st, aliveUnits(st, e.owner)); if (o) { blindGive(o, 2); log(st, `${o.name} ganha Blindagem 2.`); } } });
+g2('requiem_bigorna', { name: 'Réquiem da Bigorna', cost: 3, type: 'spell', exigeCompasso: 3, disc: 'necro', target: () => 'enemyUnit', targetRequired: true, text: 'Exige Compasso 3. Destrua uma unidade inimiga.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { e.destroyed = true; log(st, `${e.name} cai no último compasso.`); } } });
+g2('martelo_funebre', { name: 'Martelo Fúnebre', cost: 2, type: 'weapon', atk: 2, hp: 2, disc: 'necro', text: 'Arma 2/2. Sempre que uma unidade aliada morrer, esta arma ganha +1 de durabilidade.' });
+g2('cinzas_dancam', { name: 'Cinzas que Dançam', cost: 2, type: 'spell', compasso: [1], disc: 'necro', text: 'Invoque um Esqueleto Bailarino. Compasso 1: invoque dois.', onPlay(st, s, c) { const n = onBeat(st, s, c, 1) ? 2 : 1; for (let i = 0; i < n; i++) summon(st, s, 'esqueleto'); } });
+// Holy Shadowmancy
+g2('sacerdote_brasa', { name: 'Sacerdote da Brasa', cost: 3, type: 'unit', atk: 2, hp: 4, kw: ['emboscada'], disc: 'holy', text: 'Emboscada. Ao Revelar: a unidade atacada perde a Blindagem.', onReveal(st, e, t) { if (t && t.blind) { t.blind = 0; log(st, `${t.name} perde a Blindagem.`); } } });
+g2('ritual_metal', { name: 'Ritual do Metal Derretido', cost: 2, type: 'ritual', countdown: 3, disc: 'holy', text: 'Ritual 3. Ao ativar: cause 3 de dano a todos os inimigos.', ritualEffect(st, e) { aoeAll(st, e.owner, 3, src(e.owner, { spell: true })); } });
+g2('lamina_obsidiana', { name: 'Lâmina de Obsidiana', cost: 1, type: 'spell', disc: 'holy', target: () => 'friendlyUnit', targetRequired: true, text: 'Dê +2/+0 e Perfurar a uma unidade aliada neste turno.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) { e.tempAtk = (e.tempAtk || 0) + 2; e.tempKw.perfurar = true; } } });
+g2('penitente_forja', { name: 'Penitente da Forja', cost: 4, type: 'unit', atk: 3, hp: 5, kw: ['guarda'], disc: 'holy', text: 'Guarda. Ao Entrar: reduza em 1 a contagem de todos os seus Rituais.', onPlay(st, s) { S(st, s).board.filter(x => x.kind === 'ritual' && !x.removed).forEach(r => tickRitual(st, r, 1)); } });
+// Magitech
+g2('nucleo_escoria', { name: 'Núcleo de Escória', cost: 2, type: 'spell', module: true, disc: 'tech', target: () => 'friendlyUnit', targetRequired: true, text: 'Módulo. Acople: +1/+0 e Blindagem 2.', attach(e) { buff(e, 1, 0); blindGive(e, 2); } });
+g2('golem_amigo', { name: 'Golem de Sucata Amigo', cost: 4, type: 'unit', atk: 3, hp: 5, blind: 2, tags: ['Construto'], disc: 'tech', text: 'Construto. Blindagem 2.' });
+g2('bancada_rebites', { name: 'Bancada de Rebites', cost: 3, type: 'structure', hp: 4, disc: 'tech', text: 'No fim do seu turno, dê Blindagem 2 a uma unidade aliada aleatória sem Blindagem.', onEndTurn(st, e) { const o = pick(st, aliveUnits(st, e.owner).filter(x => !x.blind)); if (o) { blindGive(o, 2); log(st, `A Bancada de Rebites blinda ${o.name}.`); } } });
+g2('automato_fundidor', { name: 'Autômato Fundidor', cost: 5, type: 'unit', atk: 4, hp: 4, kw: ['perfurar'], tags: ['Construto'], disc: 'tech', text: 'Construto. Perfurar. Ao Entrar: crie um Núcleo de Escória na sua mão.', onPlay(st, s) { addToHand(st, s, 'nucleo_escoria'); } });
+// Space Wizardry
+g2('meteoro_ferroso', { name: 'Meteoro Ferroso', cost: 4, type: 'spell', orbita: true, disc: 'space', target: () => 'enemyUnit', targetRequired: true, text: 'Órbita. Cause 3 de dano a uma unidade inimiga, +1 por Carga.', onPlay(st, s, c) { dmg(st, c.target, 3 + (c.inst.cargas || 0), src(s, { spell: true })); } });
+g2('astro_fundido', { name: 'Astro Fundido', cost: 4, type: 'unit', atk: 2, hp: 5, disc: 'space', text: 'Ao Entrar: dê 1 Carga às suas cartas com Órbita.', onPlay(st, s) { charge(st, s, 1); } });
+g2('faisca_magnetica', { name: 'Faísca Magnética', cost: 1, type: 'spell', disc: 'space', text: 'Cause 1 de dano a todas as unidades inimigas com Blindagem e remova a Blindagem delas.', onPlay(st, s) { aliveUnits(st, opp(s)).filter(e => e.blind).forEach(e => { dmg(st, { t: 'e', uid: e.uid }, 1, src(s, { spell: true })); e.blind = 0; }); log(st, 'A Faísca Magnética arranca as placas.'); } });
+g2('cometa_ferro', { name: 'Cometa de Ferro', cost: 7, type: 'spell', orbita: true, orbitaCost: true, disc: 'space', text: 'Órbita. Custa 1 a menos por Carga. Cause 4 de dano a todos os inimigos.', onPlay(st, s) { aoeAll(st, s, 4, src(s, { spell: true })); } });
+
 // Recompensas e neutras de booster
 def('machado', { name: 'Machado de Mil Batalhas', cost: 4, type: 'weapon', atk: 3, hp: 3, disc: 'temporal', text: 'Arma 3/3. Sempre que o protagonista atacar com esta arma, invoque um Recruta de Outra Era.', onWeaponAttack(st, s) { summon(st, s, 'recruta'); } });
 def('carga', { name: 'Carga Através dos Séculos', cost: 6, type: 'spell', disc: 'temporal', text: 'Suas unidades ganham +2/+0 e Acelerar neste turno.', onPlay(st, s) { aliveUnits(st, s).forEach(e => { e.tempAtk += 2; e.tempKw.investida = true; }); } });
@@ -209,9 +247,46 @@ const ENC = {
   bicharada: { name: 'Bicharada Mista', tier: 'Comum', leader: 'Toupeira Rainha', hp: 18, hand: 3, rule: 'No início do seu turno, se tiver menos unidades que você, compra 1 carta extra.', deck: { toupeira: 4, morcego: 2, broto_cog: 2, besouro: 2, aranha: 2, enxame: 2, lagarto: 2, mordida_inf: 2, centopeia: 2 }, onStartTurn(st) { if (aliveUnits(st, 'E').length < aliveUnits(st, 'P').length) { draw(st, 'E', 1); log(st, 'Toupeira Rainha compra 1 carta extra.'); } } },
   imperatriz: { name: 'Centopeia Imperatriz', tier: 'Elite', leader: 'Centopeia Imperatriz', hp: 25, hand: 4, rule: 'Suas unidades com Letal custam 1 a menos e têm +0/+1.', deck: { centopeia: 6, aranha: 4, lagarto: 4, besouro: 4, mordida_inf: 3, esporos: 2, morcego: 2 }, costMod(st, id) { return DEF[id].kw.includes('letal') ? -1 : 0; }, onSummon(st, e) { if (e.kw.letal) { e.hp += 1; e.maxHp += 1; } } },
   fungo: { name: 'Fungo Colossal Desperto', tier: 'Elite', leader: 'Fungo Colossal Desperto', hp: 25, hand: 4, rule: 'Seus Cogumelos Adultos têm Guarda.', deck: { broto_cog: 6, fungoide: 4, toupeira: 4, besouro: 4, esporos: 3, fungo_colossal: 2, mordida_inf: 2 }, onBrotar(st, e) { if (e.id === 'cog_adulto') e.kw.guarda = true; } },
-  basilisco: { name: 'Basilisco das Grutas', tier: 'Chefe', leader: 'Basilisco das Grutas', hp: 40, hand: 4, boss: true, resonance: 2, rule: 'Olhar Petrificante: no fim do turno dele, sua unidade de maior Ataque fica Imóvel. Com 20 de Vida ou menos, troca de pele (recupera 8) e o Olhar pega duas unidades.', deck: { ninhada: 3, filhote_bas: 3, mordida_pet: 3, estatua: 2, cauda: 2, lagarto: 4, broto_cog: 4, besouro: 3, fungoide: 2, mordida_inf: 2, fungo_colossal: 2 },
+  basilisco: { name: 'Basilisco das Grutas', tier: 'Chefe', leader: 'Basilisco das Grutas', hp: 40, hand: 4, boss: true, resonance: 2, phaseAt: 20,
+    onPhase2(st) { const l = S(st, 'E').leader; st.gazeCount = 2; l.hp = Math.min(l.maxHp, l.hp + 8); log(st, 'O Basilisco troca de pele: recupera 8 de Vida e o Olhar passa a pegar duas unidades.'); }, rule: 'Olhar Petrificante: no fim do turno dele, sua unidade de maior Ataque fica Imóvel. Com 20 de Vida ou menos, troca de pele (recupera 8) e o Olhar pega duas unidades.', deck: { ninhada: 3, filhote_bas: 3, mordida_pet: 3, estatua: 2, cauda: 2, lagarto: 4, broto_cog: 4, besouro: 3, fungoide: 2, mordida_inf: 2, fungo_colossal: 2 },
     onEndTurn(st) { const us = aliveUnits(st, 'P'); us.sort((a, b) => getAtk(st, b) - getAtk(st, a)); us.slice(0, st.gazeCount).forEach(e => { setImovel(st, e); log(st, `Olhar Petrificante: ${e.name} fica Imóvel.`); }); } },
 };
+
+/* ---------------- Grupo 2: A Forja Esquecida ---------------- */
+const blindTo = (e, n) => { if (e) e.blind = (e.blind || 0) + n; };
+def('g_pilha', { name: 'Pilha de Sucata', cost: 1, type: 'unit', atk: 0, hp: 2, tags: ['Golem'], brotar: 'g_golem_sucata', text: 'Brotar: vira um Golem de Sucata 3/3.' });
+def('g_golem_sucata', { name: 'Golem de Sucata', cost: 3, type: 'unit', atk: 3, hp: 3, tags: ['Golem'], text: '' });
+def('g_golem_ferro', { name: 'Golem de Ferro', cost: 3, type: 'unit', atk: 2, hp: 4, blind: 2, tags: ['Golem'], text: 'Blindagem 2.' });
+def('g_golem_martelo', { name: 'Golem-Martelo', cost: 4, type: 'unit', atk: 3, hp: 4, blind: 2, tags: ['Golem'], text: 'Blindagem 2.' });
+def('g_engrenagem', { name: 'Engrenagem Solta', cost: 1, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Cause 2 de dano a uma unidade inimiga.', onPlay(st, s, c) { dmg(st, c.target, 2, src(s, { spell: true })); } });
+def('g_fagulha', { name: 'Fagulha Viva', cost: 1, type: 'unit', atk: 1, hp: 2, kw: ['superaquecer'], tags: ['Elemental'], text: 'Superaquecer.' });
+def('g_igneo', { name: 'Elemental Ígneo', cost: 3, type: 'unit', atk: 2, hp: 4, kw: ['superaquecer'], tags: ['Elemental'], text: 'Superaquecer.' });
+def('g_magma', { name: 'Elemental de Magma', cost: 5, type: 'unit', atk: 4, hp: 6, kw: ['superaquecer'], tags: ['Elemental'], text: 'Superaquecer.' });
+def('g_escoria', { name: 'Elemental de Escória', cost: 1, type: 'unit', atk: 1, hp: 1, kw: ['superaquecer'], tags: ['Elemental'], text: 'Superaquecer.' });
+def('g_lufada', { name: 'Lufada Incandescente', cost: 2, type: 'spell', text: 'Cause 1 de dano a todas as unidades inimigas.', onPlay(st, s) { aoeUnits(st, s, 1, src(s, { spell: true })); } });
+def('g_sentinela', { name: 'Azer Sentinela', cost: 2, type: 'unit', atk: 2, hp: 3, kw: ['guarda'], tags: ['Azer'], text: 'Guarda.' });
+def('g_lanceiro', { name: 'Azer Lanceiro', cost: 3, type: 'unit', atk: 3, hp: 2, kw: ['avanco'], tags: ['Azer'], text: 'Avanço.' });
+def('g_ferreiro', { name: 'Azer Ferreiro', cost: 2, type: 'unit', atk: 2, hp: 2, tags: ['Azer'], text: 'Ao Entrar: dê Blindagem 1 a outra unidade aliada aleatória.', onPlay(st, s, c) { const o = pick(st, aliveUnits(st, s).filter(x => x !== c.ent)); if (o) { blindTo(o, 1); log(st, `${o.name} ganha Blindagem 1.`); } } });
+def('g_martelo_runico', { name: 'Martelo Rúnico', cost: 2, type: 'spell', target: () => 'enemyUnit', targetRequired: true, text: 'Cause 1 de dano a uma unidade inimiga e deixe-a Imóvel.', onPlay(st, s, c) { const e = ent(st, c.target); dmg(st, c.target, 1, src(s, { spell: true })); if (e && !isDead(e)) setImovel(st, e); } });
+def('g_forja', { name: 'Forja Ardente', cost: 3, type: 'structure', hp: 5, tags: ['Forja'], text: 'No fim do turno do dono, uma unidade aliada aleatória ganha +1/+1.', onEndTurn(st, e) { const u = pick(st, aliveUnits(st, e.owner)); if (u) { buff(u, 1, 1); log(st, `A Forja Ardente tempera ${u.name}: +1/+1.`); } } });
+const hasForja = (st, side) => S(st, side).board.some(x => x.id === 'g_forja' && !isDead(x));
+Object.assign(ENC, {
+  oficina: { name: 'Oficina de Golens', tier: 'Comum', grupo: 2, leader: 'Capataz Autômato', hp: 28, hand: 4, extraMana: 1, rule: 'Seus Golens entram com Blindagem 2.', deck: { g_pilha: 4, g_golem_ferro: 5, g_golem_martelo: 5, g_engrenagem: 4, g_sentinela: 3, g_golem_sucata: 3 }, onSummon(st, e) { if (e.owner === 'E' && e.tags.includes('Golem')) e.blind = Math.max(e.blind || 0, 2); }, onBrotar(st, e) { if (e.tags && e.tags.includes('Golem')) e.blind = Math.max(e.blind || 0, 2); } },
+  bocas: { name: 'Bocas de Fogo', tier: 'Comum', grupo: 2, leader: 'Elemental do Braseiro', hp: 26, hand: 4, extraMana: 1, rule: 'Seus Elementais têm +1/+2.', deck: { g_fagulha: 5, g_igneo: 6, g_lufada: 5, g_engrenagem: 3, g_magma: 4 }, onSummon(st, e) { if (e.owner === 'E' && e.tags.includes('Elemental')) buff(e, 1, 2); } },
+  patrulha_azer: { name: 'Patrulha Azer', tier: 'Comum', grupo: 2, leader: 'Sentinela Azer', hp: 24, hand: 4, extraMana: 1, rule: 'No início do turno dele, uma unidade aliada aleatória ganha +1/+0 e Blindagem 1 (a Blindagem acumula).', deck: { g_sentinela: 5, g_lanceiro: 6, g_ferreiro: 4, g_martelo_runico: 4, g_golem_martelo: 3 }, onStartTurn(st) { const u = pick(st, aliveUnits(st, 'E')); if (u) { u.atk += 1; blindTo(u, 1); log(st, `${u.name} ganha +1/+0 e Blindagem 1.`); } } },
+  fundicao: { name: 'Fundição Abandonada', tier: 'Comum', grupo: 2, leader: 'Fornalha Viva', hp: 26, hand: 4, extraMana: 1, rule: 'Começa com uma Forja Ardente em campo.', deck: { g_forja: 3, g_fagulha: 3, g_golem_ferro: 4, g_igneo: 5, g_golem_martelo: 3, g_lufada: 3, g_magma: 2 }, onStart(st) { summon(st, 'E', 'g_forja'); } },
+  colosso_ferro: { name: 'O Colosso de Ferro', tier: 'Elite', grupo: 2, leader: 'O Colosso de Ferro', hp: 30, hand: 4, extraMana: 1, rule: 'O Colosso tem Blindagem 3 enquanto houver uma Forja em campo. Começa com uma Forja.', deck: { g_forja: 2, g_golem_ferro: 5, g_golem_martelo: 4, g_pilha: 5, g_engrenagem: 4, g_sentinela: 5 }, leaderBlind(st) { return hasForja(st, 'E') ? 3 : 0; }, onStart(st) { summon(st, 'E', 'g_forja'); } },
+  matriarca_azer: { name: 'Matriarca Azer', tier: 'Elite', grupo: 2, leader: 'Senhora das Bigornas', hp: 30, hand: 4, extraMana: 1, rule: 'No fim do turno dela, a unidade aliada mais fraca ganha +1/+1 e Blindagem 1.', deck: { g_sentinela: 5, g_lanceiro: 5, g_ferreiro: 5, g_martelo_runico: 4, g_golem_ferro: 3, g_igneo: 3 }, onEndTurn(st) { const us = aliveUnits(st, 'E').sort((a, b) => (a.atk + a.hp) - (b.atk + b.hp)); const u = us[0]; if (u) { buff(u, 1, 1); blindTo(u, 1); log(st, `A Matriarca tempera ${u.name}: +1/+1 e Blindagem 1.`); } } },
+  ignar: { name: 'Ignar, o Coração da Forja', tier: 'Chefe', grupo: 2, leader: 'Ignar', hp: 50, hand: 4, boss: true, resonance: 3, phaseAt: 25, extraMana: 1,
+    rule: 'Fase 1: Blindagem 3; no fim do turno dele, cria um Elemental de Escória. Com 25 de Vida ou menos, derrete: perde a Blindagem, as unidades dele ganham Superaquecer e, no início de cada turno dele, todas as unidades sofrem 1 de dano.',
+    deck: { g_igneo: 5, g_magma: 5, g_golem_ferro: 4, g_golem_martelo: 4, g_lufada: 4, g_forja: 2, g_fagulha: 3, g_martelo_runico: 3 },
+    leaderBlind(st) { return st.phase2 ? 0 : 3; },
+    onEndTurn(st) { if (!st.phase2) { const e = summon(st, 'E', 'g_escoria'); if (e) log(st, 'Ignar cospe um Elemental de Escória.'); } },
+    onPhase2(st) { aliveUnits(st, 'E').forEach(u => { u.kw.superaquecer = true; }); log(st, 'Ignar derrete: perde a Blindagem, e o calor toma conta da mesa.'); },
+    onStartTurn(st) { if (st.phase2) { ['P', 'E'].forEach(sd => aliveUnits(st, sd).forEach(u => dmg(st, { t: 'e', uid: u.uid }, 1, src('E', { spell: true })))); log(st, 'O calor de Ignar causa 1 de dano a todas as unidades.'); } },
+    onSummon(st, e) { if (st.phase2 && e.owner === 'E' && e.kind === 'unit') e.kw.superaquecer = true; },
+    onEnemyResonate(st, e) { blindTo(e, 2); log(st, `${e.name} ganha Blindagem 2.`); } },
+});
 
 /* ---------------- Utilidades ---------------- */
 function S(st, s) { return st.sides[s]; }
@@ -220,7 +295,7 @@ function log(st, msg) { st.log.push(msg); }
 function pick(st, arr) { return arr.length ? arr[Math.floor(st.rng() * arr.length)] : null; }
 function shuffle(st, arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(st.rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 function newInst(st, id, costMod) { return { uid: st.nextUid++, id, cargas: 0, costMod: costMod || 0 }; }
-function src(side, o) { return { side, letal: !!o.letal, dreno: !!o.dreno, spell: !!o.spell }; }
+function src(side, o) { return { side, letal: !!o.letal, dreno: !!o.dreno, spell: !!o.spell, pierce: !!o.pierce }; }
 function sameRef(a, b) { return a && b && a.t === b.t && (a.t === 'l' ? a.side === b.side : a.uid === b.uid); }
 function isDead(e) { return !!(e.removed || e.destroyed || (e.kind !== 'ritual' && e.hp <= 0)); }
 function hasKw(e, k) { return !!(e.kw[k] || e.tempKw[k]); }
@@ -297,9 +372,9 @@ function charge(st, side, n) {
   S(st, side).hand.forEach(i => { if (DEF[i.id].orbita) i.cargas = Math.min(CARGA_MAX, (i.cargas || 0) + n); });
 }
 function setImovel(st, e) { e.imovel = (st.turnSide === e.owner) ? 2 : 1; }
-function reveal(st, e) {
+function reveal(st, e, target) {
   log(st, `${e.name} se revela.`);
-  const d = DEF[e.id]; if (d.onReveal) d.onReveal(st, e);
+  const d = DEF[e.id]; if (d.onReveal) d.onReveal(st, e, target);
 }
 function sacrifice(st, e) {
   const n = DEF[e.id].sacrificio || 1;
@@ -310,9 +385,24 @@ function sacrifice(st, e) {
   rs.forEach(r => tickRitual(st, r, n));
 }
 
+/* Blindagem N (grupo 2, P91): danos menores que N não passam; danos de N ou mais passam inteiros. Feitiços ignoram.
+   A variante 'reduz' (tira N de cada dano) ficou só para simulação: punia demais os decks de unidades pequenas. */
+const BLIND = { mode: 'limiar', spellsIgnore: true, extra: 0 };
+function setBlindRule(mode, spellsIgnore) { BLIND.mode = mode; BLIND.spellsIgnore = spellsIgnore !== false; }
+function blindOf(st, ref) {
+  if (ref.t === 'l') return ref.side === 'E' && st.enc.leaderBlind ? st.enc.leaderBlind(st) : 0;
+  const e = ent(st, ref); return e ? (e.blind || 0) : 0;
+}
+function applyBlind(st, ref, amount, sc) {
+  const b0 = blindOf(st, ref); const b = b0 ? b0 + (BLIND.extra || 0) : 0; if (!b || sc.pierce || (sc.spell && BLIND.spellsIgnore)) return amount;
+  const out = BLIND.mode === 'limiar' ? (amount < b ? 0 : amount) : Math.max(0, amount - b);
+  if (out < amount) log(st, `A Blindagem segura ${amount - out} de dano.`);
+  return out;
+}
 function dmg(st, ref, amount, sc) {
   if (!ref || amount <= 0) return 0;
   if (ref.t === 'l') {
+    amount = applyBlind(st, ref, amount, sc); if (amount <= 0) return 0;
     const sd = S(st, ref.side);
     sd.leader.hp -= amount;
     if (sc.dreno) heal(st, sc.side, amount);
@@ -322,20 +412,16 @@ function dmg(st, ref, amount, sc) {
   const e = ent(st, ref);
   if (!e || isDead(e) || e.kind === 'ritual') return 0;
   if (hasKw(e, 'escudo')) { e.kw.escudo = false; e.tempKw.escudo = false; log(st, `${e.name} perde o Escudo.`); return 0; }
+  amount = applyBlind(st, ref, amount, sc); if (amount <= 0) return 0;
   e.hp -= amount;
   if (sc.letal && e.kind === 'unit') e.destroyed = true;
   if (sc.dreno) heal(st, sc.side, amount);
   return amount;
 }
 function afterLeaderDamage(st, side) {
-  if (side === 'E' && st.enc.boss && !st.phase2) {
+  if (side === 'E' && st.enc.phaseAt && !st.phase2) {
     const l = S(st, 'E').leader;
-    if (l.hp > 0 && l.hp <= 20) {
-      st.phase2 = true; st.gazeCount = 2;
-      l.hp = Math.min(l.maxHp, l.hp + 8);
-      log(st, 'O Basilisco troca de pele: recupera 8 de Vida e o Olhar passa a pegar duas unidades.');
-      rec(st, { k: 'phase2', hp: l.hp });
-    }
+    if (l.hp > 0 && l.hp <= st.enc.phaseAt) { st.phase2 = true; st.enc.onPhase2(st); rec(st, { k: 'phase2', hp: l.hp }); }
   }
 }
 function aoeUnits(st, side, n, sc) { aliveUnits(st, opp(side)).forEach(e => dmg(st, { t: 'e', uid: e.uid }, n, sc)); }
@@ -357,7 +443,7 @@ function makeEntity(st, owner, id) {
     uid: st.nextUid++, id, name: d.name, owner, kind: d.type === 'unit' ? 'unit' : d.type,
     atk: d.atk || 0, hp: d.hp || 0, maxHp: d.hp || 0, kw: {}, tags: d.tags.slice(),
     summonedTurn: S(st, owner).turnCount, attacked: false, imovel: 0, tempAtk: 0, tempKw: {},
-    modules: [], countdown: d.countdown || 0, ecoUsed: false, extraDeath: 0,
+    modules: [], countdown: d.countdown || 0, ecoUsed: false, extraDeath: 0, blind: d.blind || 0,
     rushThisTurn: false, resonated: false, destroyed: false, removed: false,
   };
   d.kw.forEach(k => { e.kw[k] = true; });
@@ -464,6 +550,7 @@ function resolveDeaths(st) {
         if (d.onDeath && !e.silenced) for (let k = 0; k < times; k++) d.onDeath(st, e);
         if (e.kw.eco && !e.ecoUsed) sd.ecoReturns.push(e.id);
         sd.board.forEach(o => { if (!isDead(o) && !o.silenced && DEF[o.id].onFriendlyDeath) DEF[o.id].onFriendlyDeath(st, o, e); });
+        if (e.kind === 'unit' && sd.weapon && sd.weapon.id === 'martelo_funebre') { sd.weapon.dur += 1; log(st, 'O Martelo Fúnebre ganha +1 de durabilidade.'); }
       }
     });
     if (checkOver(st)) break;
@@ -602,14 +689,14 @@ function attack(st, side, uid, ref) {
   const revealing = hasKw(a, 'emboscada');
   if (revealing) {
     a.kw.emboscada = false; a.tempKw.emboscada = false;
-    reveal(st, a);
+    reveal(st, a, ref && ref.t === 'e' ? ent(st, ref) : null);
     const tt = ref.t === 'e' ? ent(st, ref) : null;
     if (isDead(a) || (ref.t === 'e' && (!tt || isDead(tt)))) { resolveDeaths(st); checkOver(st); return true; }
   }
   a.modules.forEach(m => { if (DEF[m].onHostAttack) DEF[m].onHostAttack(st, a, ref); });
   if (ref.t === 'e') { const t0 = ent(st, ref); if (!t0 || isDead(t0)) { resolveDeaths(st); checkOver(st); return true; } }
   const aAtk = getAtk(st, a);
-  const sc = src(side, { letal: hasKw(a, 'letal'), dreno: hasKw(a, 'dreno') });
+  const sc = src(side, { letal: hasKw(a, 'letal'), dreno: hasKw(a, 'dreno'), pierce: hasKw(a, 'perfurar') });
   if (ref.t === 'l') {
     log(st, `${a.name} ataca ${S(st, ref.side).leader.name} (${aAtk}).`);
     dmg(st, ref, aAtk, sc);
@@ -636,7 +723,7 @@ function heroAttack(st, side, ref) {
   sd.heroAttacked = true;
   rec(st, { k: 'hero', s: side, w: w.id, wa: [w.atk, w.dur], tgt: refOut(st, ref), ts: statOf(st, ref) });
   if (DEF[w.id].onWeaponAttack) DEF[w.id].onWeaponAttack(st, side);
-  const sc = src(side, { letal: w.letal });
+  const sc = src(side, { letal: w.letal, pierce: !!DEF[w.id].pierce });
   if (ref.t === 'l') { log(st, `Você ataca ${S(st, ref.side).leader.name} com ${w.name} (${w.atk}).`); dmg(st, ref, w.atk, sc); }
   else {
     const t = ent(st, ref);
@@ -664,6 +751,7 @@ function resonate(st, side, uid) {
   log(st, `${e.name} evolui: +2/+2.`);
   rec(st, { k: 'res', s: side, u: uidOf(e) });
   const d = DEF[e.id]; if (d.onResonate) d.onResonate(st, e);
+  if (side === 'E' && st.enc.onEnemyResonate) st.enc.onEnemyResonate(st, e);
   resolveDeaths(st); checkOver(st);
   return true;
 }
@@ -685,7 +773,9 @@ function startTurn(st, side) {
     const e = summon(st, side, id);
     if (e) { e.kw.eco = false; e.ecoUsed = true; const v = est ? 2 : 1; e.hp = v; e.maxHp = v; sd.ecoReturnedThisTurn = true; log(st, `${e.name} volta por Eco.`); }
   });
+  if (sd.strikes && sd.strikes.length) { sd.strikes.splice(0).forEach(n => { const t = randomEnemyRef(st, side); if (t) { dmg(st, t, n, src(side, { spell: true })); log(st, `O golpe que vinha chega: ${n} de dano.`); } }); }
   sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].brotar) brotar(st, e); });
+  sd.board.slice().forEach(e => { if (e.kind === 'unit' && !isDead(e) && hasKw(e, 'superaquecer')) { e.atk += 1; e.hp -= 1; log(st, `${e.name} superaquece: +1 de Ataque, -1 de Vida.`); } });
   sd.board.slice().forEach(e => { if (e.kind === 'ritual' && !e.removed) tickRitual(st, e, 1); });
   sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].onStartTurn) DEF[e.id].onStartTurn(st, e); });
   if (sd.boomerang) { const n = sd.boomerang; sd.boomerang = 0; if (aliveUnits(st, side).some(x => x.tags.includes('Felino'))) for (let i = 0; i < n; i++) { addToHand(st, side, 'bumerangue'); log(st, 'O Bumerangue volta.'); } }
@@ -733,6 +823,9 @@ function newGame(discId, encId, seed, opts) {
   rec(st, { k: 'hand0', hand: st.sides.P.hand.map(i => i.id) });
   st.usesCompasso = st.sides.P.deck.concat(st.sides.P.hand).some(i => DEF[i.id].compasso || DEF[i.id].exigeCompasso);
   st.handSize = 3 + (opts.extraHand || 0); st.mulligans = 0; st.pending = { kind: 'mulligan' };
+  if (enc.extraMana) st.sides.E.maxMana = enc.extraMana;
+  st.firstMana = opts.firstMana || 0;
+  if (enc.onStart) enc.onStart(st);
   log(st, `${enc.name}. Regra: ${enc.rule}`);
   return st;
 }
@@ -754,6 +847,7 @@ function keepHand(st) {
   st.pending = null;
   rec(st, { k: 'keep', mulls: st.mulligans, hand: S(st, 'P').hand.map(i => i.id) });
   startTurn(st, 'P');
+  if (st.firstMana) { S(st, 'P').mana += st.firstMana; log(st, `+${st.firstMana} de mana neste primeiro turno.`); }
   return true;
 }
 
@@ -947,6 +1041,14 @@ socEnc('rival', { name: 'Guilda Rival', perfil: 'Vaidade', leader: 'Representant
 socEnc('bebado', { name: 'Bêbado na Estrada', perfil: 'Vaidade', leader: 'Bêbado Chato', hp: 10, rule: 'Perfil Vaidade. Acha que sabe lutar melhor que vocês e quer provar no grito.', deck: { e_soluco: 5, e_cantoria: 3, e_amigo_bar: 4, e_lero: 3 } });
 socEnc('suspeito', { name: 'Figura Suspeita', perfil: 'Procedimento', leader: 'Figura Suspeita', hp: 12, rule: 'Perfil Procedimento. Diz que só estava passando. Carrega um mapa da guilda.', deck: { e_olhar_desc: 4, e_evasiva: 3, e_alibi: 2, e_lero: 3, e_proposta: 3 } });
 socEnc('credor', { name: 'O Credor', perfil: 'Procedimento', leader: 'Barão Ostrander', hp: 22, rule: 'Perfil Procedimento. Veio cobrar a dívida de Ergos e espera o pior de todo devedor.', deck: { e_notificacao: 4, e_juros: 4, e_multa: 3, e_auditor: 3, e_contador: 3, e_penhora: 2 } });
+// Azers da Forja (grupo 2): Kryoret, o Azer da banca, e o guarda do prisioneiro
+eT('e_olhar_ferreiro', 'Olhar de Ferreiro', 1, 2);
+eA('e_bigorna_arg', 'Bigorna de Argumentos', 2, 1, 4, ['guarda']);
+eA('e_orgulho', 'Orgulho do Ofício', 3, 3, 3);
+eT('e_preco_justo', 'Preço Justo, Diz Ele', 3, 4);
+eA('e_aprendiz_azer', 'Aprendiz Atento', 1, 1, 2);
+socEnc('kryoret', { name: 'Banca Azer', perfil: 'Respeito', leader: 'Kryoret', hp: 16, rule: 'Perfil Respeito. Azers respeitam quem conhece o ofício e cobram caro de quem chega sem educação.', deck: { e_olhar_ferreiro: 4, e_bigorna_arg: 3, e_orgulho: 3, e_preco_justo: 2, e_aprendiz_azer: 3 } });
+socEnc('guarda_azer', { name: 'Guarda Azer', perfil: 'Procedimento', leader: 'Guarda Azer', hp: 14, rule: 'Perfil Procedimento. O prisioneiro só sai com uma boa razão, de preferência por escrito.', deck: { e_olhar_ferreiro: 4, e_bigorna_arg: 4, e_notificacao: 3, e_aprendiz_azer: 3, e_orgulho: 2 } });
 const SOCIAL_NEUTRAL_STARTER = { s_felix: 2, s_elogio: 2, s_respirar: 2, s_solido: 2, s_colo: 2, s_contra: 2, s_ponto: 2 };
 const SOCIAL_INTRO = { temporal: ['s_fala', 's_precedente', 's_veterano'], draconic: ['s_calma', 's_forca', 's_presenca'], necro: ['s_desabafo', 's_charme', 's_elogio_postumo'], holy: ['s_informante', 's_vigilia_oracao', 's_sermao'], tech: ['s_demonstracao', 's_clausula', 's_adendo'], space: ['s_jargao', 's_profecia', 's_diagrama'] };
 const SOCIAL_POOL = {
@@ -960,7 +1062,7 @@ const SOCIAL_POOL = {
 };
 
 const Engine = {
-  DEF, DISC, ENC, NEUTRAL_STARTER, BOARD_MAX, HAND_MAX, SOCIAL_NEUTRAL_STARTER, SOCIAL_INTRO, SOCIAL_POOL,
+  DEF, DISC, ENC, NEUTRAL_STARTER, BOARD_MAX, HAND_MAX, BLIND, setBlindRule, summon, dmg, SOCIAL_NEUTRAL_STARTER, SOCIAL_INTRO, SOCIAL_POOL,
   newGame, mulligan, keepHand, nextMulliganSize, canPlay, playCard, attack, heroAttack, canHeroAttack, resonate, canResonate, endTurn,
   resolvePrever, enemyStep, validTargets, attackTargets, canAttack, getCost, getAtk, hasKw, isDead,
   compassoPos, ent, S, sameRef, despertar,
