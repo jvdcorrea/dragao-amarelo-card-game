@@ -2542,7 +2542,7 @@ function guildScene(sc) {
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
   if (sc.kind === 'banca') return bancaScene(sc);
-  if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'banca-back' : 'scene-ok'}">Continuar</button></div>`;
+  if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'g-banca-back' : 'scene-ok'}">Continuar</button></div>`;
   if (sc.kind === 'felix-divida') return felixDebtScene();
   if (sc.kind === 'passeio') return passeioScene(sc);
   if (sc.kind === 'primeiro-aventureiro') {
@@ -2883,13 +2883,13 @@ async function guildClick(act, ds) {
   if (act === 'g-ok-taverna') { camp.pending.shift(); camp.flags.facilities = true; if (camp.fac.taverna === 'bloq') camp.fac.taverna = 'suja'; saveCamp(); ui.screen = 'instalacoes'; render(); return true; }
   if (act === 'g-defend') { startDefense(); return true; }
   if (act === 'g-credor') { startSocial('credor', { credor: true, volta: !!ds.volta, enc: 'credor' }); return true; }
-  if (act === 'banca-buy') {
+  if (act === 'g-banca-buy') {
     const run = camp.run; const sc = ui.scene; const b = BANCA.find(x => x.id === ds.item); if (!run || !b || !sc) return true;
     const p = bancaPrice(b.cost, sc.nodeId); if ((run.sucata || 0) < p) return true;
     run.sucata -= p; b.apply(run); hist({ k: 'banca', item: b.id, price: p }); saveCamp(); render(); toast(`${b.label}: feito.`); return true;
   }
-  if (act === 'banca-neg') { if (socialProblems().length) { toast('Ajuste o deck social antes: ' + socialProblems()[0]); return true; } const run = camp.run; run.bancaTried = run.bancaTried || {}; run.bancaTried[ui.scene.nodeId] = true; saveCamp(); startSocial('kryoret', { banca: true, enc: 'kryoret', nodeId: ui.scene.nodeId }); return true; }
-  if (act === 'banca-back') { ui.scene = { kind: 'banca', nodeId: ui.scene.nodeId }; ui.screen = 'scene'; render(); return true; }
+  if (act === 'g-banca-neg') { if (socialProblems().length) { toast('Ajuste o deck social antes: ' + socialProblems()[0]); return true; } const run = camp.run; run.bancaTried = run.bancaTried || {}; run.bancaTried[ui.scene.nodeId] = true; saveCamp(); startSocial('kryoret', { banca: true, enc: 'kryoret', nodeId: ui.scene.nodeId }); return true; }
+  if (act === 'g-banca-back') { ui.scene = { kind: 'banca', nodeId: ui.scene.nodeId }; ui.screen = 'scene'; render(); return true; }
   if (act === 'g-pay') { if (payDebt()) { ui.scene = { kind: 'msg', title: 'Parcela paga', text: `O Barão Ostrander confere cada moeda, anota no livro-caixa e, por um instante, quase sorri. “Pontual. Que novidade.” Restam ${camp.gold} de ouro no cofre.` }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); } else toast('Ouro insuficiente para a parcela.'); return true; }
   if (act === 'g-defend-social') { if (camp.defense && camp.defense.social) startSocial(camp.defense.enc, { defesa: true, enc: camp.defense.enc }); return true; }
   if (act === 'g-end-day') {
@@ -3090,13 +3090,13 @@ function bancaDiscount(nodeId) { const run = camp.run; return !!(run.bancaDescDe
 function bancaPrice(cost, nodeId) { return bancaDiscount(nodeId) ? Math.max(1, Math.round(cost * 0.8)) : cost; }
 function bancaScene(sc) {
   const run = camp.run; const suc = run.sucata || 0; const disc = bancaDiscount(sc.nodeId); const tried = run.bancaTried && run.bancaTried[sc.nodeId];
-  const rows = BANCA.map(b => { const p = bancaPrice(b.cost, sc.nodeId); return `<li class="npc"><div><b>${esc(b.label)}</b><p class="linha">${esc(b.dur)}</p></div><button class="botao" data-act="banca-buy" data-item="${b.id}" ${suc < p ? 'disabled' : ''}>${disc && p < b.cost ? `<s>${b.cost}</s> ` : ''}${p} de Sucata</button></li>`; }).join('');
+  const rows = BANCA.map(b => { const p = bancaPrice(b.cost, sc.nodeId); return `<li class="npc"><div><b>${esc(b.label)}</b><p class="linha">${esc(b.dur)}</p></div><button class="botao" data-act="g-banca-buy" data-item="${b.id}" ${suc < p ? 'disabled' : ''}>${disc && p < b.cost ? `<s>${b.cost}</s> ` : ''}${p} de Sucata</button></li>`; }).join('');
   return `${HAS_IMG('kryoret') ? '<div class="npc-arte" role="img" aria-label="Kryoret, o Azer da banca" style="background-image: var(--img-kryoret)"></div>' : `<div class="intro-ico">${iconSvg(typeof ART !== 'undefined' ? ART.ui.instalacoes : null)}</div>`}
     <h2>Banca Azer</h2><p>Ao lado de uma fornalha que nunca apagou, um Azer de barba em brasa armou uma tenda cheia de espadas, machados e armaduras, e martela uma lâmina na bigorna sem tirar os olhos de você. Uma placa de cobre diz, em três idiomas: “KRYORET. TROCO POR SUCATA. SEM FIADO.”</p>
     <div class="fala"><span class="quem">Kryoret</span><p>${disc ? 'Você fala a língua do ofício. Para você, preço de amigo.' : tried ? 'Já conversamos. O preço é o preço.' : 'Sucata na mesa, vantagem na mão. Educação abaixa o preço. Falta dela aumenta.'}</p></div>
     <p class="destaque">Sucata: ${suc}. Vida: ${run.hp} de 30.${disc ? ' Desconto de 20% ativo.' : ''}</p>
     <ul class="lista-npc">${rows}</ul>
-    <div class="opcoes">${!disc && !tried ? `<button class="botao" data-act="banca-neg">${bi('social')}Negociar o preço (luta social)</button>` : ''}<button class="botao principal" data-act="scene-ok">Seguir caminho</button></div>
+    <div class="opcoes">${!disc && !tried ? `<button class="botao" data-act="g-banca-neg">${bi('social')}Negociar o preço (luta social)</button>` : ''}<button class="botao principal" data-act="scene-ok">Seguir caminho</button></div>
     <p class="intro-dica">A Sucata se perde no fim da descida, então vale gastar.</p>`;
 }
 function felixDebtScene() {
