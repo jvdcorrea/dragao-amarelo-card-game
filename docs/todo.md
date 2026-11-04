@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 28/10/2026 · acompanha o design v0.58*
+*Atualizada em 28/10/2026 · acompanha o design v0.59*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -29,8 +29,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 6. **[~] Menu de instalações e Taverna** (P71). Depois da Brisa, Felix sugere reabrir a taverna. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia. A Taverna oferece 3 candidatos aleatórios por dia. **[x] Alojamento** (P76): começa com 4 vagas e cada nível abre mais 2, até 10 (60, 120 e 200 de ouro, 1 dia de obra cada).
    - *Falta:* personagens de verdade no lugar dos aleatórios e a contratação por batalha social.
 
-7. **[ ] Outras instalações:** Área de treinamento (melhorar aventureiros e unidades), Laboratório arcano (feitiços e upgrades mágicos), Ferraria (equipamentos em carta e dos aventureiros). Já aparecem bloqueadas, cada uma esperando um NPC.
-   - *Falta:* quem libera cada uma, o custo e o que cada melhoria faz.
+7. **[x] Ferraria (Odie), Recursos Humanos e Área de treinamento (Kryoret)** (P92). O Laboratório arcano ficou de lado por enquanto.
 
 8. **[x] Defesas com inimigos aleatórios** (P72). Agora com humanos de ameaça variável (ladrões, salteadores e a guilda rival), além dos monstros e das defesas sociais (P89). A partir do dia 3, 20% de chance por noite. Os invasores são monstros do Buraco, em quatro temas com cartas do grupo 1. Vitória dá ouro; derrota custa até 20 de ouro.
    - *Falta:* Cofre, portão de contenção e vigias reduzindo a ameaça; monstros na cola de missões fracassadas.
@@ -66,6 +65,11 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [ ] Recompensa final da quest da Chrome (hoje 100 de ouro).
 - [ ] Playtests humanos do grupo 2 para o ajuste fino.
 - [ ] Grupo 3: o frio e o resgate de Ergos.
+
+## Pendências da leva P92
+
+- [ ] Envio automático de logs (estudo: banco do artefato, Google Apps Script ou Firebase).
+- [ ] Retrato do Odie.
 
 ## Decisões minhas que valem revisão
 

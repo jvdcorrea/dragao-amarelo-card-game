@@ -459,3 +459,22 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .grupo-andares { margin: 6px 0 10px; }
 .grupo-andares h3 { margin: 4px 0 6px; font-size: 1rem; color: var(--muted); }
 .quest.feita { opacity: .6; text-decoration: line-through; }
+/* Guilda reorganizada (P92) */
+.dia-topo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.dia-grande { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 74px; padding: 6px 10px; border-radius: 12px; border: 2px solid var(--ouro-vivo); background: color-mix(in srgb, var(--ouro-vivo) 12%, transparent); line-height: 1; }
+.dia-grande small { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.dia-grande b { font-size: 2.2rem; font-family: Georgia, serif; color: var(--ouro); }
+.dia-info { flex: 1 1 260px; }
+.fim-dia { margin-left: auto; }
+.painel-camp h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 1.2rem; }
+.painel-camp + .painel-camp { margin-top: 12px; }
+.cidade-grande { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; width: 100%; padding: 14px 18px; font-size: 1.15rem; font-weight: 700; text-align: left; background: color-mix(in srgb, var(--ouro-vivo) 18%, var(--surface, transparent)); border: 2px solid var(--ouro-vivo); }
+.cidade-grande > svg, .cidade-grande > .bi { grid-row: span 2; width: 34px; height: 34px; }
+.cidade-grande small { font-weight: 400; font-size: .88rem; color: var(--muted); }
+.cidade-grande.usada, .cidade-grande:disabled { filter: grayscale(1); opacity: .55; border-color: var(--line); background: transparent; cursor: not-allowed; }
+.playtest .logs-interno { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.playtest .logs-interno h3 { margin: 0 0 4px; font-size: 1rem; }
+.badge-cartas { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; color: #fff; background: var(--d-space, #5b6bd6); vertical-align: 2px; margin-left: 4px; }
+.novas-cartas { border-left: 4px solid var(--d-space, #5b6bd6); padding-left: 10px; }
+.blind-lider { color: var(--vida); }
+.grupo-titulo { margin: 14px 0 4px; font-size: 1.15rem; }

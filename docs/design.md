@@ -576,3 +576,18 @@ Digital, single-player, PC. Tecnologia em aberto.
 1. Revisar o arquivo de cartas (`dragao-amarelo-cartas.md`): 6 Disciplinas aprofundadas, Neutras e decks iniciais de batalha e sociais.
 2. Jogar a campanha do grupo 1 e ajustar com os logs (Basilisco pesado, Toca fácil, Jardim acima da elite).
 3. Inimigos dos grupos 2 a 4.
+
+
+---
+
+## Instalações e guilda, segunda leva (P92)
+
+- **Ferraria:** a Chrome, ao receber a engrenagem, indica **Odie, o Gato Artífice** (gato preto de patas brancas, gordinho e cheio de energia). Ele chega à guilda e libera a reconstrução da Ferraria. Ao terminar o nível 1, Odie conta que trabalhava ali antes de Ergos sumir. Três níveis (80, 150 e 250 de ouro, 1 dia de obra cada), +5% de sucesso nas missões por nível para todos os aventureiros.
+- **Recursos Humanos:** três níveis (100, 200 e 300 de ouro). Nível 1: +1 de experiência por missão concluída. Nível 2: candidatos da Taverna chegam com +1 nível. Nível 3: +2 de experiência por missão e candidatos com +1 nível.
+- **Área de treinamento:** depois do andar 10, Kryoret oferece construí-la por 150 de ouro (era um plano antigo dele com Ergos). Um aventureiro vira instrutor: sai das missões e dá +3% de sucesso por nível dele a todos os outros.
+- **Laboratório arcano:** deixado de lado por enquanto.
+- **Indicações dos Mestres:** os aventureiros indicados chegam no nível 3, acima dos candidatos comuns. Saves antigos são ajustados.
+- **Notas de Ergos:** o contador mostra o total das notas dos grupos já liberados.
+- **Guilda reorganizada:** o dia aparece em destaque; a tela se divide em Dungeon, Cidade (botão grande, que fica cinza depois da ida), Guilda (Felix, Quadro, Instalações, Taverna, Notas), Decks e Playtest (batalha avulsa, **negociação avulsa** e o log).
+- **Cartas novas nos Mestres:** quando o grupo 2 é liberado, cada Mestre ganha um selo "Cartas novas" na cidade até a primeira visita, e a loja lista as cartas novas da Disciplina.
+- **Blindagem, Superaquecer e Perfurar** aparecem no glossário da partida e nas peças em campo.

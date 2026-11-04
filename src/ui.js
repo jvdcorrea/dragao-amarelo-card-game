@@ -3,7 +3,7 @@
 const E = window.Engine;
 const TYPE_LABEL = { unit: 'Unidade', spell: 'Feitiço', weapon: 'Arma', structure: 'Estrutura', ritual: 'Ritual', trap: 'Armadilha' };
 const typeLabel = d => (d ? ((d.social ? SOC_TYPE : TYPE_LABEL)[d.type] || '') : '');
-const KW_LABEL = { guarda: 'Guarda', investida: 'Acelerar', avanco: 'Avanço', letal: 'Letal', dreno: 'Dreno', escudo: 'Escudo', emboscada: 'Emboscada', eco: 'Eco' };
+const KW_LABEL = { guarda: 'Guarda', investida: 'Acelerar', avanco: 'Avanço', letal: 'Letal', dreno: 'Dreno', escudo: 'Escudo', emboscada: 'Emboscada', eco: 'Eco', superaquecer: 'Superaquecer', perfurar: 'Perfurar' };
 const DISC_NAME = { temporal: 'Temporal Warfare', draconic: 'Draconic Primalism', necro: 'Necrodance', holy: 'Holy Shadowmancy', tech: 'Magitech', space: 'Space Wizardry', neutra: 'Neutra' };
 const GLOSS = {
   'Abertura': 'No social, o mesmo que Ao Entrar: efeito quando o Argumento entra.',
@@ -37,6 +37,9 @@ const GLOSS = {
   'Órbita': 'Na mão, ganha 1 Carga sempre que você lança um feitiço.',
   'Módulo': 'Acopla a uma unidade aliada e volta para a mão quando ela morre.',
   'Brotar': 'No início do turno do dono, a carta se transforma. Matar antes evita.',
+  'Blindagem': 'Danos menores que o número não passam; danos iguais ou maiores passam inteiros. Feitiços ignoram a Blindagem.',
+  'Superaquecer': 'No início do turno do dono, a unidade ganha +1 de Ataque e sofre 1 de dano. Uma hora ela se consome.',
+  'Perfurar': 'O dano desta unidade ou arma ignora a Blindagem.',
   'Imóvel': 'Não pode atacar no próximo turno do dono.',
   'Evoluir': 'Evolução: +2/+2 numa unidade sua, que pode atacar unidades neste turno e ativa Ao Evoluir.',
   'Estrutura': 'Permanente com Vida própria; não ataca, mas pode ser atacada.',
@@ -45,7 +48,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.19/design-v0.58/inimigos-v0.13/proto-2026-10-29';
+const RULES = 'cartas-v0.19/design-v0.59/inimigos-v0.13/proto-2026-11-04';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -112,7 +115,7 @@ async function exportLogs(scope) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
   const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, debt: camp.debt || null, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
   const json = JSON.stringify(payload);
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
   const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
@@ -140,16 +143,16 @@ function renderSetup() {
       <span class="opcao-nome">${esc(d.name)}</span><span class="opcao-papel">${esc(d.role)}</span><span class="opcao-texto">${esc(d.plan)}</span>
     </button>`).join('');
   const titles = { Comum: 'Encontros comuns', Elite: 'Elites', Chefe: 'Chefe' };
-  const encs = ['Comum', 'Elite', 'Chefe'].map(t => `<div class="grupo-enc"><h3>${titles[t]}</h3>${Object.entries(E.ENC).filter(([, e]) => e.tier === t).map(([id, e]) => `
+  const encs = [1, 2].map(g => `<h3 class="grupo-titulo">${esc(R.GRUPOS[g].nome)}</h3>` + ['Comum', 'Elite', 'Chefe'].map(t => `<div class="grupo-enc"><h3>${titles[t]}</h3>${Object.entries(E.ENC).filter(([, e]) => e.tier === t && (e.grupo || 1) === g).map(([id, e]) => `
     <button class="opcao disc-inimigo ${ui.enc === id ? 'escolhida' : ''}" data-enc="${id}" aria-pressed="${ui.enc === id}">
       <span class="opcao-nome">${esc(e.name)}</span><span class="opcao-papel">${e.tier === 'Comum' ? esc(e.leader) + ', ' : ''}${e.hp} de Vida</span><span class="opcao-texto">${esc(e.rule)}</span>
-    </button>`).join('')}</div>`).join('');
+    </button>`).join('')}</div>`).join('')).join('');
   $('#app').innerHTML = `
     <header class="abertura">
       <h1>Dragão Amarelo</h1>
-      <p class="sub">Batalha avulsa nas Grutas Vivas</p>
-      <p><button class="botao" data-act="home">Voltar ao início</button></p>
-      <p class="intro">Escolha uma Disciplina e um encontro do grupo 1. Seu deck inicial tem 30 cartas: 20 neutras fixas, com os Felinos da Guilda, e 10 introdutórias da Disciplina. Você começa com 30 de Vida.</p>
+      <p class="sub">Batalha avulsa: playtest fora da campanha</p>
+      <p><button class="botao" data-act="home">Voltar</button></p>
+      <p class="intro">Escolha uma Disciplina e um encontro das Grutas Vivas ou da Forja Esquecida. Seu deck inicial tem 30 cartas: 20 neutras fixas, com os Felinos da Guilda, e 10 introdutórias da Disciplina. Você começa com 30 de Vida.</p>
     </header>
     <section class="escolha"><h2>Disciplina</h2><div class="grade-disc">${discs}</div></section>
     <section class="escolha"><h2>Encontro</h2>${encs}</section>
@@ -169,6 +172,24 @@ function renderSetup() {
       <li>O Compasso mostra em que posição (1, 2 ou 3) cai a próxima carta jogada no turno.</li>
       <li>Passe o mouse ou toque em qualquer carta para ver os detalhes ao lado.</li>
     </ul></details>`;
+}
+
+function renderSetupSocial() {
+  const discs = Object.entries(E.DISC).map(([id, d]) => `<button class="opcao disc-${id} ${ui.sdisc === id ? 'escolhida' : ''}" data-sdisc="${id}" aria-pressed="${ui.sdisc === id}"><span class="opcao-nome">${esc(d.name)}</span><span class="opcao-papel">${esc(d.role)}</span></button>`).join('');
+  const encs = Object.entries(E.ENC).filter(([, e]) => e.tier === 'Social').map(([id, e]) => `<button class="opcao disc-inimigo ${ui.senc === id ? 'escolhida' : ''}" data-senc="${id}" aria-pressed="${ui.senc === id}"><span class="opcao-nome">${esc(e.leader)}</span><span class="opcao-papel">Perfil ${esc(e.perfil)}, ${e.hp} de Resistência</span><span class="opcao-texto">${esc(e.rule)}</span></button>`).join('');
+  $('#app').innerHTML = `<header class="abertura"><h1>Negociação avulsa</h1><p class="sub">Playtest do deck social, fora da campanha</p>
+      <p><button class="botao" data-act="${camp ? 'home' : 'to-title'}">Voltar</button></p>
+      <p class="intro">Escolha uma Disciplina e um interlocutor. O deck é o social inicial: 14 cartas básicas e 6 da Disciplina. Você começa com 30 de Compostura. Nada aqui afeta a campanha.</p></header>
+    <section class="escolha"><h2>Disciplina</h2><div class="grade-disc">${discs}</div></section>
+    <section class="escolha"><h2>Interlocutor</h2><div class="grupo-enc">${encs}</div></section>
+    <div class="acoes-setup"><button class="botao principal" data-act="start-social-avulsa" ${ui.sdisc && ui.senc ? '' : 'disabled'}>${bi('social')}Negociar</button></div>`;
+}
+function startSocialAvulsa(disc, encId) {
+  const deck = []; Object.entries(E.SOCIAL_NEUTRAL_STARTER).forEach(([id, n]) => { for (let i = 0; i < n; i++) deck.push(id); }); E.SOCIAL_INTRO[disc].forEach(id => deck.push(id, id));
+  st = E.newGame(disc, encId, null, { deck });
+  st.gameId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  st.ctx = { mode: 'social', avulsa: true, hpStart: 30 };
+  ui.screen = 'battle'; ui.mode = null; ui.info = null; ui.modal = null; ui.busy = false; ui.overClosed = false; render(); window.scrollTo(0, 0);
 }
 
 /* ---------- Jogo ---------- */
@@ -197,6 +218,7 @@ function piece(e, tgt) {
   if (sick && mine && !e.attacked) estados.push('Esperando');
   if (e.attacked && mine && st.turnSide === 'P') estados.push('Já atacou');
   if (e.modules.length) estados.push(`${e.modules.length} Módulo${e.modules.length > 1 ? 's' : ''}`);
+  if (e.blind) estados.push(`Blindagem ${e.blind}`);
   const sel = ui.mode && ui.mode.kind === 'attack' && ui.mode.uid === e.uid;
   const cls = ['peca', e.kind, 'disc-' + discOf(e), isT ? 'alvo' : '', can ? 'pode' : '', e.imovel > 0 ? 'imovel' : '', E.hasKw(e, 'guarda') ? 'guarda' : '', e.resonated ? 'ressoou' : '', sel ? 'sel' : ''].join(' ');
   return `<button class="${cls}" data-ent="${e.uid}" data-info="e:${e.uid}" aria-label="${esc(e.name)}"><span class="marca" aria-hidden="true">${iconSvg(cardIconName(e.id))}</span><span class="nome">${esc(e.name)}</span><span class="selos">${kws}${tags}</span>${estados.length ? `<span class="estado">${estados.join(', ')}</span>` : ''}${body}</button>`;
@@ -209,7 +231,7 @@ function leaderE(tgt) {
   const res = enc.boss ? `<span>Evolução ${dots(o.resonance.points, enc.resonance)}</span>` : '';
   return `<section class="lider">
     <div class="lider-id">${iconSvg(typeof ART !== 'undefined' ? ART.enc[st.encId] : null, 'ico-lider')}<span class="lider-nome">${esc(o.leader.name)}</span><span class="lider-tier">${enc.social ? 'Perfil ' + esc(enc.perfil) : enc.tier}${st.phase2 ? ', fase 2' : ''}</span></div>
-    <p class="regra">${esc(enc.rule)}</p>
+    <p class="regra">${esc(enc.rule)}${enc.leaderBlind && enc.leaderBlind(st) ? ` <b class="blind-lider">Blindagem ${enc.leaderBlind(st)} agora.</b>` : ''}</p>
     <button class="alvo-lider ${isT ? 'alvo' : ''}" data-leader="E" data-info="l:E" aria-label="${SOC() ? 'Resistência' : 'Vida'} de ${esc(o.leader.name)}: ${Math.max(0, o.leader.hp)}">
       <span class="vida-num">${Math.max(0, o.leader.hp)}</span><small>de ${o.leader.maxHp}</small>
     </button>
@@ -268,7 +290,7 @@ function panelP() {
   </section>`;
 }
 
-const KW_RE = new RegExp('(?<![\\p{L}])(Exige Compasso \\d|Compasso \\d(?: ou \\d)?|Ao Entrar|Ao Morrer|Ao Evoluir|Ao Revelar|Ao ativar|Sangria \\d+|Ritual \\d+|Adiantar \\d+|Prever \\d+|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Cristal|Despertar|Armadilha|Órbita|Módulo|Brotar|Imóvel|Felinos|Felino|Dragões|Dragão|Abertura|Repercussão|Ponto Sensível|Álibi|Ao Enfatizar|Perfil (?:Ganância|Vaidade|Princípios|Procedimento|Respeito)|Compostura|Resistência|Lábia|Rumores|Rumor|Construto|Rituais|Ritual|Cargas|Carga|Evoluir|Sacrifício)(?![\\p{L}])', 'gu');
+const KW_RE = new RegExp('(?<![\\p{L}])(Exige Compasso \\d|Compasso \\d(?: ou \\d)?|Ao Entrar|Ao Morrer|Ao Evoluir|Ao Revelar|Ao ativar|Sangria \\d+|Ritual \\d+|Adiantar \\d+|Prever \\d+|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Cristal|Despertar|Armadilha|Órbita|Módulo|Brotar|Imóvel|Blindagem \\d+|Blindagem|Superaquecer|Perfurar|Felinos|Felino|Dragões|Dragão|Abertura|Repercussão|Ponto Sensível|Álibi|Ao Enfatizar|Perfil (?:Ganância|Vaidade|Princípios|Procedimento|Respeito)|Compostura|Resistência|Lábia|Rumores|Rumor|Construto|Rituais|Ritual|Cargas|Carga|Evoluir|Sacrifício)(?![\\p{L}])', 'gu');
 const KW_ONLY = /^(?:(?:Ponto Sensível|Álibi|Guarda|Acelerar|Avanço|Letal|Dreno|Escudo|Emboscada|Eco|Atraso|Felino|Dragão|Construto|Órbita|Módulo|Armadilha|Ritual \d+|Sangria \d+|Adiantar \d+|Arma \d+\/\d+)\.\s*)+$/u;
 function fmtText(text, compact) {
   if (!text) return '';
@@ -334,7 +356,7 @@ function infoPanel() {
         const d = E.DEF[e.id];
         const kw = Object.keys(KW_LABEL).filter(x => E.hasKw(e, x)).map(x => KW_LABEL[x]);
         const st2 = e.kind === 'unit' ? `${E.getAtk(st, e)} de ${SOC() ? 'Peso' : 'ataque'}, ${e.hp} de ${e.maxHp} de ${W('Vida')}` : e.kind === 'structure' ? `${e.hp} de ${W('Vida')}` : `contagem ${e.countdown}`;
-        const extra = kw.slice(); if (e.imovel > 0) extra.push('Imóvel'); if (e.kind === 'ritual') extra.push('Ritual'); if (e.kind === 'structure') extra.push('Estrutura'); if (e.resonated) extra.push('Evoluir');
+        const extra = kw.slice(); if (e.imovel > 0) extra.push('Imóvel'); if (e.kind === 'ritual') extra.push('Ritual'); if (e.kind === 'structure') extra.push('Estrutura'); if (e.resonated) extra.push('Evoluir'); if (e.blind) extra.push('Blindagem');
         html = `${artBand(e.id, discOf(e), true)}<h2>${esc(e.name)}</h2><p class="linha">${typeLabel(d) || 'Unidade'} ${e.owner === 'P' ? 'sua' : 'inimiga'}, ${st2}</p>${d.text ? `<p>${fmtText(d.text)}</p>` : ''}${e.modules.length ? `<p class="linha">Módulos: ${e.modules.map(m => esc(E.DEF[m].name)).join(', ')}</p>` : ''}${glossFor(d.text, extra)}`;
       }
     } else if (k === 'l:E') {
@@ -526,6 +548,7 @@ function floorCleared() {
     if (debtOpen()) camp.debt.amount += 700; else camp.debt = { amount: 700, status: 'pendente', stage: 2, overdue: 0 };
     camp.debt.stage = 2; camp.pending.push({ kind: 'credor', segunda: true });
   }
+  if (run.floor === 10 && !camp.flags.treinoOferta) { camp.flags.treinoOferta = true; camp.pending.push({ kind: 'kryoret-treino' }); }
   if (run.floor === 10 && !camp.flags.ignarTesouro) { camp.gold += 800; camp.flags.ignarTesouro = true; hist({ k: 'tesouro', from: 'ignar', gold: 800 }); }
   let treasure = run.floor === 10 && camp.flags.ignarTesouro && !run.revisit ? 800 : 0; if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = 300; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
   const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
@@ -542,8 +565,8 @@ function floorFailed(why) {
   ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 
-function logsHtml() {
-  return `<section class="escolha logs"><h2>Log de partidas</h2>
+function logsHtml(inner) {
+  return `<section class="${inner ? 'logs-interno' : 'escolha logs'}"><h${inner ? 3 : 2}>Log de partidas</h${inner ? 3 : 2}>
     <p class="intro">Cada partida fica guardada neste navegador. Exporte o arquivo para analisar depois.</p>
     <div class="linha-logs"><label for="apelido">Apelido no log</label><input id="apelido" type="text" maxlength="40" value="${esc(ui.nick)}" placeholder="ex.: Sanerion" autocomplete="off">
     <button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
@@ -561,10 +584,17 @@ const FAC = {
   quadro: { name: 'Quadro de Missões', desc: 'Pedidos de clientes e do governo. Despache aventureiros.' },
   taverna: { name: 'Taverna', desc: 'Onde aventureiros procuram trabalho. Contrate novos membros.' },
   alojamento: { name: 'Alojamento', desc: 'Quartos para os aventureiros. Cada nível abre espaço para mais 2.' },
-  treino: { name: 'Área de treinamento', desc: 'Melhorar aventureiros e unidades.', lock: 'Precisa de um instrutor (NPC a definir).' },
-  lab: { name: 'Laboratório arcano', desc: 'Melhorar feitiços e outros upgrades mágicos.', lock: 'Precisa de um arcanista (NPC a definir).' },
-  ferraria: { name: 'Ferraria', desc: 'Melhorar equipamentos em carta e dos aventureiros.', lock: 'Precisa de um ferreiro (NPC a definir).' },
+  rh: { name: 'Recursos Humanos', desc: 'Contratações e treinamento de pessoal. Cada nível traz candidatos melhores ou mais experiência por missão.' },
+  ferraria: { name: 'Ferraria', desc: 'Equipamento melhor para os aventureiros: cada nível aumenta a chance de sucesso de todos nas missões.', lock: 'Precisa de um ferreiro. Talvez a Chrome conheça alguém.' },
+  treino: { name: 'Área de treinamento', desc: 'Um aventureiro vira instrutor: sai das missões e aumenta a chance de sucesso de todos os outros conforme o nível dele.', lock: 'Ninguém na guilda sabe construir uma. Ainda.' },
 };
+const FERR = [80, 150, 250]; /* custo de cada nível da Ferraria: +5% de sucesso por nível */
+const RH = [100, 200, 300]; /* custo de cada nível de Recursos Humanos */
+const RH_TXT = ['+1 de experiência por missão concluída', 'candidatos da Taverna chegam com +1 nível', '+2 de experiência por missão e candidatos com +1 nível'];
+const rhLvl = () => camp.fac.rh || 0;
+const ferrLvl = () => (typeof camp.fac.ferraria === 'number' ? camp.fac.ferraria : 0);
+function instrutor() { return camp.advs.find(a => a.status === 'instrutor') || null; }
+function guildBonus() { const i = instrutor(); return 0.05 * ferrLvl() + (i ? 0.03 * i.lvl : 0); }
 const NOMES = [['Aldo', 'm'], ['Dório', 'm'], ['Elva', 'f'], ['Fausto', 'm'], ['Gilda', 'f'], ['Heitor', 'm'], ['Iara', 'f'], ['Jonas', 'm'], ['Kaila', 'f'], ['Lauro', 'm'], ['Mirela', 'f'], ['Nuno', 'm'], ['Odete', 'f'], ['Pietro', 'm'], ['Quitéria', 'f'], ['Rufino', 'm'], ['Selma', 'f'], ['Tadeu', 'm'], ['Ulla', 'f'], ['Vasco', 'm'], ['Wanda', 'f'], ['Xisto', 'm'], ['Yolanda', 'f'], ['Zé Grilo', 'm'], ['Benedita', 'f'], ['Otávio', 'm'], ['Lúcia', 'f']];
 const CLASSES = { guerreiro: { m: 'Guerreiro', f: 'Guerreira', tag: 'escolta' }, batedor: { m: 'Batedor', f: 'Batedora', tag: 'busca' }, mago: { m: 'Mago', f: 'Maga', tag: 'arcano' }, clerigo: { m: 'Clérigo', f: 'Clériga', tag: 'cura' } };
 const TAG_NAME = { escolta: 'escolta', busca: 'busca', arcano: 'arcano', cura: 'cura' };
@@ -582,7 +612,7 @@ function newAdv(fixed) {
   const used = new Set((camp ? (camp.advs || []).concat(camp.recruits || []) : []).map(a => a.name)); const livres = NOMES.filter(n => !used.has(n[0]));
   const [name, g] = fixed ? [fixed.name, fixed.g] : (livres.length ? livres : NOMES)[Math.floor(rnd() * (livres.length || NOMES.length))];
   const cls = fixed ? fixed.cls : Object.keys(CLASSES)[Math.floor(rnd() * 4)];
-  const lvl = fixed ? fixed.lvl : (rnd() < 0.7 ? 1 : 2);
+  const lvl = fixed ? fixed.lvl : Math.min(5, (rnd() < 0.7 ? 1 : 2) + (camp && rhLvl() >= 2 ? 1 : 0));
   const a = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, g, cls, lvl, xp: 0, status: 'livre', mission: null, days: 0 };
   if (fixed && fixed.title) a.title = fixed.title;
   return a;
@@ -592,7 +622,7 @@ function newMission() {
   const [diff, tag, title] = MISSOES[Math.floor(rnd() * MISSOES.length)];
   return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), diff, tag, title, days: diff, gold: diff * 15 + rint(0, 10), card: diff >= 2 && rnd() < 0.35 };
 }
-function successChance(a, m) { const match = CLASSES[a.cls].tag === m.tag ? 1 : 0; return Math.max(0.2, Math.min(0.95, 0.6 + 0.15 * (a.lvl + match - m.diff))); }
+function successChance(a, m) { const match = CLASSES[a.cls].tag === m.tag ? 1 : 0; return Math.max(0.2, Math.min(0.95, guildBonus() + 0.6 + 0.15 * (a.lvl + match - m.diff))); }
 function ensureGuild() {
   if (!camp) return;
   if (camp.gold === undefined) camp.gold = 0;
@@ -604,8 +634,13 @@ function ensureGuild() {
   camp.recruits = camp.recruits || [];
   camp.pending = camp.pending || [];
   camp.quests = camp.quests || [];
+  if (camp.flags.engrenagemEntregue && !camp.flags.odie) { camp.flags.odie = true; camp.pending.push({ kind: 'odie-chega' }); }
+  if (!camp.flags.mestreNivel3) { camp.flags.mestreNivel3 = true; const nomes = new Set(camp.history.filter(e => e.k === 'aventureiro' && e.from).map(e => e.name)); camp.advs.forEach(a => { if (nomes.has(a.name) || a.mestre) a.lvl = Math.max(a.lvl, 3); }); }
   if (camp.cleared && camp.cleared[3] && !camp.debt && !camp.pending.some(p => p.kind === 'credor') && !camp.run) camp.pending.push({ kind: 'credor' });
-  camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: 'bloq', lab: 'bloq', ferraria: 'bloq' };
+  camp.fac = camp.fac || { quadro: 'bloq', taverna: 'bloq', treino: null, ferraria: 0, rh: 0 };
+  if (camp.fac.lab) delete camp.fac.lab;
+  if (camp.fac.ferraria === 'bloq') camp.fac.ferraria = 0;
+  if (camp.fac.treino === 'bloq') camp.fac.treino = null;
   if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
   if (camp.defense) registerDefense(camp.defense);
@@ -687,6 +722,8 @@ function finishBuilding(lines) {
   if (camp.building) {
     const b = camp.building;
     if (b.id === 'alojamento') { camp.fac.alojamento = b.level; lines.push(`O alojamento ganhou mais quartos (nível ${b.level}). Agora cabem ${advMax()} aventureiros na guilda.`); hist({ k: 'obra', id: 'alojamento', level: b.level }); }
+    if (b.id === 'ferraria') { camp.fac.ferraria = b.level; lines.push(`A Ferraria ${b.level === 1 ? 'voltou a funcionar' : `chegou ao nível ${b.level}`}: +${5 * b.level}% de sucesso para todos os aventureiros.`); hist({ k: 'obra', id: 'ferraria', level: b.level }); if (b.level === 1) camp.pending.push({ kind: 'odie-ferraria' }); }
+    if (b.id === 'rh') { camp.fac.rh = b.level; lines.push(`Recursos Humanos chegou ao nível ${b.level}: ${RH_TXT[b.level - 1]}.`); hist({ k: 'obra', id: 'rh', level: b.level }); }
     if (b.id === 'taverna') { camp.fac.taverna = 'ativa'; lines.push('A taverna está limpa e aberta de novo. Já tem gente procurando trabalho.'); hist({ k: 'obra', id: 'taverna' }); }
     camp.building = null;
   }
@@ -702,8 +739,8 @@ function processAdvs(lines) {
         if (m && ok) {
           camp.gold += m.gold; let extra = '';
           if (m.card) { const c = R.treasureCard(rnd, camp.deck.disc); addCards([c]); extra = ` e trouxe a carta ${E.DEF[c].name}`; }
-          a.xp += 1; let up = '';
-          if (a.xp >= a.lvl * 2 && a.lvl < 5) { a.lvl += 1; a.xp = 0; up = ` ${a.name} subiu para o nível ${a.lvl}.`; }
+          a.xp += 1 + (rhLvl() >= 3 ? 2 : rhLvl() >= 1 ? 1 : 0); let up = '';
+          while (a.xp >= a.lvl * 2 && a.lvl < 5) { a.xp -= a.lvl * 2; a.lvl += 1; up = ` ${a.name} subiu para o nível ${a.lvl}.`; }
           lines.push(`${a.name} concluiu “${m.title}”: +${m.gold} de ouro${extra}.${up}`);
           hist({ k: 'missao', adv: a.name, title: m.title, ok: true, gold: m.gold });
           a.status = 'livre';
@@ -739,6 +776,9 @@ function pendingScene() {
   if (p.kind === 'primeiro-aventureiro') return { kind: 'primeiro-aventureiro' };
   if (p.kind === 'sugestao-taverna') return { kind: 'sugestao-taverna' };
   if (p.kind === 'cliente-tutorial') return { kind: 'cliente-tutorial' };
+  if (p.kind === 'odie-ferraria') return { kind: 'odie-ferraria' };
+  if (p.kind === 'odie-chega') return { kind: 'odie-chega' };
+  if (p.kind === 'kryoret-treino') return { kind: 'kryoret-treino' };
   if (p.kind === 'credor') return { kind: 'credor', volta: !!p.volta, segunda: !!p.segunda };
   if (p.kind === 'felix-divida' && debtOpen()) return { kind: 'felix-divida' };
   if (p.kind === 'defesa' && camp.defense) return { kind: 'defesa' };
@@ -749,6 +789,9 @@ function guildScene(sc) {
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
   if (sc.kind === 'banca') return bancaScene(sc);
+  if (sc.kind === 'odie-chega') return `<h2>Recado da Chrome</h2><p>Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.</p><div class="fala"><span class="quem">Odie</span><p>Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?</p></div><p class="intro-dica">A Ferraria pode ser reconstruída nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Bem-vindo, Odie</button></div>`;
+  if (sc.kind === 'odie-ferraria') return `<h2>A Ferraria acesa</h2><p>A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.</p><div class="fala"><span class="quem">Odie</span><p>Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.</p><p>Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.</p></div><p class="intro-dica">Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Ao trabalho</button></div>`;
+  if (sc.kind === 'kryoret-treino') return `${HAS_IMG('kryoret') ? '<div class="npc-arte" role="img" aria-label="Kryoret" style="background-image: var(--img-kryoret)"></div>' : ''}<h2>Uma visita da Forja</h2><p>Kryoret aparece na porta da guilda com uma caixa de ferramentas nas costas e fuligem até as sobrancelhas.</p><div class="fala"><span class="quem">Kryoret</span><p>Ignar apagou, e a Forja ficou quieta demais. Lembrei de uma conversa com o seu tio: ele queria um pátio de treino aqui atrás. Nunca tivemos tempo.</p><p>Eu construo. Cento e cinquenta de ouro, e é preço de amigo. Um dos seus vira instrutor, e todo o resto melhora.</p></div><div class="opcoes"><button class="botao principal" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>Aceitar (150 de ouro)</button><button class="botao" data-act="g-ok-pend">Depois (a oferta fica nas Instalações)</button></div>`;
   if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'g-banca-back' : 'scene-ok'}">Continuar</button></div>`;
   if (sc.kind === 'felix-divida') return felixDebtScene();
   if (sc.kind === 'passeio') return passeioScene(sc);
@@ -802,12 +845,28 @@ function renderInstalacoes() {
       else act = `<button class="botao" data-act="g-build-aloj" ${camp.acts.construir || camp.building || camp.gold < cost ? 'disabled' : ''}>${lvl ? 'Ampliar' : 'Construir'} (nível ${lvl + 1}): ${cost} de ouro e 1 dia de trabalho</button>`;
       return `<li class="instalacao ${lvl ? 'ativo' : 'bloq'}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${lvl ? `Nível ${lvl}` : 'Não construído'}</span><p class="linha">${esc(f.desc)} Hoje cabem ${advMax()} aventureiros${cost !== undefined ? `; o próximo nível leva a ${advMax() + 2}` : ''}.</p></div><div>${act}</div></li>`;
     }
+    else if (id === 'ferraria' || id === 'rh') {
+      const lvl = id === 'ferraria' ? ferrLvl() : rhLvl(); const table = id === 'ferraria' ? FERR : RH; const cost = table[lvl];
+      const efeito = id === 'ferraria' ? (lvl ? `Hoje: +${5 * lvl}% de sucesso nas missões.` : '') : (lvl ? `Hoje: ${RH_TXT[lvl - 1]}.` : '');
+      if (camp.building && camp.building.id === id) act = '<span class="linha">Obra em andamento: fica pronta ao fim do dia.</span>';
+      else if (id === 'ferraria' && !camp.flags.odie) act = `<span class="linha">${esc(f.lock)}</span>`;
+      else if (id === 'rh' && camp.fac.taverna !== 'ativa') act = '<span class="linha">Precisa da Taverna aberta.</span>';
+      else if (cost === undefined) act = '<span class="linha">Nível máximo.</span>';
+      else act = `<button class="botao" data-act="g-build-up" data-fac="${id}" ${camp.acts.construir || camp.building || camp.gold < cost ? 'disabled' : ''}>${lvl ? 'Ampliar' : 'Construir'} (nível ${lvl + 1}): ${cost} de ouro e 1 dia de trabalho</button>`;
+      return `<li class="instalacao ${lvl ? 'ativo' : 'bloq'}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${lvl ? `Nível ${lvl}` : 'Não construída'}</span><p class="linha">${esc(f.desc)} ${efeito}${cost !== undefined && lvl < table.length ? (id === 'rh' ? ` Próximo nível: ${RH_TXT[lvl]}.` : '') : ''}</p></div><div>${act}</div></li>`;
+    }
+    else if (id === 'treino') {
+      if (camp.fac.treino !== 'ativo') act = camp.cleared[10] ? `<button class="botao" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>Kryoret constrói: 150 de ouro</button>` : `<span class="linha">${esc(f.lock)}</span>`;
+      else { const cur = instrutor(); const cands = camp.advs.filter(a => a.status === 'livre' || a.status === 'instrutor');
+        act = `<label class="linha" for="instr">Instrutor:</label> <select id="instr" data-act-change="g-instrutor">${['<option value="">Ninguém</option>'].concat(cands.map(a => `<option value="${a.id}" ${cur && cur.id === a.id ? 'selected' : ''}>${esc(a.name)}, nível ${a.lvl}</option>`)).join('')}</select>`;
+        return `<li class="instalacao ativo"><div><b>${esc(f.name)}</b> <span class="selo-fac">Ativa</span><p class="linha">${esc(f.desc)} ${cur ? `Hoje: ${esc(cur.name)} dá +${3 * cur.lvl}% a todos.` : 'Sem instrutor.'}</p></div><div>${act}</div></li>`; }
+    }
     else if (f.lock) act = `<span class="linha">${esc(f.lock)}</span>`;
-    const estado = { ativo: 'Ativo', ativa: 'Ativa', suja: 'Abandonada', bloq: 'Bloqueada' }[s] || s;
+    const estado = { ativo: 'Ativo', ativa: 'Ativa', suja: 'Abandonada', bloq: 'Bloqueada' }[s] || (s == null || s === 0 ? 'Não construída' : s);
     return `<li class="instalacao ${s}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${estado}</span><p class="linha">${esc(f.desc)}</p></div><div>${act}</div></li>`;
   };
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Instalações</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${camp.acts.construir ? 'obra de hoje já feita' : 'obra de hoje disponível'}</p></header>
-  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'alojamento', 'treino', 'lab', 'ferraria'].map(row).join('')}</ul>
+  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'alojamento', 'rh', 'ferraria', 'treino'].map(row).join('')}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
 }
 function renderTaverna() {
@@ -831,7 +890,7 @@ const MESTRE_INFO = {
       { id: 'c', label: 'Você conhece esse baralho mágico? O que pode me dizer sobre ele?', reply: ['Conheço o tipo. Cartas que guardam uma Disciplina inteira, presas ao sangue de quem carrega. Engenharia linda, aliás. Quem fez isso sabia o que estava fazendo.', 'A minha linha é o Magitech: construtos, módulos que você acopla e recupera, armadilhas que funcionam toda vez. Ao contrário de rezar.', 'Eu vendo pacotes da linha. Preço justo. Se lembrar de falar por favor e obrigado, mais justo ainda.'] },
       { id: 'e', after: ['a', 'b', 'c'], laterDay: true, label: 'Você conhecia Ergos?', reply: ['Sim, o antigo dono da Dragão Amarelo. Desapareceu me devendo uma engrenagem mágica, acredita? Espero que ele esteja bem. Era um Cartomante como você.'] },
       { id: 'f', requires: 'e', label: 'Ele é meu tio, eu herdei a guilda dele, junto com as dívidas.', reply: ['Oh. Entendi agora, você é do sangue dele. Significa que você vai achar aquela engrenagem pra mim?'], quest: { id: 'engrenagem', title: 'A engrenagem da Chrome', desc: 'Achar a engrenagem mágica que Ergos ficou devendo à Chrome.' } },
-      { id: 'h', needFlag: 'engrenagem', notFlag: 'engrenagemEntregue', label: 'Achei a sua engrenagem mágica!', reply: ['>Chrome segura a engrenagem contra a luz, e os olhos dela brilham no mesmo roxo.', 'Ora, ora. Pontual como um Ergos nunca foi. Sabe o que isso é? O núcleo do meu primeiro autômato. Achei que nunca mais ia ver.', 'Dívida quitada, e com juros: tome 100 de ouro. E, de hoje em diante, você é cliente preferencial da ACT.'], questDone: 'engrenagem', gold: 100 },
+      { id: 'h', needFlag: 'engrenagem', notFlag: 'engrenagemEntregue', label: 'Achei a sua engrenagem mágica!', reply: ['>Chrome segura a engrenagem contra a luz, e os olhos dela brilham no mesmo roxo.', 'Ora, ora. Pontual como um Ergos nunca foi. Sabe o que isso é? O núcleo do meu primeiro autômato. Achei que nunca mais ia ver.', 'Dívida quitada, e com juros: tome 100 de ouro. E, de hoje em diante, você é cliente preferencial da ACT.', 'Ah, e mais uma coisa: a sua guilda precisa de alguém que saiba bater metal. Conheço o sujeito certo. Odie, o Gato Artífice. Gordinho, preto de patas brancas e com mais energia que uma caldeira. Vou mandá-lo para lá.'], questDone: 'engrenagem', gold: 100 },
       { id: 'g', label: 'Posso pagar depois?', reply: ['Poderia, com juros, mas você tem nome sujo no CERASA. Limpa teu nome antes de sair colecionando credores.'] },
       { id: 'd', requires: 'a', label: 'Quero minha consulta grátis', reply: ['Quem está sintonizado com um baralho como esse e sabe usá-lo é chamado de Cartomante. A comunidade mágica ainda discute se a Cartomancia é ou não uma Disciplina, mas, sinceramente, esses detalhes pouco me importam. O que importa é que um Cartomante pode usar as propriedades do baralho como alavanca para manifestar poderes mágicos com facilidade, e até se sintonizar com uma Disciplina. Eu recomendaria a Magitech, a melhor de todas, obviamente. Há registros de Cartomantes que dominaram mais de uma Disciplina no passado, mas nada que possamos confirmar. Cartomantes já são raros por natureza; os excepcionais são ainda mais raros, e por isso mesmo difíceis de documentar.', 'Por enquanto, foque em equilibrar os custos das cartas para não perder um turno sem fazer nada, depois pense em fazer uma sinergia em suas cartas. Não tenha medo de experimentar cartas diferentes e veja o que funciona melhor.'] },
     ] },
@@ -1010,7 +1069,7 @@ function finishCityTrip() {
 }
 function renderCidade() {
   const vis = (camp.cityTrip && camp.cityTrip.visited) || [];
-  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b>${hasNewTalk(id) ? ' <span class="badge-novo" title="Falas novas disponíveis" aria-label="Falas novas disponíveis">!</span>' : ''}<p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? 'Voltar a falar' : 'Visitar'}</button></li>`;
+  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b>${hasNewTalk(id) ? ' <span class="badge-novo" title="Falas novas disponíveis" aria-label="Falas novas disponíveis">!</span>' : ''}${id.startsWith('mestre-') && novasCartas(id.slice(7)) ? ' <span class="badge-cartas">Cartas novas</span>' : ''}<p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? 'Voltar a falar' : 'Visitar'}</button></li>`;
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, `Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, `Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Cidade</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda</p></header>
   <section class="cena larga guilda-tela"><h2>Mestres das Disciplinas</h2><ul class="lista-npc">${mestres}</ul>
@@ -1066,6 +1125,7 @@ function renderNpc() {
     let talk = '';
     if (mi) talk = talkHtml(id, mi, d) + '<h3>Treinamento</h3>';
     body = `${talk || `<h2>${esc(MESTRES[d])}</h2><p class="linha">Personagem a definir.</p>`}<p>Um booster de ${esc(DISC_NAME[d])}: 5 cartas da Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.</p>
+      ${novasCartas(d) ? `<p class="destaque novas-cartas">Cartas novas da Forja Esquecida entraram nos boosters de ${esc(DISC_NAME[d])}: ${R.poolOf(d).filter(id => E.DEF[id].grupo === 2).map(id => esc(E.DEF[id].name)).join(', ')}.</p>` : ''}
       <div class="opcoes coluna dialogo"><button class="botao principal disc-${d}" data-act="g-buy" data-dd="${d}" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>Comprar booster (${BOOSTER_PRECO} de ouro)</button>${d === 'tech' && (((camp.flags.said || {})[id]) || []).includes('c') ? `<button class="botao" data-act="g-buy" data-dd="tech" data-polite="1" ${camp.gold < BOOSTER_PRECO - 5 ? 'disabled' : ''}>“Boa noite, Chrome! Eu gostaria de fazer um upgrade no meu baralho de Magitech, por favor. Obrigado!” (${BOOSTER_PRECO - 5} de ouro)</button>` : ''}</div>`;
   } else if (id === 'banco') {
     const d = camp.debt;
@@ -1077,6 +1137,7 @@ function renderNpc() {
       <div class="opcoes"><button class="botao principal" data-act="g-sell-all">Entregar todas (+${total} de ouro)</button></div>` : ''}`;
   }
   $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${camp.gold} de ouro</p>${body}${passeioHtml(id)}<div class="linha-logs"><button class="botao" data-act="g-cidade">Voltar à cidade</button></div></section>`;
+  if (id.startsWith('mestre-') && novasCartas(id.slice(7))) { camp.flags.novasVistas = camp.flags.novasVistas || {}; camp.flags.novasVistas[id.slice(7)] = true; saveCamp(); }
 }
 async function guildClick(act, ds) {
   if (act === 'g-ok-pend') { camp.pending.shift(); saveCamp(); ui.screen = 'home'; render(); return true; }
@@ -1117,6 +1178,14 @@ async function guildClick(act, ds) {
     if (camp.acts.construir || camp.building) return true;
     camp.acts.construir = true; camp.building = { id: 'taverna' }; hist({ k: 'obra-inicio', id: 'taverna' }); saveCamp(); render(); toast('Mãos à obra: a taverna fica pronta ao fim do dia.'); return true;
   }
+  if (act === 'g-build-up') {
+    const id = ds.fac; const table = id === 'ferraria' ? FERR : RH; const lvl = id === 'ferraria' ? ferrLvl() : rhLvl(); const cost = table[lvl];
+    if (cost === undefined || camp.acts.construir || camp.building || camp.gold < cost) return true;
+    if (id === 'ferraria' && !camp.flags.odie) return true; if (id === 'rh' && camp.fac.taverna !== 'ativa') return true;
+    camp.gold -= cost; camp.acts.construir = true; camp.building = { id, level: lvl + 1 }; hist({ k: 'obra-inicio', id, level: lvl + 1, gold: cost }); saveCamp(); render(); toast(`Obra começada: fica pronta ao fim do dia (-${cost} de ouro).`); return true;
+  }
+  if (act === 'g-treino-build') { if (camp.gold < 150 || camp.fac.treino === 'ativo' || !camp.cleared[10]) return true; camp.gold -= 150; camp.fac.treino = 'ativo'; hist({ k: 'obra', id: 'treino', gold: 150 }); camp.pending = camp.pending.filter(p => p.kind !== 'kryoret-treino'); saveCamp(); ui.scene = { kind: 'msg', title: 'Área de treinamento', text: 'Kryoret trabalha a noite inteira sem parar para comer, e de manhã o pátio dos fundos tem bonecos de treino, uma pista de obstáculos e um alvo de ferro que ele jura ser “quase indestrutível”. Escolha um instrutor nas Instalações.' }; ui.screen = 'scene'; render(); return true; }
+  if (act === 'g-instrutor') { const cur = instrutor(); if (cur) cur.status = 'livre'; const a = camp.advs.find(x => x.id === ds.adv); if (a && a.status === 'livre') a.status = 'instrutor'; hist({ k: 'instrutor', adv: a ? a.name : null }); saveCamp(); render(); return true; }
   if (act === 'g-build-aloj') {
     const lvl = camp.fac.alojamento || 0; const cost = ALOJ[lvl];
     if (cost === undefined || camp.acts.construir || camp.building || camp.gold < cost || camp.fac.taverna !== 'ativa') return true;
@@ -1148,7 +1217,7 @@ async function guildClick(act, ds) {
       if (camp.advs.length >= advMax()) ents.push({ t: 'narra', text: 'A guilda está cheia: não há onde acomodar mais ninguém. Amplie o Alojamento e volte a pedir.' });
       else {
         ents.push({ t: 'fala', name: mi.name, lines: ind.reply }); if (ind.narra) ents.push({ t: 'narra', text: ind.narra });
-        const a = newAdv(ind.adv); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true;
+        const a = newAdv(ind.adv); a.lvl = Math.max(a.lvl, 3); a.mestre = d; camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true;
         ents.push({ t: 'narra', text: `${a.name} entra para a guilda: ${advClass(a)}, nível ${a.lvl}.` });
         if (ind.adv && ind.adv.quote) ents.push({ t: 'fala', name: a.name, lines: [ind.adv.quote] });
         hist({ k: 'aventureiro', name: a.name, from: ds.npc });
@@ -1158,7 +1227,7 @@ async function guildClick(act, ds) {
       if (o.rot) { camp.flags.rot = camp.flags.rot || {}; const key = ds.npc + ':' + o.id; const k = camp.flags.rot[key] || 0; reply = reply.map(r => r.replace('{rot}', o.rot[k % o.rot.length])); camp.flags.rot[key] = k + 1; }
       reply.filter(r => r[0] === '>').forEach(r => ents.push({ t: 'narra', text: r.slice(1) }));
       const ls = reply.filter(r => r[0] !== '>'); if (ls.length) ents.push({ t: 'fala', name: mi.name, lines: ls });
-      if (o.questDone) { camp.flags.engrenagemEntregue = true; const q = camp.quests.find(x => x.id === o.questDone); if (q) q.done = true; if (o.gold) camp.gold += o.gold; ents.push({ t: 'narra', text: `Quest concluída: ${q ? q.title : 'pedido'}.${o.gold ? ` +${o.gold} de ouro.` : ''}` }); hist({ k: 'quest-ok', id: o.questDone }); }
+      if (o.questDone) { camp.flags.engrenagemEntregue = true; if (!camp.flags.odie) camp.pending.push({ kind: 'odie-chega' }); camp.flags.odie = true; ents.push({ t: 'narra', text: 'A Ferraria pode ser reconstruída nas Instalações.' }); const q = camp.quests.find(x => x.id === o.questDone); if (q) q.done = true; if (o.gold) camp.gold += o.gold; ents.push({ t: 'narra', text: `Quest concluída: ${q ? q.title : 'pedido'}.${o.gold ? ` +${o.gold} de ouro.` : ''}` }); hist({ k: 'quest-ok', id: o.questDone }); }
       if (o.quest && !camp.quests.some(q => q.id === o.quest.id)) { camp.quests.push(Object.assign({ day: camp.day, from: ds.npc }, o.quest)); ents.push({ t: 'narra', text: `Nova quest: ${o.quest.title}.` }); hist({ k: 'quest', id: o.quest.id }); setTimeout(() => toast(`Nova quest: ${o.quest.title}.`), 30); }
     }
     ui.talkLogs = ui.talkLogs || {}; (ui.talkLogs[ds.npc] = ui.talkLogs[ds.npc] || []).push(...ents);
@@ -1223,6 +1292,7 @@ function startSocial(encId, ctx) {
 function socialDone() {
   const won = st.over === 'P'; const ctx = st.ctx; st = null;
   let title = won ? 'Acordo fechado' : 'Negociação perdida', txt;
+  if (ctx.avulsa) { ui.screen = 'avulsa-social'; render(); window.scrollTo(0, 0); return; }
   if (ctx.tut) {
     const g = won ? 15 : 5; camp.gold += g; camp.flags.socialTut = true; camp.pending = camp.pending.filter(p => p.kind !== 'cliente-tutorial');
     txt = won ? `O cliente admite que o pelo de gato dá personalidade à mesa, paga a conta inteira e ainda deixa gorjeta: +${g} de ouro. Felix aceita os elogios em nome da categoria.` : `O cliente paga só metade, resmungando sobre pelos na cerveja: +${g} de ouro. Felix considera isso uma vitória moral.`;
@@ -1444,17 +1514,34 @@ function renderHome() {
   const cab = `<h1>Dragão Amarelo</h1><p class="sub">${camp.name ? `Guilda de ${esc(camp.name)} · ` : ''}${esc(R.GRUPOS[R.grupoDo(next)].nome)}</p>`;
   $('#app').innerHTML = `${gearBtn()}${HAS_IMG('warroom') ? `<header class="guilda-hero" role="img" aria-label="Sala de guerra da guilda: mesa com mapa, lareira acesa e Felix dormindo na poltrona"><div>${cab}</div></header>` : `<header class="abertura">${cab}</header>`}
     <section class="painel-camp">
-      <p class="camp-linha">Dia ${camp.day} · <b class="ouro">${camp.gold} de ouro</b> · Deck de ${esc(DISC_NAME[camp.deck.disc])}: ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Coleção: ${collectionSize()} cartas</p>
-      ${guildStatus()}
-      ${camp.debt && camp.debt.due != null ? `<p class="parcela ${debtOpen() ? (camp.debt.due - camp.day <= 1 ? 'urgente' : '') : 'paga'}">${debtOpen() ? `Parcela da dívida: <b>${camp.debt.amount} de ouro</b> até o fim do dia ${camp.debt.due}${camp.debt.due === camp.day ? ' (hoje!)' : ''}. Pague no Banco da Coroa, na cidade.` : `Parcela de ${camp.debt.amount} de ouro paga no dia ${camp.debt.paidDay}.`}</p>` : ''}
+      <div class="dia-topo"><div class="dia-grande" aria-label="Dia ${camp.day}"><small>Dia</small><b>${camp.day}</b></div>
+        <div class="dia-info"><p class="camp-linha"><b class="ouro">${camp.gold} de ouro</b>${camp.advs.length ? ` · ${camp.advs.length} aventureiro${camp.advs.length === 1 ? '' : 's'}` : ''}</p>${guildStatus()}</div>
+        <button class="botao principal-2 fim-dia" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia ${camp.day}</button></div>
+      ${camp.debt && camp.debt.due != null ? `<p class="parcela ${debtOpen() ? (camp.debt.due - camp.day <= 1 ? 'urgente' : '') : 'paga'}">${debtOpen() ? `Parcela da dívida: <b>${camp.debt.amount} de ouro</b> até o fim do dia ${camp.debt.due}${camp.debt.due === camp.day ? ' (hoje!)' : ` (faltam ${camp.debt.due - camp.day} dia${camp.debt.due - camp.day === 1 ? '' : 's'})`}. Pague no Banco da Coroa, na cidade.` : `Parcela de ${camp.debt.amount} de ouro paga no dia ${camp.debt.paidDay}.`}</p>` : ''}
       ${camp.quests && camp.quests.length ? `<div class="quests"><b>Quests:</b> ${camp.quests.map(q => `<span class="quest ${q.done ? 'feita' : ''}" title="${esc(q.desc)}">${esc(q.title)}${q.done ? ' (concluída)' : ''}</span>`).join('')}</div>` : ''}
+    </section>
+    <section class="painel-camp"><h2>${bi('descer')}Dungeon</h2>
       ${floors}
       <div class="acoes-setup">${mainBtn}</div>
-      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button><button class="botao" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao principal-2" data-act="g-end-day" ${camp.run ? 'disabled' : ''}>${bi('dia')}Encerrar o dia</button></div>
-      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Editar deck social</button><button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/5)</button><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
     </section>
-    ${logsHtml()}`;
+    <section class="painel-camp"><h2>${bi('cidade')}Cidade</h2>
+      <button class="botao cidade-grande ${camp.acts.npc ? 'usada' : ''}" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}<span>${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</span><small>${camp.acts.npc ? 'Volte amanhã.' : 'Mestres, Banco da Coroa, Sociedade Mágica e passeios.'}</small></button>
+    </section>
+    <section class="painel-camp"><h2>${bi('instalacoes')}Guilda</h2>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/${notesMax()})</button></div>
+    </section>
+    <section class="painel-camp"><h2>${bi('deck')}Decks</h2>
+      <p class="camp-linha">Deck de batalha: ${esc(DISC_NAME[camp.deck.disc])}, ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Deck social: ${camp.social ? `${esc(DISC_NAME[camp.social.disc])}, ${Object.values(camp.social.cards).reduce((a, b) => a + b, 0)}/20` : 'ainda não montado'} · Coleção: ${collectionSize()} cartas${camp.socialColl ? ` e ${Object.values(camp.socialColl).reduce((a, b) => a + b, 0)} sociais` : ''}</p>
+      <div class="linha-logs"><button class="botao" data-act="deck-edit" ${camp.run ? 'disabled title="Disponível entre descidas"' : ''}>${bi('deck')}Editar deck</button><button class="botao" data-act="deck-social" ${camp.run ? 'disabled' : ''}>${bi('social')}Editar deck social</button></div>
+    </section>
+    <section class="painel-camp playtest"><h2>${bi('avulsa')}Playtest</h2>
+      <p class="intro">Lutas soltas, fora da campanha, e o log das partidas.</p>
+      <div class="linha-logs"><button class="botao" data-act="avulsa">${bi('avulsa')}Batalha avulsa</button><button class="botao" data-act="avulsa-social">${bi('social')}Negociação avulsa</button><button class="botao" data-act="to-title">${bi('inicio')}Tela inicial</button></div>
+      ${logsHtml(true)}
+    </section>`;
 }
+function novasCartas(d) { return !!(camp && camp.cleared[5] && !((camp.flags.novasVistas || {})[d])); }
+function notesMax() { const top = camp.cleared[5] || camp.floor > 5 ? 10 : 5; return Object.keys(R.NOTES).filter(f => +f <= top).length; }
 function statsMini(d) {
   if (d.type === 'unit') return `<span class="lc-stats" aria-label="${d.social ? 'Peso' : 'Ataque'} ${d.atk}, ${d.social ? 'Firmeza' : 'Vida'} ${d.hp}"><b class="atk">${d.atk}</b><b class="hp">${d.hp}</b></span>`;
   if (d.type === 'weapon') return `<span class="lc-stats" aria-label="Ataque ${d.atk}, usos ${d.hp}"><b class="atk">${d.atk}</b><b class="dur">${d.hp}</b></span>`;
@@ -1715,6 +1802,7 @@ function renderScreen() {
   else if (ui.screen === 'settings') renderSettings();
   else if (ui.screen === 'cheats' && cheats.unlocked) renderCheats();
   else if (ui.screen === 'avulsa') renderSetup();
+  else if (ui.screen === 'avulsa-social') renderSetupSocial();
   else if (ui.screen === 'deck' && camp) renderDeck();
   else if (ui.screen === 'credits') renderCredits();
   else if (ui.screen === 'quadro' && camp) renderQuadro();
@@ -1742,6 +1830,8 @@ async function runClick(ds) {
   if (act === 'camp-start') { if (ui.newDisc) { newCampaign(ui.newDisc); ui.screen = 'home'; render(); } return true; }
   if (act === 'camp-reset') { const c = await choose('Nova campanha', 'Apagar a campanha atual (coleção, deck e progresso)? Os logs de partida continuam guardados.', [{ v: 'sim', label: 'Apagar e recomeçar' }]); if (c === 'sim') { const old = lsGet(LS_OLD, []); old.push({ id: camp.id, created: camp.created, archivedAt: new Date().toISOString(), startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, notes: camp.notes, deck: camp.deck, collection: camp.collection, history: camp.history }); while (!lsSet(LS_OLD, old) && old.length > 1) old.shift(); camp = null; lsDel(LS_CAMP); ui.newDisc = null; ui.screen = 'home'; render(); } return true; }
   if (act === 'avulsa') { ui.screen = 'avulsa'; render(); return true; }
+  if (act === 'avulsa-social') { ui.screen = 'avulsa-social'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'start-social-avulsa') { if (ui.sdisc && ui.senc) startSocialAvulsa(ui.sdisc, ui.senc); return true; }
   if (act === 'home') { ui.screen = 'home'; ui.scene = null; render(); window.scrollTo(0, 0); return true; }
   if (act === 'camp-notes') { ui.scene = { kind: 'notes' }; ui.screen = 'scene'; render(); return true; }
   if (act === 'credits') { ui.screen = 'credits'; render(); window.scrollTo(0, 0); return true; }
@@ -1908,12 +1998,15 @@ function startGame() {
   window.scrollTo(0, 0);
 }
 
+document.addEventListener('change', ev => { if (ev.target && ev.target.id === 'instr' && camp) guildClick('g-instrutor', { adv: ev.target.value }); });
 document.addEventListener('click', async ev => {
-  const t = ev.target.closest('[data-act],[data-hand],[data-ent],[data-leader],[data-disc],[data-enc],[data-choice],[data-prever],[data-newdisc],[data-floor],[data-node],[data-deckadd],[data-deckrem],[data-deckdisc],[data-deckfilter],[data-evc],[data-pick],[data-pack]');
+  const t = ev.target.closest('[data-act],[data-hand],[data-ent],[data-leader],[data-disc],[data-enc],[data-sdisc],[data-senc],[data-choice],[data-prever],[data-newdisc],[data-floor],[data-node],[data-deckadd],[data-deckrem],[data-deckdisc],[data-deckfilter],[data-evc],[data-pick],[data-pack]');
   if (!t) return;
   const ds = t.dataset;
   if (ds.choice === undefined && !ds.prever && await runClick(ds)) return;
   if (ds.disc) { ui.disc = ds.disc; render(); return; }
+  if (ds.sdisc) { ui.sdisc = ds.sdisc; render(); return; }
+  if (ds.senc) { ui.senc = ds.senc; render(); return; }
   if (ds.act === 'export') { openExport(); return; }
   if (ds.act === 'export-novas') { exportLogs('novas'); return; }
   if (ds.act === 'export-tudo') { exportLogs('tudo'); return; }
