@@ -19,6 +19,15 @@ async def setcamp(page, fn):
 async def newcamp(page, disc='draconic'):
     await page.goto(URL, wait_until='domcontentloaded')
     await page.click('[data-act=title-guild]'); await page.fill('#intro-nome', 'Ana'); await page.click('[data-act=intro-next]'); await page.click('[data-act=intro-skip]'); await page.click(f'[data-newdisc={disc}]'); await page.click('[data-act=intro-finish]')
+_falhas = [0]
+async def tenta(h):
+    # A página redesenha tudo a cada ação (e quando um aviso some); um elemento pego antes pode sumir antes do clique.
+    # Uma falha solta é essa corrida; várias seguidas são um problema de verdade e derrubam o teste.
+    try: await h.click(timeout=3000); _falhas[0] = 0; return True
+    except Exception:
+        _falhas[0] += 1
+        if _falhas[0] >= 5: raise
+        return False
 async def play(page):
     for _ in range(500):
         if await page.query_selector(END): return
@@ -27,7 +36,8 @@ async def play(page):
         if await page.query_selector('[data-choice]:not([data-choice=__cancel])'): await page.click('[data-choice]:not([data-choice=__cancel])'); continue
         c = await page.query_selector('.mao .carta.jogavel')
         if c:
-            await c.click(); await page.wait_for_timeout(10)
+            if not await tenta(c): continue
+            await page.wait_for_timeout(10)
             if await page.query_selector('[data-act=confirm-play]'): await sc(page, '[data-act=confirm-play]')
             if await page.query_selector('[data-choice]:not([data-choice=__cancel])'): await page.click('[data-choice]:not([data-choice=__cancel])')
             if await page.query_selector('.peca.alvo, .alvo-lider.alvo'): await sc(page, '.alvo-lider.alvo, .peca.alvo')
@@ -35,7 +45,7 @@ async def play(page):
             continue
         a = await page.query_selector('.fileira.aliado .peca.pode')
         if a:
-            await a.click()
+            if not await tenta(a): continue
             if await page.query_selector('.fileira.inimigo .peca.alvo.estrutura'): await sc(page, '.fileira.inimigo .peca.alvo.estrutura')
             elif await page.query_selector('.alvo-lider.alvo'): await sc(page, '.alvo-lider.alvo')
             elif await page.query_selector('.fileira.inimigo .peca.alvo'): await sc(page, '.fileira.inimigo .peca.alvo')

@@ -11,7 +11,8 @@ const FEEL = {
     forteApartir: 5,            // dano a partir do qual toca impacto_forte em vez de impacto
   },
   // Modos de animação: normal (1x), rapida (2x), instantanea (sem animação, só som) e desligada (sem movimento:
-  // sem avanço, hit-stop, tremida nem flash; só o sumiço das unidades mortas). O padrão segue o prefers-reduced-motion.
+  // sem avanço, hit-stop, flash nem corte; números e vida mudam no lugar e as unidades mortas só esmaecem).
+  // O padrão segue o prefers-reduced-motion.
   tempo: {
     escala: { normal: 1, rapida: 0.5, instantanea: 0, desligada: 1 },
     passoInimigo: { normal: 500, rapida: 250, instantanea: 100, desligada: 150 },   // pausa entre ações do inimigo
@@ -24,6 +25,14 @@ const FEEL = {
     alcance: 0.7,         // fração da distância até o alvo que o atacante percorre
     escala: 1.08,         // cresce um pouco no golpe
   },
+  arma: {
+    corteMs: 260,         // o corte atravessa o alvo quando o protagonista ataca com arma
+    contatoMs: 90,        // do início do corte até o impacto
+    angulo: -32,          // inclinação do corte, em graus
+    espessura: 6,         // px
+    comprimento: 1.5,     // em relação à diagonal do alvo
+    cor: '#e8a524',       // borda do corte; o miolo é branco
+  },
   impacto: {
     hitStopMin: 50,       // congelamento no contato: min + porDano × dano, até max
     hitStopMax: 100,
@@ -31,12 +40,22 @@ const FEEL = {
     flashMs: 150,         // flash branco no alvo, depois do hit-stop
     flashOpacidade: 0.85,
     flashBloqueio: 0.45,  // flash mais fraco quando Escudo ou Blindagem segura o dano
-    tremidaPxPorDano: 1.2,  // tremida da mesa: px por ponto de dano somado no golpe
-    tremidaMaxPx: 9,        // teto da tremida
-    tremidaMinDano: 2,      // abaixo disso, não treme
-    tremidaMs: 260,
-    tremidaSocial: 0.5,     // multiplicador na negociação
-    morteMs: 340,           // unidade morta some
+    morteMs: 340,         // unidade morta some
+    barraMs: 260,         // barra de vida do líder desce ou sobe
+  },
+  cura: {
+    brilhoMs: 700,        // brilho verde em volta do número de vida que subiu
+    cor: '#3fcf62',
+    raioPx: 10,
+  },
+  // Números flutuantes sobre o alvo, depois do hit-stop.
+  numeros: {
+    ms: 900,
+    subirPx: 44,
+    pop: 1.3,             // escala no começo
+    pilhaPx: 20,          // números seguidos no mesmo alvo sobem em degraus
+    cores: { dano: '#e5483c', cura: '#3fcf62', escudo: '#4aa8e8' },
+    rotulos: { escudo: 'Escudo', escudoSocial: 'Álibi', bloq: 'Blindagem' },
   },
   // Arquivos em assets/audio/sfx/<nome>_<n>.ogg (ou .wav), de 1 até arqs; um sorteado a cada toque.
   // vol multiplica o volume de efeitos; etapa 0 toca na hora, 1 depois de etapaMs, 2 depois do dobro.

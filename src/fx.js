@@ -4,7 +4,9 @@
 const Fx = (function () {
 'use strict';
 const cfg = { anim: 'normal', social: false };
-let fimEm = 0;          // quando a última animação agendada termina
+// Quando a última ação termina de ler: impactos e o avanço do atacante. Os sumiços (números, brilho, mortos, flash)
+// continuam por cima da próxima ação e não seguram o turno inimigo.
+let fimEm = 0;
 let camada = null;
 
 function config(p) { Object.assign(cfg, p); }
@@ -28,6 +30,7 @@ function somDe(ev) {
 }
 
 /* ---------- DOM ---------- */
+const chave = ref => (ref.t === 'l' ? 'l:' + ref.side : 'e:' + ref.uid);
 function pegaCamada() {
   if (!camada || !camada.isConnected) { camada = document.createElement('div'); camada.className = 'fx-camada'; camada.setAttribute('aria-hidden', 'true'); document.body.appendChild(camada); }
   // As cópias ficam fora da mesa; levam junto as cores dela (a negociação tem paleta própria).
@@ -56,18 +59,21 @@ function copia(html, rect) {
   pegaCamada().appendChild(w);
   return w;
 }
-function rectDe(ref, fantasmas) {
-  if (ref && ref.t === 'e' && fantasmas.has(ref.uid)) return fantasmas.get(ref.uid).getBoundingClientRect();
-  const el = elDe(ref); return el ? el.getBoundingClientRect() : null;
-}
 function centro(r) { return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+// Número de vida dentro de uma peça, do líder inimigo ou do seu painel.
+function numNo(el, ref) {
+  if (!el) return null;
+  if (ref.t === 'l') return el.querySelector(ref.side === 'E' ? '.vida-num' : 'b');
+  return el.querySelector('.stats .hp');
+}
+function barraDe(ref) { return ref.t === 'l' ? document.querySelector(ref.side === 'E' ? '.mesa .lider .barra i' : '.mesa .voce-vida .barra i') : null; }
 
 /* ---------- Efeitos ---------- */
 function avanco(quem, alvoRect, idaMs, holdMs, voltaMs) {
-  const r = quem.getBoundingClientRect(); if (!alvoRect) return;
+  const r = quem.getBoundingClientRect(); if (!alvoRect) return null;
   const a = centro(r), b = centro(alvoRect), A = FEEL.ataque;
   const dx = (b.x - a.x) * A.alcance, dy = (b.y - a.y) * A.alcance;
-  const tot = idaMs + holdMs + voltaMs; if (tot <= 0) return;
+  const tot = idaMs + holdMs + voltaMs; if (tot <= 0) return null;
   const longe = `translate(${dx}px, ${dy}px) scale(${A.escala})`;
   quem.style.zIndex = 2;
   const an = quem.animate([
@@ -86,28 +92,54 @@ function flash(rect, opac, holdMs, ms, raio) {
   pegaCamada().appendChild(f);
   const tot = holdMs + ms;
   const an = f.animate([{ opacity: opac }, { opacity: opac, offset: tot ? holdMs / tot : 0 }, { opacity: 0 }], { duration: Math.max(1, tot), easing: 'ease-out' });
-  an.onfinish = () => f.remove(); ate(tot);
+  an.onfinish = () => f.remove();
 }
-function tremida(dano, k) {
-  const I = FEEL.impacto;
-  if (dano < I.tremidaMinDano) return;
-  const px = Math.min(I.tremidaMaxPx, I.tremidaPxPorDano * dano) * (cfg.social ? I.tremidaSocial : 1);
-  const ms = I.tremidaMs * k; if (px <= 0 || ms <= 0) return;
-  const n = 8, fr = [];
-  for (let i = 0; i < n; i++) { const d = px * (1 - i / n); fr.push({ transform: `translate(${(Math.random() * 2 - 1) * d}px, ${(Math.random() * 2 - 1) * d}px)` }); }
-  fr.push({ transform: 'none' });
-  [document.querySelector('.mesa'), pegaCamada()].forEach(el => { if (el) el.animate(fr, { duration: ms, easing: 'linear' }); });
-  ate(ms);
+// Ataque com arma: um corte atravessa o alvo.
+function corte(rect, k) {
+  const C = FEEL.arma; if (!rect) return;
+  const c = centro(rect), len = Math.hypot(rect.width, rect.height) * C.comprimento, ms = C.corteMs * k;
+  const d = document.createElement('div'); d.className = 'fx-corte';
+  Object.assign(d.style, { left: c.x - len / 2 + 'px', top: c.y - C.espessura / 2 + 'px', width: len + 'px', height: C.espessura + 'px', transform: `rotate(${C.angulo}deg)` });
+  d.style.setProperty('--corte', C.cor);
+  pegaCamada().appendChild(d);
+  const an = d.animate([
+    { clipPath: 'inset(0 100% 0 0)', opacity: 1 },
+    { clipPath: 'inset(0 0 0 0)', opacity: 1, offset: 0.4 },
+    { clipPath: 'inset(0 0 0 70%)', opacity: 0 },
+  ], { duration: Math.max(1, ms), easing: 'cubic-bezier(.3,.8,.4,1)' });
+  an.onfinish = () => d.remove();
+}
+function brilhoCura(ref, k) {
+  const C = FEEL.cura, n = numNo(elDe(ref), ref); if (!n) return;
+  const g = `0 0 ${C.raioPx / 2}px ${C.cor}, 0 0 ${C.raioPx}px ${C.cor}, 0 0 ${C.raioPx * 2}px ${C.cor}`;
+  const ms = C.brilhoMs * k;
+  n.animate([{ textShadow: g, color: C.cor }, { textShadow: g, color: C.cor, offset: 0.3 }, { textShadow: '0 0 0 transparent' }], { duration: Math.max(1, ms), easing: 'ease-out' });
+}
+// Sobre peças, o número nasce no terço de cima; sobre líderes, logo acima do número de vida, para não cobri-lo.
+function numero(rect, acima, texto, cor, degrau, k, mov) {
+  const N = FEEL.numeros; if (!rect) return;
+  const d = document.createElement('div'); d.className = 'fx-num'; d.textContent = texto; d.style.color = cor;
+  Object.assign(d.style, { left: rect.left + rect.width / 2 + 'px', top: (acima ? rect.top - 8 : rect.top + rect.height * 0.3) - degrau * N.pilhaPx + 'px' });
+  pegaCamada().appendChild(d);
+  const ms = N.ms * k, base = 'translate(-50%, -50%)';
+  const fr = mov ? [
+    { transform: `${base} scale(${N.pop})`, opacity: 0 },
+    { transform: `${base} scale(1)`, opacity: 1, offset: 0.15 },
+    { transform: `${base} translateY(${-N.subirPx * 0.6}px)`, opacity: 1, offset: 0.6 },
+    { transform: `${base} translateY(${-N.subirPx}px)`, opacity: 0 },
+  ] : [{ transform: base, opacity: 1 }, { transform: base, opacity: 1, offset: 0.7 }, { transform: base, opacity: 0 }];
+  const an = d.animate(fr, { duration: Math.max(1, ms), easing: 'ease-out', fill: 'forwards' });
+  an.onfinish = () => d.remove();
 }
 function morte(g, ms, mov) {
   if (!g) return;
   const fr = mov ? [{ opacity: 1, transform: 'none', filter: 'none' }, { opacity: 0, transform: 'translateY(8px) scale(.82)', filter: 'grayscale(1)' }] : [{ opacity: 1 }, { opacity: 0 }];
   const an = g.animate(fr, { duration: Math.max(1, ms), easing: 'ease-in', fill: 'forwards' });
-  an.onfinish = () => g.remove(); ate(ms);
+  an.onfinish = () => g.remove();
 }
 
 /* ---------- Linha do tempo ---------- */
-function sons(evs) {
+function sons() {
   const vezes = {};
   return (ev, ms) => {
     const nome = somDe(ev); if (!nome) return;
@@ -118,17 +150,58 @@ function sons(evs) {
 }
 // Sem animação: os sons em etapas fixas, como na fase 1.
 function soSom(evs) {
-  const tocar = sons(evs);
+  const tocar = sons();
   evs.forEach(ev => { const nome = somDe(ev); if (nome) tocar(ev, (FEEL.sons[nome].etapa || 0) * FEEL.audio.etapaMs); });
 }
-function linha(evs, cap) {
+function linha(st, evs, cap) {
   const k = FEEL.tempo.escala[cfg.anim] === undefined ? 1 : FEEL.tempo.escala[cfg.anim];
   const mov = cfg.anim === 'normal' || cfg.anim === 'rapida';
-  const A = FEEL.ataque, I = FEEL.impacto, T = FEEL.tempo;
-  const tocar = sons(evs);
-  // Unidades que morreram nesta leva ganham uma cópia no lugar antigo, que some na hora certa.
-  const fantasmas = new Map();
-  evs.forEach(ev => { if (ev.k === 'die' && cap && cap.has(ev.u) && !fantasmas.has(ev.u)) { const c = cap.get(ev.u); fantasmas.set(ev.u, copia(c.html, c.rect)); } });
+  const A = FEEL.ataque, I = FEEL.impacto, T = FEEL.tempo, N = FEEL.numeros;
+  const tocar = sons();
+  // Cópias por chave: mortos desta leva (no lugar antigo) e atacantes vivos durante o avanço.
+  const copias = new Map(), mortos = [], somem = new Set();
+  evs.forEach(ev => {
+    if (ev.k !== 'die' || !cap || !cap.has(ev.u) || copias.has('e:' + ev.u)) return;
+    const c = cap.get(ev.u), g = copia(c.html, c.rect); copias.set('e:' + ev.u, g); mortos.push(g);
+  });
+  const elOuCopia = ref => copias.get(chave(ref)) || elDe(ref);
+
+  // A vida mostrada volta ao valor de antes e muda no impacto de cada golpe.
+  const vida = new Map();
+  evs.forEach(ev => {
+    if ((ev.k !== 'dmg' && ev.k !== 'heal') || !ev.ref) return;
+    const c = chave(ev.ref); if (!vida.has(c)) vida.set(c, { ref: ev.ref, d: 0 });
+    vida.get(c).d += ev.k === 'heal' ? ev.n : -ev.n;
+  });
+  vida.forEach((x, c) => {
+    if (x.ref.t === 'l') { const l = st.sides[x.ref.side].leader; x.v = l.hp - x.d; x.max = l.maxHp; }
+    else {
+      const e = ['P', 'E'].map(s => st.sides[s].board.find(u => u.uid === x.ref.uid)).find(Boolean);
+      if (e && !copias.has(c)) x.v = e.hp - x.d;
+      else { const n = numNo(copias.get(c), x.ref); x.v = n ? parseInt(n.textContent, 10) : NaN; }
+    }
+    if (Number.isFinite(x.v)) mostrar(x, 0); else vida.delete(c);
+  });
+  function mostrar(x, ms) {
+    const vis = Math.max(0, x.v);
+    [elDe(x.ref), copias.get(chave(x.ref))].forEach(el => { const n = numNo(el, x.ref); if (n) n.textContent = vis; });
+    const b = barraDe(x.ref);
+    if (b && x.max) {
+      const w = Math.max(0, Math.round(100 * x.v / x.max)) + '%';
+      if (ms > 0 && b.style.width) b.animate([{ width: b.style.width }, { width: w }], { duration: ms, easing: 'ease-out' });
+      b.style.width = w;
+    }
+  }
+
+  const degraus = {};
+  function numeroDe(ev, k) {
+    const c = chave(ev.ref), el = elOuCopia(ev.ref); if (!el) return;
+    const C = N.cores, R = N.rotulos;
+    const [txt, cor] = ev.k === 'dmg' ? ['-' + ev.n, C.dano] : ev.k === 'heal' ? ['+' + ev.n, C.cura] : [ev.k === 'escudo' ? (cfg.social ? R.escudoSocial : R.escudo) : R.bloq, C.escudo];
+    const dg = degraus[c] = (degraus[c] === undefined ? 0 : degraus[c] + 1);
+    const lider = ev.ref.t === 'l', alvo = (lider && numNo(el, ev.ref)) || el;
+    numero(alvo.getBoundingClientRect(), lider, txt, cor, dg % 3, k, mov);
+  }
 
   let t = 0, g = null, atk = null;
   const fechar = () => {
@@ -139,32 +212,42 @@ function linha(evs, cap) {
     const atacanteMorto = atk && atk.ref ? atk.ref.uid : null;
     if (atk) {
       const a = atk; atk = null;
-      agendar(a.t, () => {
-        let quem = a.ref ? fantasmas.get(a.ref.uid) : null, real = null;
+      if (a.hero) { if (mov) agendar(a.t, () => { const el = elOuCopia(a.tgt); if (el) corte(el.getBoundingClientRect(), k); }); }
+      else if (mov) ate(a.t + (A.idaMs + A.voltaMs) * k + hs);
+      if (!a.hero && mov) agendar(a.t, () => {
+        let quem = copias.get(chave(a.ref)), real = null;
         if (!quem) {
-          real = a.ref ? elDe(a.ref) : document.querySelector('.mesa .arma');
-          if (!real) return;
+          real = elDe(a.ref); if (!real) return;
           quem = copia(real.outerHTML, real.getBoundingClientRect()); real.style.visibility = 'hidden';
+          copias.set(chave(a.ref), quem);
         }
-        const an = avanco(quem, rectDe(a.tgt, fantasmas), A.idaMs * k, hs, A.voltaMs * k);
-        if (real) { const fim = () => { real.style.visibility = ''; quem.remove(); }; if (an) an.onfinish = fim; else fim(); }
+        const tg = elOuCopia(a.tgt);
+        const an = avanco(quem, tg ? tg.getBoundingClientRect() : null, A.idaMs * k, hs, A.voltaMs * k);
+        if (real) {
+          const fim = () => { real.style.visibility = ''; quem.remove(); if (copias.get(chave(a.ref)) === quem) copias.delete(chave(a.ref)); };
+          if (an) an.onfinish = fim; else fim();
+        }
       });
     }
+    const tm = grupo.t + hs;
     grupo.hits.forEach(ev => {
       tocar(ev, grupo.t);
-      if (!mov || ev.k === 'heal') return;
-      agendar(grupo.t, () => {
-        const el = ev.ref.t === 'e' ? (fantasmas.get(ev.ref.uid) || elDe(ev.ref)) : elDe(ev.ref);
-        if (!el) return;
+      if (mov && ev.k !== 'heal') agendar(grupo.t, () => {
+        const el = elOuCopia(ev.ref); if (!el) return;
         const raio = getComputedStyle(el.classList.contains('fx-copia') ? el.firstElementChild || el : el).borderRadius;
         flash(el.getBoundingClientRect(), ev.k === 'dmg' ? I.flashOpacidade : I.flashBloqueio, hs, I.flashMs * k, raio);
       });
+      agendar(tm, () => {
+        const x = vida.get(chave(ev.ref));
+        if (x && (ev.k === 'dmg' || ev.k === 'heal')) { x.v += ev.k === 'heal' ? ev.n : -ev.n; mostrar(x, I.barraMs * k); }
+        if (ev.k === 'heal') brilhoCura(ev.ref, k);
+        numeroDe(ev, k);
+      });
     });
-    if (mov && grupo.dano) { const d = grupo.dano; agendar(grupo.t + hs, () => tremida(d, k)); }
-    const tm = grupo.t + hs;
     grupo.mortes.forEach(ev => {
       tocar(ev, tm);
-      const f = fantasmas.get(ev.u); if (!f) return;
+      const f = copias.get('e:' + ev.u); if (!f || !mortos.includes(f) || somem.has(f)) return;
+      somem.add(f);
       agendar(ev.u === atacanteMorto && mov ? tm + A.voltaMs * k : tm, () => morte(f, I.morteMs * k, mov));
     });
     t = tm + T.entreGolpes * k;
@@ -175,11 +258,15 @@ function linha(evs, cap) {
     switch (ev.k) {
       case 'play':
         fechar(); tocar(ev, t); t += T.depoisJogar * k; break;
-      case 'atk': case 'hero':
+      case 'atk':
         fechar();
-        atk = { t, ref: ev.k === 'atk' ? { t: 'e', uid: ev.a } : null, tgt: ev.tgt, s: ev.s };
-        if (ev.k === 'hero' && ev.s !== 'P') atk = null;
+        atk = { t, ref: { t: 'e', uid: ev.a }, tgt: ev.tgt };
         t += (mov ? A.idaMs : FEEL.audio.etapaMs) * k;
+        abrir(); break;
+      case 'hero':
+        fechar();
+        atk = { t, hero: true, tgt: ev.tgt };
+        t += (mov ? FEEL.arma.contatoMs : FEEL.audio.etapaMs) * k;
         abrir(); break;
       case 'dmg': case 'bloq': case 'escudo': case 'heal':
         // Dano depois de mortes (efeitos Ao Morrer) abre um golpe novo.
@@ -194,9 +281,9 @@ function linha(evs, cap) {
     }
   });
   fechar();
-  ate(t + (A.voltaMs + I.morteMs) * k);
+  ate(t);
   // Cópias de mortos que não entraram em nenhum grupo (por segurança) somem no fim.
-  fantasmas.forEach(f => { if (f.isConnected && !f.getAnimations().length) agendar(t, () => morte(f, I.morteMs * k, mov)); });
+  mortos.forEach(f => { if (!somem.has(f)) agendar(t, () => morte(f, I.morteMs * k, mov)); });
 }
 
 function flush(st, cap) {
@@ -205,7 +292,7 @@ function flush(st, cap) {
   if (!st.fxq) { st.fxq = []; return; }
   const evs = st.fxq.splice(0);
   if (!evs.length) return;
-  if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(evs, cap);
+  if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap);
 }
 function pendente(st) { return !!(st && st.fxq && st.fxq.length); }
 return { flush, capture, pendente, idle, config };

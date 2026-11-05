@@ -492,3 +492,5 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .fx-copia { position: fixed; display: flex; }
 .fx-copia > * { margin: 0; width: 100%; min-width: 0; height: 100%; }
 .fx-flash { position: fixed; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
+.fx-corte { position: fixed; border-radius: 50%; background: linear-gradient(90deg, transparent, var(--corte) 18%, #fff 50%, var(--corte) 82%, transparent); box-shadow: 0 0 0 1px rgba(60, 30, 0, .35), 0 0 12px 3px color-mix(in srgb, var(--corte) 75%, transparent); }
+.fx-num { position: fixed; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; -webkit-text-stroke: 1px rgba(0, 0, 0, .55); text-shadow: 0 2px 3px rgba(0, 0, 0, .45); opacity: 0; }
