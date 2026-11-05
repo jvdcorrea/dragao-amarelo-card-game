@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 tools/build.py)",
+      "Bash(node tests/test.js)",
+      "Bash(node tests/test_pool.js)",
+      "Bash(node tests/greedy.js)",
+      "Bash(python3 tests/browser/run_all.py)",
+      "Bash(python3 tests/browser/test_*.py)",
+      "Bash(node tools/balance/encontros.js:*)",
+      "Bash(python3 tools/economia/simula.py)",
+      "Bash(npm run build)",
+      "Bash(npm test)",
+      "Bash(npm run test:browser)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ]
+  }
+}

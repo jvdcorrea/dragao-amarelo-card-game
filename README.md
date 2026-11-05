@@ -11,10 +11,11 @@ Este repositório guarda o protótipo jogável e os documentos de design.
 Abra o `index.html` num navegador (é uma página única, sem dependências além das fontes do Google). Se o GitHub Pages estiver ativado para a branch `main`, ele também fica em `https://jvdcorrea.github.io/dragao-amarelo-card-game/`.
 
 O protótipo tem:
-- campanha do grupo 1 (As Grutas Vivas): mapa em grafo, eventos, Notas de Ergos, Elites, Tesouros, boosters com raridade, coleção salva e editor de deck;
-- batalha avulsa com as 6 Disciplinas e os 7 encontros do grupo 1;
-- mulligan, Evolução, Compasso, Órbita, Módulos, Rituais e as demais mecânicas;
-- exportação de log em .zip (partidas e histórico das campanhas), com opção de exportar só as partidas novas.
+- campanha com dois grupos de andares (As Grutas Vivas e A Forja Esquecida): mapa em grafo, eventos, Notas de Ergos, Elites, chefes, Tesouros, boosters com raridade, coleção salva e editor de deck;
+- gestão da guilda: aventureiros e missões, instalações, defesas noturnas, quests e a dívida com o Banco da Coroa;
+- cidade com os seis Mestres, o banco, a Sociedade Mágica e passeios;
+- negociações sociais no mesmo motor da batalha, com deck social próprio;
+- área de playtest: batalha avulsa, negociação avulsa e exportação de log em .zip.
 
 Campanha e logs ficam no `localStorage` do navegador.
 
@@ -29,16 +30,21 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `src/style.css`, `src/template.html` | Estilo e esqueleto da página |
 | `src/art.js` | Arte provisória: ícones e mapeamento carta para ícone (gerado por `tools/arte/gen.py`) |
 | `tools/build.py` | Gera o `index.html` a partir de `src/` |
-| `tests/` | Testes em Node: partidas simuladas, todas as cartas do pool e um bot guloso para sinais de balanceamento |
+| `tests/` | Testes em Node (partidas simuladas, pool de cartas, bot guloso) e testes de navegador em `tests/browser/` |
+| `tools/balance/`, `tools/economia/` | Simuladores de encontros e da economia da dívida |
+| `CLAUDE.md` | Guia do projeto para o Claude Code |
 | `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e o grupo 2 (`grupo2.md`) |
 
 ## Desenvolvimento
 
+Guia completo para desenvolvimento, inclusive com o Claude Code, em [`CLAUDE.md`](CLAUDE.md).
+
 ```bash
-python3 tools/build.py          # gera index.html
-node tests/test.js              # 1.050 partidas com os decks iniciais, procura erros
-node tests/test_pool.js         # decks aleatórios cobrindo todas as cartas
-node tests/greedy.js            # taxas de vitória de um bot guloso por Disciplina e encontro
+python3 tools/build.py                 # gera index.html
+node tests/test.js                     # partidas simuladas com os decks iniciais, procura erros
+node tests/test_pool.js                # decks aleatórios cobrindo as cartas do pool
+node tests/greedy.js                   # taxas de vitória de um bot guloso por Disciplina e encontro
+python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 ```
 
 ## Versões dos documentos
