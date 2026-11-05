@@ -701,6 +701,7 @@ function attack(st, side, uid, ref) {
   if (!a || a.owner !== side || !canAttack(st, a)) return false;
   if (!attackTargets(st, side, a).some(r => sameRef(r, ref))) return false;
   a.attacked = true;
+  fx(st, { k: 'atk', s: side, a: a.uid, tgt: refCopy(ref) });
   rec(st, { k: 'atk', s: side, a: uidOf(a), as: [getAtk(st, a), a.hp], tgt: refOut(st, ref), ts: statOf(st, ref), rev: hasKw(a, 'emboscada') ? 1 : 0 });
   if (side === 'E') triggerTrap(st, 'P', 'attack', a);
   if (isDead(a)) { resolveDeaths(st); return true; }
@@ -739,6 +740,7 @@ function heroAttack(st, side, ref) {
   if (!attackTargets(st, side, null).some(r => sameRef(r, ref))) return false;
   const sd = S(st, side); const w = sd.weapon;
   sd.heroAttacked = true;
+  fx(st, { k: 'hero', s: side, tgt: refCopy(ref) });
   rec(st, { k: 'hero', s: side, w: w.id, wa: [w.atk, w.dur], tgt: refOut(st, ref), ts: statOf(st, ref) });
   if (DEF[w.id].onWeaponAttack) DEF[w.id].onWeaponAttack(st, side);
   const sc = src(side, { letal: w.letal, pierce: !!DEF[w.id].pierce });

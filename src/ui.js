@@ -143,6 +143,8 @@ const P = () => E.S(st, 'P'), O = () => E.S(st, 'E');
 const keyOf = r => r.t === 'l' ? 'l:' + r.side : 'e:' + r.uid;
 const discOf = e => E.DEF[e.id].disc || (e.owner === 'E' ? 'inimigo' : 'neutra');
 const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Sem escolha salva, as animações seguem o sistema: com prefers-reduced-motion, ficam desligadas.
+const animModo = () => prefs.anim || (reduced() ? 'desligada' : 'normal');
 
 /* ---------- Abertura ---------- */
 function renderSetup() {
@@ -1928,6 +1930,7 @@ function render() {
   const logScroll = $('.registro ol') ? $('.registro ol').scrollTop : 0;
   const tgt = targetSet();
   const mirando = ui.mode && ['play', 'attack', 'hero', 'resonate'].includes(ui.mode.kind);
+  const cap = Fx.pendente(st) ? Fx.capture() : null;
   $('#app').innerHTML = `<div class="jogo">
     <main class="mesa ${mirando ? 'mirando' : ''} ${SOC() ? 'social' : ''}">
       ${leaderE(tgt)}
@@ -1941,7 +1944,8 @@ function render() {
   </div>${ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : ''}${st.over && !ui.overClosed ? overPanel() : ''}${st.pending && st.pending.kind === 'mulligan' ? mulliganHtml() : ''}${ui.modal ? modalHtml() : ''}`;
   if ($('.mao')) $('.mao').scrollLeft = handScroll;
   if ($('.registro ol')) $('.registro ol').scrollTop = logScroll;
-  Fx.flush(st);
+  Fx.config({ anim: animModo(), social: SOC() });
+  Fx.flush(st, cap);
 }
 function refreshInfo() { const el = $('.info'); if (el) el.outerHTML = infoPanel(); }
 
@@ -2004,15 +2008,17 @@ function endPlayerTurn() {
 }
 function runEnemy() {
   ui.busy = true; render();
-  const delay = reduced() ? 150 : 650;
+  // Cada ação do inimigo espera as animações da anterior; a lógica já está resolvida, só a leitura que fica no ritmo.
+  const delay = FEEL.tempo.passoInimigo[animModo()];
+  const next = () => Fx.idle().then(() => setTimeout(step, delay));
   const step = () => {
     if (!st || st.over) { ui.busy = false; render(); return; }
     const r = E.enemyStep(st);
     render();
-    if (r) setTimeout(step, delay);
+    if (r) next();
     else { if (!st.over) E.endTurn(st); ui.busy = false; afterAction(); }
   };
-  setTimeout(step, delay);
+  next();
 }
 function startGame() {
   st = E.newGame(ui.disc, ui.enc);

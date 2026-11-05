@@ -620,6 +620,7 @@ O combate ganha som e animação sem que a lógica dependa disso.
 
 - **O motor só avisa.** Funções centrais (`dmg`, `heal`, `draw`, `summon`, `playCard`, `resolveDeaths`, `startTurn`, `mulligan`) põem eventos numa fila (`st.fxq`). Sem a fila, como nas simulações, nada acontece. Perdas de vida que não são dano (fadiga, Sangria, Pacto Sangrento, Superaquecer, Desabafo, Piada de Velório, Rumor) passam por `loseLife`, com a mesma conta de antes. O `tests/test.js` confere que a soma da fila bate com a vida dos líderes.
 - **A apresentação lê.** Depois de cada desenho da batalha, `Fx` lê a fila e toca sons; as próximas fases acrescentam animações sobre o mesmo fluxo. O motor nunca espera a animação.
+- **Impacto.** O atacante avança até o alvo e congela no contato (hit-stop); o alvo pisca em branco e a mesa treme conforme o dano, com teto. As animações correm numa camada por cima da mesa, com cópias das peças, para não serem cortadas pelas fileiras nem apagadas pelo próximo desenho. O turno inimigo espera cada ação terminar de animar.
 - **Configuração num lugar só.** Durações, intensidades e a lista de sons ficam em `src/feel.js`.
 - **Áudio.** Howler (MIT) embutido no build, para funcionar offline. Os sons ficam em `assets/audio/`, fora da página: o jogo tenta `.ogg` e cai para `.wav`. Os atuais são placeholders gerados por `tools/audio/placeholders.py`; os definitivos virão do Kenney.nl (CC0), com autoria no `CREDITS.md`. Preferências de volume e mudo ficam no navegador, fora da campanha.
 

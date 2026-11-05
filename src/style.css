@@ -486,3 +486,9 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .novas-cartas { border-left: 4px solid var(--d-space, #5b6bd6); padding-left: 10px; }
 .blind-lider { color: var(--vida); }
 .grupo-titulo { margin: 14px 0 4px; font-size: 1.15rem; }
+
+/* Game feel (P94): camada de animação por cima da mesa, fora de #app para sobreviver aos desenhos */
+.fx-camada { position: fixed; inset: 0; pointer-events: none; z-index: 12; overflow: hidden; }
+.fx-copia { position: fixed; display: flex; }
+.fx-copia > * { margin: 0; width: 100%; min-width: 0; height: 100%; }
+.fx-flash { position: fixed; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }

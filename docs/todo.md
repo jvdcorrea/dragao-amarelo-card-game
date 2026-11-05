@@ -75,13 +75,14 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Fase 1: áudio base. Howler embutido, canais de efeitos e música, volumes e mudo (Configurações, botão de som, tecla M), sons de comprar, jogar, impacto, bloqueio, cura e morte com placeholders.
 - [ ] Trocar os placeholders pelos sons definitivos (Kenney.nl, CC0) e preencher o `CREDITS.md`.
-- [ ] Fase 2: impacto (hit-stop, tremida, flash).
+- [x] Fase 2: impacto. O atacante avança até o alvo, congela no contato (hit-stop de 50 a 100 ms, conforme o dano), o alvo pisca em branco e a mesa treme conforme o dano somado do golpe, com teto. Unidades mortas viram cópias que somem no lugar antigo. O turno inimigo espera as animações de cada ação.
 - [ ] Fase 3: números flutuantes.
 - [ ] Fase 4: cartas na mão (elevação, inclinação 3D, arco até a mesa).
 - [ ] Fase 5: música ambiente com troca suave entre estados.
 - [ ] Fase 6: configurações de animação (1x, 2x, instantâneo, desligado).
 - [ ] A cópia no claude.ai não tem a pasta `assets/audio/` e fica sem som. Decidir se os sons vão embutidos nela.
-- *Decisões minhas para revisar:* compras do inimigo não tocam som; até 2 cópias do mesmo som por ação; dano de 5 ou mais toca o impacto forte; a negociação social usa os mesmos sons; botão de som ao lado da engrenagem e na faixa da batalha.
+- *Decisões minhas para revisar (fase 2):* a tremida começa em 2 de dano, 1,2 px por ponto, teto de 9 px, e cai pela metade na negociação; Escudo e Blindagem dão um flash mais fraco e não tremem; cura não pisca; a pausa entre ações do inimigo passou de 650 ms para 500 ms, mais o tempo das animações; com prefers-reduced-motion, nada se move e as unidades mortas só esmaecem.
+- *Decisões minhas para revisar (fase 1):* compras do inimigo não tocam som; até 2 cópias do mesmo som por ação; dano de 5 ou mais toca o impacto forte; a negociação social usa os mesmos sons; botão de som ao lado da engrenagem e na faixa da batalha.
 
 ## Pendências da leva P92
 
