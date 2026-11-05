@@ -1860,7 +1860,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.19/design-v0.59/inimigos-v0.13/proto-2026-11-04';
+const RULES = 'cartas-v0.19/design-v0.60/inimigos-v0.13/proto-2026-11-05';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -2357,12 +2357,13 @@ function floorCleared() {
   if (run.floor === 3 && !camp.debt && !camp.pending.some(p => p.kind === 'credor')) camp.pending.push({ kind: 'credor' });
   if (run.floor === 8 && !camp.flags.parcela2 && !camp.pending.some(p => p.kind === 'credor')) {
     camp.flags.parcela2 = true;
-    if (debtOpen()) camp.debt.amount += 700; else camp.debt = { amount: 700, status: 'pendente', stage: 2, overdue: 0 };
+    if (debtOpen()) camp.debt.amount += ECON.parcela[2]; else camp.debt = { amount: ECON.parcela[2], status: 'pendente', stage: 2, overdue: 0 };
     camp.debt.stage = 2; camp.pending.push({ kind: 'credor', segunda: true });
   }
   if (run.floor === 10 && !camp.flags.treinoOferta) { camp.flags.treinoOferta = true; camp.pending.push({ kind: 'kryoret-treino' }); }
-  if (run.floor === 10 && !camp.flags.ignarTesouro) { camp.gold += 800; camp.flags.ignarTesouro = true; hist({ k: 'tesouro', from: 'ignar', gold: 800 }); }
-  let treasure = run.floor === 10 && camp.flags.ignarTesouro && !run.revisit ? 800 : 0; if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = 300; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
+  let treasure = 0;
+  if (run.floor === 10 && !camp.flags.ignarTesouro) { treasure = ECON.tesouro[2]; camp.gold += treasure; camp.flags.ignarTesouro = true; hist({ k: 'tesouro', from: 'ignar', gold: treasure }); }
+  if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = ECON.tesouro[1]; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
   const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
   hist({ k: 'booster', type: 'andar', disc: camp.deck.disc, cards: pack });
   ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0, treasure };
@@ -2571,7 +2572,7 @@ function endDay() {
   const lines = [];
   finishBuilding(lines); processAdvs(lines);
   camp.day += 1; camp.acts = {}; camp.cityTrip = null;
-  if (debtOpen() && camp.day > camp.debt.due && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.amount = Math.round(camp.debt.amount * 1.1); camp.debt.overdue = (camp.debt.overdue || 0) + 1; camp.pending.push({ kind: 'credor', volta: true }); lines.push(`O prazo da parcela venceu. Com juros, ela passou para ${camp.debt.amount} de ouro, e o Barão vai aparecer.`); hist({ k: 'parcela-vencida', amount: camp.debt.amount }); }
+  if (debtOpen() && camp.day > camp.debt.due && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.amount = Math.round(camp.debt.amount * (1 + ECON.juros)); camp.debt.overdue = (camp.debt.overdue || 0) + 1; camp.pending.push({ kind: 'credor', volta: true }); lines.push(`O prazo da parcela venceu. Com juros, ela passou para ${camp.debt.amount} de ouro, e o Barão vai aparecer.`); hist({ k: 'parcela-vencida', amount: camp.debt.amount }); }
   refreshBoard();
   if (!camp.defense && camp.day >= 3 && rnd() < 0.2) { camp.defense = camp.flags.socialTut && rnd() < 0.5 ? newSocialDefense() : newDefense(); camp.pending.push({ kind: 'defesa' }); hist({ k: 'defesa-aviso', leader: camp.defense.leader, social: !!camp.defense.social }); }
   hist({ k: 'dia', day: camp.day });
@@ -3132,13 +3133,12 @@ function socialDone() {
     hist({ k: 'social', enc: 'guarda_azer', won }); saveCamp();
     ui.scene = { kind: 'run-msg', title: won ? 'Prisioneiro libertado' : 'O guarda não cede', text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return;
   } else if (ctx.credor) {
-    const d = camp.debt || (camp.debt = { amount: 300, status: 'aberta', overdue: 0 });
-    const days = won ? (ctx.volta ? 3 : 4) : 2; if (d.status === 'pendente') d.status = 'aberta';
-    if (!won && ctx.volta) d.amount = Math.round(d.amount * 1.1);
+    const d = camp.debt || (camp.debt = { amount: ECON.parcela[1], status: 'aberta', overdue: 0, stage: 1 });
+    const T = ctx.volta ? ECON.extensao : ECON.prazo; const days = won ? T.vitoria : T.derrota; if (d.status === 'pendente') d.status = 'aberta';
     d.due = camp.day + days; d.status = 'aberta'; d.felixTip = false;
     camp.pending = camp.pending.filter(p => p.kind !== 'credor');
     title = won ? 'Prazo negociado' : 'O Barão leva a melhor';
-    txt = won ? `O Barão fecha o livro-caixa com um estalo. “${days === 4 ? 'Quatro' : 'Três'} dias. ${d.amount} de ouro. Nem um dia a mais, nem uma moeda a menos.”` : `O Barão anota alguma coisa sem tirar os olhos de você. “Dois dias. ${d.amount} de ouro. E considere-se com sorte.”`;
+    txt = won ? `O Barão fecha o livro-caixa com um estalo. “${DIAS_EXT[days]} dias. ${d.amount} de ouro. Nem um dia a mais, nem uma moeda a menos.”` : `O Barão anota alguma coisa sem tirar os olhos de você. “${DIAS_EXT[days]} dias. ${d.amount} de ouro. E considere-se com sorte.”`;
     hist({ k: 'credor', won, amount: d.amount, due: d.due, volta: !!ctx.volta });
     saveCamp();
     ui.scene = { kind: 'credor-res', title, text: txt }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return;
@@ -3154,12 +3154,12 @@ function payDebt() {
 }
 function credorScene(sc) {
   const d = camp.debt;
-  if (sc.segunda && !sc.volta) return `<h2>A segunda parcela</h2><p>O calor da forja ainda está nas suas roupas quando o Barão Ostrander aparece na porta, pontual como sempre.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>A guilda sobreviveu ao primeiro prazo. Parabéns. A Coroa agora espera a parcela cheia: ${d.amount} de ouro.</p><p>Vamos combinar o prazo. Combinar, aqui, significa você me convencer.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: 4 dias de prazo. Derrota: 2 dias.</p><div class="opcoes"><button class="botao principal" data-act="g-credor">${bi('social')}Negociar o prazo</button></div>`;
-  if (sc.volta) return `<h2>O credor voltou</h2><p>O prazo venceu, e o Barão Ostrander está de novo na porta da guilda, agora com dois auditores e um sorriso que não chega aos olhos.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>Prazos existem para serem cumpridos. Como este não foi, a parcela agora é de ${d.amount} de ouro. Vamos conversar sobre quando você pretende pagar.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: mais 3 dias de prazo. Derrota: 2 dias, e a parcela sobe mais 10%.</p><div class="opcoes"><button class="botao principal" data-act="g-credor" data-volta="1">${bi('social')}Negociar</button></div>`;
+  if (sc.segunda && !sc.volta) return `<h2>A segunda parcela</h2><p>O calor da forja ainda está nas suas roupas quando o Barão Ostrander aparece na porta, pontual como sempre.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>A guilda sobreviveu ao primeiro prazo. Parabéns. A Coroa agora espera a parcela cheia: ${d.amount} de ouro.</p><p>Vamos combinar o prazo. Combinar, aqui, significa você me convencer.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: ${ECON.prazo.vitoria} dias de prazo. Derrota: ${ECON.prazo.derrota}. O tesouro de Ignar paga a parcela com folga.</p><div class="opcoes"><button class="botao principal" data-act="g-credor">${bi('social')}Negociar o prazo</button></div>`;
+  if (sc.volta) return `<h2>O credor voltou</h2><p>O prazo venceu, e o Barão Ostrander está de novo na porta da guilda, agora com dois auditores e um sorriso que não chega aos olhos.</p><div class="fala"><span class="quem">Barão Ostrander</span><p>Prazos existem para serem cumpridos. Como este não foi, a parcela agora é de ${d.amount} de ouro. Vamos conversar sobre quando você pretende pagar.</p></div><p class="intro-dica">Negociação com o Perfil Procedimento. Vitória: mais ${ECON.extensao.vitoria} dias de prazo. Derrota: mais ${ECON.extensao.derrota}. Se vencer de novo, a parcela sobe outros ${Math.round(ECON.juros * 100)}%.</p><div class="opcoes"><button class="botao principal" data-act="g-credor" data-volta="1">${bi('social')}Negociar</button></div>`;
   return `<h2>O credor</h2><p>Mal você volta do terceiro andar, um homem de casaca impecável espera na porta da guilda, com um livro-caixa debaixo do braço e a paciência de quem nunca perdeu uma cobrança.</p>
-    <div class="fala"><span class="quem">Barão Ostrander</span><p>Barão Ostrander, do Banco da Coroa. A dívida de Ergos não sumiu junto com ele. Agora ela é sua.</p><p>Como a guilda acabou de reabrir, a Coroa aceita uma primeira parcela reduzida: 300 de ouro. Resta saber em quanto tempo. E eu reconheço um devedor que vai tentar enrolar só de olhar.</p></div>
+    <div class="fala"><span class="quem">Barão Ostrander</span><p>Barão Ostrander, do Banco da Coroa. A dívida de Ergos não sumiu junto com ele. Agora ela é sua.</p><p>Como a guilda acabou de reabrir, a Coroa aceita uma primeira parcela reduzida: ${ECON.parcela[1]} de ouro. Resta saber em quanto tempo. E eu reconheço um devedor que vai tentar enrolar só de olhar.</p></div>
     <div class="fala"><span class="quem">Felix</span><p>Sorria. Não prometa nada que envolva números.</p></div>
-    <p class="intro-dica">Negociação com o Perfil Procedimento: cartas que citam Procedimento rendem mais. Vitória: 4 dias de prazo. Derrota: 2 dias.</p>
+    <p class="intro-dica">Negociação com o Perfil Procedimento: cartas que citam Procedimento rendem mais. Vitória: ${ECON.prazo.vitoria} dias de prazo. Derrota: ${ECON.prazo.derrota}. O tesouro do chefe do grupo paga a parcela com folga; se o prazo vencer, a parcela sobe ${Math.round(ECON.juros * 100)}% e o Barão volta.</p>
     <div class="opcoes"><button class="botao principal" data-act="g-credor">${bi('social')}Negociar o prazo</button></div>`;
 }
 function credorResScene(sc) {
@@ -3167,6 +3167,17 @@ function credorResScene(sc) {
   return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><p class="destaque">Parcela: ${d.amount} de ouro até o fim do dia ${d.due}. Você tem ${camp.gold}.</p><p class="intro-dica">O pagamento é feito no Banco da Coroa, na cidade${camp.gold >= d.amount ? ', ou agora mesmo' : ''}.</p>
     <div class="opcoes">${camp.gold >= d.amount ? `<button class="botao principal" data-act="g-pay">Pagar agora (${d.amount} de ouro)</button>` : ''}<button class="botao ${camp.gold >= d.amount ? '' : 'principal'}" data-act="home">Voltar à guilda</button></div>`;
 }
+/* Economia da dívida (P93): o tesouro paga a parcela com margem; o tempo é livre e os juros são a punição.
+   Tesouro = parcela x (1 + margem). Prazo = andares até o chefe + falhas esperadas (+1 dia se vencer a negociação).
+   Juros por atraso <= extensão x renda de descida por dia x 0,5 (ver tools/economia/simula.py). */
+const ECON = {
+  parcela: { 1: 300, 2: 700 },
+  tesouro: { 1: 360, 2: 840 },
+  juros: 0.15,
+  prazo: { vitoria: 4, derrota: 3 },
+  extensao: { vitoria: 3, derrota: 2 },
+};
+const DIAS_EXT = { 1: 'Um', 2: 'Dois', 3: 'Três', 4: 'Quatro', 5: 'Cinco', 6: 'Seis' };
 const BANCA = [
   { id: 'carta1', label: '+1 carta na mão inicial', dur: 'próxima luta', cost: 2, apply(run) { run.bonus.hand = (run.bonus.hand || 0) + 1; } },
   { id: 'mana1', label: '+1 de mana no primeiro turno', dur: 'próxima luta', cost: 3, apply(run) { run.bonus.manaFirst = (run.bonus.manaFirst || 0) + 1; } },
@@ -3188,9 +3199,10 @@ function bancaScene(sc) {
     <div class="opcoes">${!disc && !tried ? `<button class="botao" data-act="g-banca-neg">${bi('social')}Negociar o preço (luta social)</button>` : ''}<button class="botao principal" data-act="scene-ok">Seguir caminho</button></div>
     <p class="intro-dica">A Sucata se perde no fim da descida, então vale gastar.</p>`;
 }
+function tesouroDoGrupo() { return (camp.debt.stage || 1) >= 2 ? !!camp.flags.ignarTesouro : !!camp.flags.basiliscoTesouro; }
 function felixDebtScene() {
   const d = camp.debt;
-  return `${felixArt('guilda')}<h2>Um conselho do Felix</h2><div class="fala"><span class="quem">Felix</span><p>Você tem ${camp.gold} de ouro e a parcela é de ${d.amount}. Vá ao Banco da Coroa e pague hoje, antes que o Barão volte com juros.</p><p>E antes que esse ouro escorra pelos seus dedos. Ergos também “ia pagar amanhã”. Todo dia ele ia pagar amanhã.</p></div><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Entendido</button></div>`;
+  return `${felixArt('guilda')}<h2>Um conselho do Felix</h2><div class="fala"><span class="quem">Felix</span><p>O tesouro chegou: você tem ${camp.gold} de ouro e a parcela é de ${d.amount}. Vá ao Banco da Coroa e pague hoje. O que sobrar é seu, para os Mestres e para a guilda.</p><p>Antes disso, gaste à vontade: o tesouro é que paga a dívida. Mas depois que ele chega, não deixe esse ouro escorrer pelos dedos. Ergos também “ia pagar amanhã”. Todo dia ele ia pagar amanhã.</p></div><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Entendido</button></div>`;
 }
 function socialTutScene() {
   const disc = DISC_NAME[camp.deck.disc];
@@ -3309,7 +3321,7 @@ const bi = k => iconSvg(typeof ART !== 'undefined' ? ART.ui[k] : null, 'ico-btn'
 function renderHome() {
   if (!camp) { ui.screen = 'title'; renderTitle(); return; }
   ensureGuild(); finishCityTrip();
-  if (debtOpen() && camp.gold >= camp.debt.amount && !camp.debt.felixTip && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.felixTip = true; camp.pending.unshift({ kind: 'felix-divida' }); saveCamp(); }
+  if (debtOpen() && camp.gold >= camp.debt.amount && !camp.debt.felixTip && tesouroDoGrupo() && !camp.pending.some(p => p.kind === 'credor')) { camp.debt.felixTip = true; camp.pending.unshift({ kind: 'felix-divida' }); saveCamp(); }
   const ps = pendingScene(); if (ps) { ui.scene = ps; ui.screen = 'scene'; renderScene(); return; }
   const valid = !R.deckProblems(camp.deck, camp.collection).length;
   const next = Math.min(camp.floor, R.MAX_FLOOR);

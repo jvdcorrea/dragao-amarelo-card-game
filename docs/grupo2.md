@@ -85,8 +85,8 @@ Todos começam com 1 de mana a mais que o protagonista.
 
 ## O credor e o tesouro
 
-- Depois do **andar 8**, o Barão volta para a **segunda parcela: 700 de ouro**, com o prazo negociado (vitória: 4 dias; derrota: 2). Se a primeira ainda estiver aberta, as duas se somam.
-- **Tesouro de Ignar**: **800 de ouro** na primeira vitória.
+- Depois do **andar 8**, o Barão volta para a **segunda parcela: 700 de ouro**, com o prazo negociado (vitória: 4 dias; derrota: 3). Se a primeira ainda estiver aberta, as duas se somam. Atraso: +15% e 3 ou 2 dias a mais (P93).
+- **Tesouro de Ignar**: **840 de ouro** na primeira vitória (parcela + 20%, P93).
 - Ouro por luta no grupo 2: comuns 12 a 16, Elite 30 a 35, chefe 50.
 
 ---

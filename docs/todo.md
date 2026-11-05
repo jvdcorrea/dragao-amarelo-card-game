@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 28/10/2026 · acompanha o design v0.59*
+*Atualizada em 28/10/2026 · acompanha o design v0.60*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -65,6 +65,11 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [ ] Recompensa final da quest da Chrome (hoje 100 de ouro).
 - [ ] Playtests humanos do grupo 2 para o ajuste fino.
 - [ ] Grupo 3: o frio e o resgate de Ergos.
+
+## Economia (P93)
+
+- [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
+- [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
 
 ## Pendências da leva P92
 

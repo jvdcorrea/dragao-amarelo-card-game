@@ -591,3 +591,25 @@ Digital, single-player, PC. Tecnologia em aberto.
 - **Guilda reorganizada:** o dia aparece em destaque; a tela se divide em Dungeon, Cidade (botão grande, que fica cinza depois da ida), Guilda (Felix, Quadro, Instalações, Taverna, Notas), Decks e Playtest (batalha avulsa, **negociação avulsa** e o log).
 - **Cartas novas nos Mestres:** quando o grupo 2 é liberado, cada Mestre ganha um selo "Cartas novas" na cidade até a primeira visita, e a loja lista as cartas novas da Disciplina.
 - **Blindagem, Superaquecer e Perfurar** aparecem no glossário da partida e nas peças em campo.
+
+
+---
+
+## Economia da dívida (P93)
+
+**Paradigma:** o tesouro do chefe paga a parcela, e sobra; o tempo é livre; os juros são a punição por não vencer a área a tempo. A medida de quem joga bem é o ouro por dia, não o ouro total.
+
+Regras (renda de descida por dia = Gd):
+
+1. **Tesouro** = parcela × (1 + margem), com margem de 20%.
+2. **Prazo** = andares até o chefe + falhas esperadas de um jogador mediano + 1 dia se vencer a negociação. Com 2 andares e chances de cerca de 75% e 60%, dá 4 dias com vitória e 3 com derrota.
+3. **Juros** por atraso ≤ extensão × Gd × 0,5: os dias extras devolvem os juros com metade da renda das descidas. Teto de 25% no grupo 1 e 17% no grupo 2; usamos 15%.
+4. **Extensão** ≥ 1 / chance de vencer o chefe: 3 dias com vitória na nova negociação, 2 com derrota.
+5. Felix aconselha pagar quando o tesouro do grupo chega; antes disso, o ouro é do jogador.
+
+| | Parcela | Tesouro | Juros | Prazo | Extensão |
+|---|---|---|---|---|---|
+| Grupo 1 (credor depois do andar 3) | 300 | 360 | 15% | 4 ou 3 dias | 3 ou 2 dias |
+| Grupo 2 (credor depois do andar 8) | 700 | 840 | 15% | 4 ou 3 dias | 3 ou 2 dias |
+
+Os números ficam numa tabela única no código (ECON). O simulador em `tools/economia/simula.py` estima, para um jogador mediano, cerca de 78% de pagamento no prazo, 106 de ouro por dia contra 98 de um jogador mais fraco e juros médios de 11 (grupo 1) e 26 (grupo 2). A calibração fina depende de uma campanha sem o menu de testes, para medir a renda real e as chances por andar.
