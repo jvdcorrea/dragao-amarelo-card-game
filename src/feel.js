@@ -54,8 +54,26 @@ const FEEL = {
     subirPx: 44,
     pop: 1.3,             // escala no começo
     pilhaPx: 20,          // números seguidos no mesmo alvo sobem em degraus
-    cores: { dano: '#e5483c', cura: '#3fcf62', escudo: '#4aa8e8' },
+    cores: { dano: '#e5483c', cura: '#3fcf62' },   // Escudo e Blindagem saem como os selos das cartas
     rotulos: { escudo: 'Escudo', escudoSocial: 'Álibi', bloq: 'Blindagem' },
+  },
+  // Mão e cartas em movimento.
+  mao: {
+    subirPx: 12,          // carta sob o mouse sobe
+    escala: 1.05,         // e cresce um pouco
+    inclinacao: 8,        // graus máximos de inclinação 3D seguindo o cursor
+    brilho: 0.35,         // reflexo que acompanha o cursor (0 desliga)
+    arcoMs: 340,          // carta jogada voa da mão até o destino
+    arcoAltura: 0.3,      // altura do arco, em fração da distância
+    arcoGiro: 6,          // graus de giro no meio do voo
+    arcoEscalaFeitico: 0.8, // feitiços chegam um pouco menores e somem
+    pousoMs: 200,         // a peça pousa com um leve aperto
+    pousoEscala: 1.08,
+    entradaMs: 260,       // peças do inimigo e criadas por efeito caem no lugar
+    compraMs: 280,        // carta comprada chega à mão
+    compraIntervalo: 90,  // entre cartas compradas juntas
+    compraDesloc: 60,     // px de onde ela vem (direita e baixo)
+    reflowMs: 220,        // cartas e peças que mudam de lugar deslizam
   },
   // Arquivos em assets/audio/sfx/<nome>_<n>.ogg (ou .wav), de 1 até arqs; um sorteado a cada toque.
   // vol multiplica o volume de efeitos; etapa 0 toca na hora, 1 depois de etapaMs, 2 depois do dobro.

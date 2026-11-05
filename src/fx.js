@@ -38,10 +38,11 @@ function pegaCamada() {
   if (mesa) { const cs = getComputedStyle(mesa); ['--vida', '--mana', '--glow', '--ouro-vivo', '--mesa'].forEach(v => camada.style.setProperty(v, cs.getPropertyValue(v))); }
   return camada;
 }
-// Antes de desenhar: posição e HTML de cada peça, para animar as que vão sumir.
+// Antes de desenhar: posição e HTML de cada peça (e:uid) e carta da mão (h:uid), para animar o que some ou muda de lugar.
 function capture() {
   const m = new Map();
-  document.querySelectorAll('.mesa [data-ent]').forEach(el => m.set(+el.dataset.ent, { rect: el.getBoundingClientRect(), html: el.outerHTML }));
+  document.querySelectorAll('.mesa [data-ent]').forEach(el => m.set('e:' + el.dataset.ent, { rect: el.getBoundingClientRect(), html: el.outerHTML }));
+  document.querySelectorAll('.mao [data-uid]').forEach(el => m.set('h:' + el.dataset.uid, { rect: el.getBoundingClientRect(), html: el.outerHTML }));
   return m;
 }
 function elDe(ref) {
@@ -118,7 +119,7 @@ function brilhoCura(ref, k) {
 // Sobre peças, o número nasce no terço de cima; sobre líderes, logo acima do número de vida, para não cobri-lo.
 function numero(rect, acima, texto, cor, degrau, k, mov) {
   const N = FEEL.numeros; if (!rect) return;
-  const d = document.createElement('div'); d.className = 'fx-num'; d.textContent = texto; d.style.color = cor;
+  const d = document.createElement('div'); d.className = cor ? 'fx-num' : 'fx-num fx-selo'; d.textContent = texto; if (cor) d.style.color = cor;
   Object.assign(d.style, { left: rect.left + rect.width / 2 + 'px', top: (acima ? rect.top - 8 : rect.top + rect.height * 0.3) - degrau * N.pilhaPx + 'px' });
   pegaCamada().appendChild(d);
   const ms = N.ms * k, base = 'translate(-50%, -50%)';
@@ -130,6 +131,42 @@ function numero(rect, acima, texto, cor, degrau, k, mov) {
   ] : [{ transform: base, opacity: 1 }, { transform: base, opacity: 1, offset: 0.7 }, { transform: base, opacity: 0 }];
   const an = d.animate(fr, { duration: Math.max(1, ms), easing: 'ease-out', fill: 'forwards' });
   an.onfinish = () => d.remove();
+}
+// Carta jogada: voa da mão ao destino num arco. Peças pousam (a cópia some e a peça real aparece); feitiços somem no alvo.
+function arco(c, alvo, ms, pousa) {
+  const M = FEEL.mao, p = copia(c.html, c.rect), a = centro(c.rect), b = alvo ? centro(alvo) : a;
+  const dist = Math.hypot(b.x - a.x, b.y - a.y);
+  const cx = (a.x + b.x) / 2, cy = Math.min(a.y, b.y) - dist * M.arcoAltura;
+  const sFim = pousa && alvo ? Math.min(1, alvo.width / c.rect.width) : M.arcoEscalaFeitico;
+  const fr = [];
+  for (let i = 0; i <= 10; i++) {
+    const u = i / 10, v = 1 - u;
+    const x = v * v * a.x + 2 * v * u * cx + u * u * b.x, y = v * v * a.y + 2 * v * u * cy + u * u * b.y;
+    fr.push({ transform: `translate(${x - a.x}px, ${y - a.y}px) rotate(${4 * u * v * M.arcoGiro}deg) scale(${1 + (sFim - 1) * u})`, opacity: pousa || u < 0.7 ? 1 : 1 - (u - 0.7) / 0.3 });
+  }
+  p.style.zIndex = 3;
+  const an = p.animate(fr, { duration: Math.max(1, ms), easing: 'cubic-bezier(.45,0,.35,1)' });
+  an.onfinish = () => p.remove();
+}
+// Peça nova aparece na hora dela: pouso com aperto (vinda do arco) ou queda curta (inimigo e efeitos).
+function entra(el, t, doArco, k) {
+  const M = FEEL.mao;
+  const fr = doArco
+    ? [{ opacity: 0, transform: `scale(${M.pousoEscala})` }, { opacity: 1, transform: `scale(${M.pousoEscala})`, offset: 0.01 }, { opacity: 1, transform: 'none' }]
+    : [{ opacity: 0, transform: 'translateY(-24px) scale(.85)' }, { opacity: 1, transform: 'none' }];
+  el.animate(fr, { duration: Math.max(1, (doArco ? M.pousoMs : M.entradaMs) * k), delay: t, easing: 'cubic-bezier(.34,1.5,.64,1)', fill: 'backwards' });
+}
+// Carta comprada chega à mão vinda de baixo e da direita, com um leve passo além do lugar.
+function chega(el, t, k) {
+  const M = FEEL.mao;
+  el.animate([{ opacity: 0, transform: `translate(${M.compraDesloc}px, ${M.compraDesloc * 0.5}px) rotate(6deg) scale(.85)` }, { opacity: 1, transform: 'none' }],
+    { duration: Math.max(1, M.compraMs * k), delay: t, easing: 'cubic-bezier(.34,1.4,.64,1)', fill: 'backwards' });
+}
+// O que mudou de lugar no desenho novo sai do lugar antigo e desliza (FLIP), depois de uma espera opcional.
+function desliza(el, r0, delay, ms) {
+  const r1 = el.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
+  if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+  el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: Math.max(1, ms), delay, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' });
 }
 function morte(g, ms, mov) {
   if (!g) return;
@@ -161,8 +198,8 @@ function linha(st, evs, cap) {
   // Cópias por chave: mortos desta leva (no lugar antigo) e atacantes vivos durante o avanço.
   const copias = new Map(), mortos = [], somem = new Set();
   evs.forEach(ev => {
-    if (ev.k !== 'die' || !cap || !cap.has(ev.u) || copias.has('e:' + ev.u)) return;
-    const c = cap.get(ev.u), g = copia(c.html, c.rect); copias.set('e:' + ev.u, g); mortos.push(g);
+    if (ev.k !== 'die' || !cap || !cap.has('e:' + ev.u) || copias.has('e:' + ev.u)) return;
+    const c = cap.get('e:' + ev.u), g = copia(c.html, c.rect); copias.set('e:' + ev.u, g); mortos.push(g);
   });
   const elOuCopia = ref => copias.get(chave(ref)) || elDe(ref);
 
@@ -197,11 +234,26 @@ function linha(st, evs, cap) {
   function numeroDe(ev, k) {
     const c = chave(ev.ref), el = elOuCopia(ev.ref); if (!el) return;
     const C = N.cores, R = N.rotulos;
-    const [txt, cor] = ev.k === 'dmg' ? ['-' + ev.n, C.dano] : ev.k === 'heal' ? ['+' + ev.n, C.cura] : [ev.k === 'escudo' ? (cfg.social ? R.escudoSocial : R.escudo) : R.bloq, C.escudo];
+    const [txt, cor] = ev.k === 'dmg' ? ['-' + ev.n, C.dano] : ev.k === 'heal' ? ['+' + ev.n, C.cura] : [ev.k === 'escudo' ? (cfg.social ? R.escudoSocial : R.escudo) : R.bloq, null];
     const dg = degraus[c] = (degraus[c] === undefined ? 0 : degraus[c] + 1);
     const lider = ev.ref.t === 'l', alvo = (lider && numNo(el, ev.ref)) || el;
     numero(alvo.getBoundingClientRect(), lider, txt, cor, dg % 3, k, mov);
   }
+
+  // Destino do voo de uma carta jogada: a peça nova, o alvo, a arma, a armadilha ou o meio da mesa.
+  function destinoDe(ev) {
+    let el = ev.e ? elDe({ t: 'e', uid: ev.e }) : ev.tgt ? elOuCopia(ev.tgt) : null;
+    if (!el) {
+      const d = typeof Engine !== 'undefined' ? Engine.DEF[ev.c] : null;
+      if (d && d.type === 'weapon') el = document.querySelector('.mesa .arma');
+      if (d && d.type === 'trap') { const ts = document.querySelectorAll('.mesa .armadilha'); el = ts[ts.length - 1]; }
+    }
+    el = el || document.querySelector('.mesa .faixa');
+    return el ? el.getBoundingClientRect() : null;
+  }
+  const M = FEEL.mao;
+  const entradas = new Map(), compras = [];   // peças novas (uid -> hora) e cartas compradas
+  let tPrimeiraMorte = null;
 
   let t = 0, g = null, atk = null;
   const fechar = () => {
@@ -230,6 +282,7 @@ function linha(st, evs, cap) {
       });
     }
     const tm = grupo.t + hs;
+    if (grupo.mortes.length && tPrimeiraMorte === null) tPrimeiraMorte = tm;
     grupo.hits.forEach(ev => {
       tocar(ev, grupo.t);
       if (mov && ev.k !== 'heal') agendar(grupo.t, () => {
@@ -256,8 +309,28 @@ function linha(st, evs, cap) {
 
   evs.forEach(ev => {
     switch (ev.k) {
-      case 'play':
-        fechar(); tocar(ev, t); t += T.depoisJogar * k; break;
+      case 'play': {
+        fechar();
+        const h = mov && ev.s === 'P' && cap ? cap.get('h:' + ev.u) : null;
+        if (h) {
+          const ms = M.arcoMs * k, t0 = t;
+          if (ev.e) entradas.set(ev.e, { t: t0 + ms, arco: true });
+          agendar(t0, () => arco(h, destinoDe(ev), ms, !!ev.e));
+          tocar(ev, t0 + ms * 0.85);   // o som cai quando a carta chega
+          t += ms;
+        } else {
+          tocar(ev, t);
+          if (ev.e) entradas.set(ev.e, { t });
+          t += T.depoisJogar * k;
+        }
+        break;
+      }
+      case 'summon':
+        if (!entradas.has(ev.u)) entradas.set(ev.u, { t });
+        break;
+      case 'draw': case 'gain':
+        if (ev.s === 'P') { const tc = t + compras.length * M.compraIntervalo * k; compras.push({ u: ev.u, t: tc }); tocar(ev, tc); }
+        break;
       case 'atk':
         fechar();
         atk = { t, ref: { t: 'e', uid: ev.a }, tgt: ev.tgt };
@@ -281,6 +354,22 @@ function linha(st, evs, cap) {
     }
   });
   fechar();
+  if (mov) {
+    // Mão: as cartas que ficaram deslizam para o lugar novo; as compradas chegam em sequência.
+    document.querySelectorAll('.mao [data-uid]').forEach(el => {
+      const c = cap && cap.get('h:' + el.dataset.uid);
+      if (c) desliza(el, c.rect, 0, M.reflowMs * k);
+    });
+    compras.forEach(c => { const el = document.querySelector(`.mao [data-uid="${c.u}"]`); if (el && !(cap && cap.has('h:' + c.u))) chega(el, c.t, k); });
+    // Mesa: as peças que mudaram de lugar esperam o morto sumir ou a nova pousar, e então deslizam.
+    const tEntr = [...entradas.values()].map(x => x.t);
+    const tsl = Math.min(tPrimeiraMorte === null ? Infinity : tPrimeiraMorte, ...tEntr);
+    document.querySelectorAll('.mesa [data-ent]').forEach(el => {
+      const c = cap && cap.get('e:' + el.dataset.ent);
+      if (c) desliza(el, c.rect, Number.isFinite(tsl) ? tsl : 0, M.reflowMs * k);
+    });
+    entradas.forEach((x, uid) => { const el = elDe({ t: 'e', uid }); if (el && !(cap && cap.has('e:' + uid))) entra(el, x.t, x.arco, k); });
+  }
   ate(t);
   // Cópias de mortos que não entraram em nenhum grupo (por segurança) somem no fim.
   mortos.forEach(f => { if (!somem.has(f)) agendar(t, () => morte(f, I.morteMs * k, mov)); });
@@ -295,5 +384,26 @@ function flush(st, cap) {
   if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap);
 }
 function pendente(st) { return !!(st && st.fxq && st.fxq.length); }
+
+/* ---------- Mão: inclinação seguindo o cursor ---------- */
+(function ligarMao() {
+  const M = FEEL.mao, raiz = document.documentElement.style;
+  raiz.setProperty('--mao-subir', -M.subirPx + 'px'); raiz.setProperty('--mao-escala', M.escala); raiz.setProperty('--mao-brilho', M.brilho);
+  const base = new WeakMap();   // retângulo da carta antes de inclinar (inclinada, ela muda de tamanho e a conta tremeria)
+  const cartaDe = ev => (ev.target && ev.target.closest ? ev.target.closest('.mao .carta') : null);
+  document.addEventListener('pointermove', ev => {
+    const c = cartaDe(ev);
+    if (!c || ev.pointerType !== 'mouse' || !(cfg.anim === 'normal' || cfg.anim === 'rapida')) return;
+    if (!base.has(c)) base.set(c, c.getBoundingClientRect());
+    const r = base.get(c), x = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height));
+    c.style.setProperty('--rx', ((0.5 - y) * 2 * M.inclinacao).toFixed(2) + 'deg');
+    c.style.setProperty('--ry', ((x - 0.5) * 2 * M.inclinacao).toFixed(2) + 'deg');
+    c.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); c.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  });
+  document.addEventListener('pointerout', ev => {
+    const c = cartaDe(ev);
+    if (c && !c.contains(ev.relatedTarget)) { base.delete(c); ['--rx', '--ry'].forEach(v => c.style.removeProperty(v)); }
+  });
+})();
 return { flush, capture, pendente, idle, config };
 })();

@@ -280,7 +280,8 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .selo-turno { width: 82px; height: 82px; font-size: .92rem; }
   .barra { width: 80px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* Sem animação (P94): o modo vem das Configurações e, sem escolha, do prefers-reduced-motion */
+:root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; }
 
 /* Arte provisória: ícones game-icons.net (CC BY 3.0) sobre fundos gerados */
 .arte { display: block; position: relative; height: 46px; border-radius: 6px; margin: 1px 0 2px; overflow: hidden; flex-shrink: 0;
@@ -494,3 +495,15 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .fx-flash { position: fixed; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
 .fx-corte { position: fixed; border-radius: 50%; background: linear-gradient(90deg, transparent, var(--corte) 18%, #fff 50%, var(--corte) 82%, transparent); box-shadow: 0 0 0 1px rgba(60, 30, 0, .35), 0 0 12px 3px color-mix(in srgb, var(--corte) 75%, transparent); }
 .fx-num { position: fixed; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; -webkit-text-stroke: 1px rgba(0, 0, 0, .55); text-shadow: 0 2px 3px rgba(0, 0, 0, .45); opacity: 0; }
+.fx-num.fx-selo { font-family: inherit; font-size: .95rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); -webkit-text-stroke: 0; text-shadow: none; box-shadow: 0 2px 6px var(--sombra); }
+
+/* Mão (P94): a carta sob o mouse sobe, cresce e inclina seguindo o cursor, com um reflexo */
+.mao .carta { transition: transform .14s ease-out, box-shadow .14s ease-out; }
+@media (hover: hover) {
+  .mao { padding-top: 32px; }
+  .mao .carta:hover, .mao .carta.sel { transform: perspective(800px) translateY(var(--mao-subir, -12px)) scale(var(--mao-escala, 1.05)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); z-index: 2; box-shadow: 0 14px 24px var(--sombra); }
+  .mao .carta.sel { box-shadow: 0 0 0 3px var(--ouro-vivo), 0 14px 24px var(--sombra); }
+  .mao .carta::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .6), transparent 60%); opacity: 0; transition: opacity .14s; }
+  .mao .carta:hover::after { opacity: var(--mao-brilho, .35); }
+}
+

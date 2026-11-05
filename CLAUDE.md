@@ -54,7 +54,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 | `src/ui.js` | Toda a interface e o estado da campanha: batalha, guilda, cidade, diálogos, cenas, editor de deck, logs, menu de testes. |
 | `src/style.css`, `src/template.html` | Estilo (claro e escuro) e esqueleto da página. |
 | `src/feel.js` | Game feel (P94): todas as durações, intensidades e a lista de sons. Ajuste aqui. |
-| `src/audio.js`, `src/fx.js` | Gerenciador de áudio `Som` (Howler) e camada de apresentação `Fx`, que lê `st.fxq` depois de cada `render()` da batalha e anima cópias das peças numa camada fixa (`.fx-camada`) fora de `#app`. |
+| `src/audio.js`, `src/fx.js` | Gerenciador de áudio `Som` (Howler) e camada de apresentação `Fx`, que lê `st.fxq` depois de cada `render()` da batalha e anima cópias das peças numa camada fixa (`.fx-camada`) fora de `#app`. Cartas da mão levam `data-uid` para o voo e o deslize; `<html data-anim>` guarda o modo de animação. |
 | `src/vendor/howler.core.min.js` | Howler 2.2.4 (MIT), embutido pelo build. |
 | `assets/audio/sfx/` | Sons `<nome>_<n>.ogg` ou `.wav`. Placeholders: `python3 tools/audio/placeholders.py`. Autoria no `CREDITS.md`. |
 | `src/art.js` | Ícones das cartas, inimigos e mapa. **Gerado** por `tools/arte/gen.py`. |

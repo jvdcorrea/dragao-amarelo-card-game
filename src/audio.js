@@ -7,6 +7,7 @@ const ok = typeof Howl !== 'undefined' && typeof Howler !== 'undefined';
 const html5 = typeof location !== 'undefined' && location.protocol === 'file:';
 const cfg = Object.assign({}, FEEL.audio.padroes);
 const banco = {};   // nome -> Howls que carregaram
+const ultimo = {};  // nome -> índice da última variação tocada, para não repetir em seguida
 
 // Tenta cada formato em ordem; o que não existir some do sorteio sem erro.
 function carregar(nome, base, f) {
@@ -28,13 +29,18 @@ function config(p) {
   ['efeitos', 'musica', 'mudo'].forEach(k => { if (p[k] !== undefined) cfg[k] = p[k]; });
   if (ok) Howler.mute(!!cfg.mudo);
 }
+// O controle vai de 0 a 1; elevar ao quadrado espalha a mudança de volume percebida pelo curso todo.
+function ganho(v) { return v * v; }
 function tocar(nome) {
   if (!ok || cfg.mudo || !cfg.efeitos) return;
   const s = FEEL.sons[nome], lista = banco[nome];
   if (!s || !lista || !lista.length) return;
-  const h = lista[Math.floor(Math.random() * lista.length)];
+  let i = Math.floor(Math.random() * lista.length);
+  if (lista.length > 1 && i === ultimo[nome]) i = (i + 1 + Math.floor(Math.random() * (lista.length - 1))) % lista.length;
+  ultimo[nome] = i;
+  const h = lista[i];
   const id = h.play();
-  h.volume((s.vol === undefined ? 1 : s.vol) * cfg.efeitos, id);
+  h.volume((s.vol === undefined ? 1 : s.vol) * ganho(cfg.efeitos), id);
   const v = FEEL.audio.variacaoTom;
   if (v) h.rate(1 + (Math.random() * 2 - 1) * v, id);
 }

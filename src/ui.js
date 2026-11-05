@@ -340,7 +340,7 @@ function cardHtml(inst, i, extraCls, attrs, cost) {
 function handCard(inst, i) {
   const chk = (st.turnSide === 'P' && !ui.busy && !st.over) ? E.canPlay(st, 'P', i) : { ok: false };
   const sel = ui.mode && ['play', 'confirm', 'inspect'].includes(ui.mode.kind) && ui.mode.idx === i;
-  return cardHtml(inst, i, `${chk.ok ? 'jogavel' : 'bloqueada'} ${sel ? 'sel' : ''}`, `data-hand="${i}" data-info="h:${i}"`, E.getCost(st, 'P', inst));
+  return cardHtml(inst, i, `${chk.ok ? 'jogavel' : 'bloqueada'} ${sel ? 'sel' : ''}`, `data-hand="${i}" data-info="h:${i}" data-uid="${inst.uid}"`, E.getCost(st, 'P', inst));
 }
 
 function glossFor(text, extra) {
@@ -1924,6 +1924,7 @@ function mulliganHtml() {
 function syncGrupo() { if (!camp) return R.setGrupo(1, 0.35); R.setGrupo(camp.cleared[5] || camp.floor > 5 ? 2 : 1, camp.run && camp.run.floor >= 6 ? 0.5 : 0.35); }
 function render() {
   syncGrupo();
+  document.documentElement.dataset.anim = animModo();
   if (ui.screen !== 'battle' || !st) { renderScreen(); $('#app').insertAdjacentHTML('beforeend', (ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : '') + (ui.modal ? modalHtml() : '')); return; }
   persist();
   const handScroll = $('.mao') ? $('.mao').scrollLeft : 0;

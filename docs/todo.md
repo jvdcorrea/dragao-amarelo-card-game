@@ -77,11 +77,12 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [ ] Trocar os placeholders pelos sons definitivos (Kenney.nl, CC0) e preencher o `CREDITS.md`.
 - [x] Fase 2: impacto. O atacante avança até o alvo, congela no contato (hit-stop de 50 a 100 ms, conforme o dano) e o alvo pisca em branco. Ataque com arma mostra um corte atravessando o alvo. Unidades mortas viram cópias que somem no lugar antigo. O turno inimigo espera as animações de cada ação. A tremida de tela saiu depois do playtest.
 - [x] Fase 3: números flutuantes sobre o alvo (dano em vermelho, cura em verde, Escudo e Blindagem em azul, por extenso). A vida mostrada volta ao valor de antes e muda no impacto; a barra do líder desce ou sobe junto. Cura dá um brilho verde em volta do número de vida.
-- [ ] Fase 4: cartas na mão (elevação, inclinação 3D, arco até a mesa).
+- [x] Fase 4: cartas na mão. A carta sob o mouse sobe, cresce e inclina seguindo o cursor, com um reflexo. A carta jogada voa num arco até a peça nova (que pousa com um aperto), até o alvo ou até a arma. Cartas compradas chegam à mão em sequência; cartas e peças que mudam de lugar deslizam, e as peças só deslizam quando o morto some. Peças do inimigo e criadas por efeito caem no lugar.
 - [ ] Fase 5: música ambiente com troca suave entre estados.
 - [ ] Fase 6: configurações de animação (1x, 2x, instantâneo, desligado).
 - [ ] A cópia no claude.ai não tem a pasta `assets/audio/` e fica sem som. Decidir se os sons vão embutidos nela.
-- *Decisões minhas para revisar (fase 3):* Escudo aparece como “Escudo” (“Álibi” na negociação) e Blindagem como “Blindagem”, ambos em azul; perda de vida (Sangria, fadiga) usa o mesmo vermelho do dano; números sobre líderes nascem acima do número de vida; o corte da arma é dourado com miolo branco e não há avanço da arma.
+- *Decisões minhas para revisar (fase 4):* todas as cartas sobem ao passar o mouse, inclusive as que não dá para jogar; o som de jogar toca quando a carta chega; feitiços sem alvo voam para a faixa do meio; cartas do inimigo não aparecem voando (só a peça caindo no lugar); no celular não há inclinação.
+- *Decidido (fase 3):* Sangria e fadiga usam o vermelho do dano; Escudo e Blindagem saem com a cara dos selos das cartas; o corte da arma fica como está.
 - *Decisões minhas para revisar (fase 2):* Escudo e Blindagem dão um flash mais fraco; cura não pisca; a pausa entre ações do inimigo passou de 650 ms para 500 ms, mais o tempo das animações; com prefers-reduced-motion, nada se move e as unidades mortas só esmaecem.
 - *Decisões minhas para revisar (fase 1):* compras do inimigo não tocam som; até 2 cópias do mesmo som por ação; dano de 5 ou mais toca o impacto forte; a negociação social usa os mesmos sons; botão de som ao lado da engrenagem e na faixa da batalha.
 
