@@ -69,6 +69,14 @@ const LEGEND = {
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
 const lsDel = k => { try { localStorage.removeItem(k); } catch (e) { /* sem armazenamento */ } };
+// Preferências de som e animação (P94): valem para o navegador, fora da campanha, então não precisam de migração.
+const LS_PREFS = 'dragao-amarelo-prefs-v1';
+const prefs = Object.assign({}, FEEL.audio.padroes, lsGet(LS_PREFS, {}));
+const savePrefs = () => { lsSet(LS_PREFS, prefs); Som.config(prefs); };
+Som.config(prefs);
+function toggleMute() { prefs.mudo = !prefs.mudo; savePrefs(); }
+const SOM_SVG = on => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/>${on ? '<path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' : '<path d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'}</svg>`;
+function somBtn(cls) { const on = !prefs.mudo; return `<button class="${cls}" data-act="som-mudo" aria-pressed="${!on}" aria-label="${on ? 'Desligar o som' : 'Ligar o som'}" title="${on ? 'Desligar o som (M)' : 'Ligar o som (M)'}">${SOM_SVG(on)}</button>`; }
 function gameRecord(result) {
   return { cheat: (st.ctx && (st.ctx.mode === 'run' || st.ctx.mode === 'defesa') && camp && camp.cheatUsed) ? true : undefined, id: st.gameId, player: ui.nick || '', rules: RULES, startedAt: new Date(st.t0).toISOString(), endedAt: new Date().toISOString(), result, disc: st.disc, enc: st.encId, seed: st.seed, mulligans: st.mulligans, turns: [E.S(st, 'P').turnCount, E.S(st, 'E').turnCount], hp: [E.S(st, 'P').leader.hp, E.S(st, 'E').leader.hp], events: st.events, log: st.log, ctx: st.ctx || { mode: 'avulsa' } };
 }
@@ -260,7 +268,7 @@ function centerBar() {
     const inst = P().hand[m.idx];
     if (inst) { const d = E.DEF[inst.id]; det = `<div class="faixa-detalhe"><p class="linha">${typeLabel(d)}${d.tags.length ? ' (' + esc(d.tags.join(', ')) + ')' : ''}, custo ${E.getCost(st, 'P', inst)}</p><p>${fmtText(d.text)}</p>${glossFor(d.text, d.type === 'ritual' ? ['Ritual'] : d.type === 'trap' ? ['Armadilha'] : d.type === 'structure' ? ['Estrutura'] : [])}</div>`; }
   }
-  return `<div class="faixa ${cls}"><span>${esc(msg)}</span><span class="faixa-botoes">${playBtn}${cancel ? `<button class="botao discreto" data-act="cancel">${cancelLbl}</button>` : (!st.over ? '<button class="botao discreto" data-act="quit">Sair da partida</button>' : overBtn)}</span>${det}</div>`;
+  return `<div class="faixa ${cls}"><span>${esc(msg)}</span><span class="faixa-botoes">${somBtn('botao discreto som-faixa')}${playBtn}${cancel ? `<button class="botao discreto" data-act="cancel">${cancelLbl}</button>` : (!st.over ? '<button class="botao discreto" data-act="quit">Sair da partida</button>' : overBtn)}</span>${det}</div>`;
 }
 
 function panelP() {
@@ -573,7 +581,7 @@ function logsHtml(inner) {
     <button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
     <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>Apagar logs</button></div></section>`;
 }
-function gearBtn() { return `<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
+function gearBtn() { return `${somBtn('alto-falante')}<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
 /* ===== Guilda: dia, ouro, aventureiros, instalações, defesas e cidade ===== */
 const GOLD = { batalha: [8, 12], elite: [20, 25], chefe: [50, 50] };
 const GOLD2 = { batalha: [12, 16], elite: [30, 35], chefe: [50, 50] };
@@ -1572,7 +1580,9 @@ function renderCredits() {
     <h2>Ilustrações</h2>
     <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) e de Kryoret, o Azer da banca (Forja Esquecida) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
-    <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT.</p>
+    <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT. Áudio com <a href="https://howlerjs.com" target="_blank" rel="noopener">howler.js</a>, de James Simpson (GoldFire Studios), sob a licença MIT.</p>
+    <h2>Sons</h2>
+    <p>Os sons atuais são provisórios, gerados pelo próprio projeto. A lista de arquivos, origens e licenças fica no CREDITS.md do repositório.</p>
     <div class="linha-logs"><button class="botao principal" data-act="settings">Voltar</button></div>
   </section>`;
 }
@@ -1708,6 +1718,7 @@ function renderSettings() {
   $('#app').innerHTML = `<header class="abertura"><h1>Configurações</h1></header>
   <section class="cena config">
     <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
+    <div class="config-item"><div><h2>Som</h2><p>${Som.ativo() ? 'Volumes separados para efeitos e música. A tecla M liga e desliga o som em qualquer tela.' : 'O áudio não carregou neste navegador.'}</p></div><div class="som-controles"><label>Efeitos <input id="vol-efeitos" type="range" min="0" max="100" step="5" value="${Math.round(prefs.efeitos * 100)}"></label><label>Música <input id="vol-musica" type="range" min="0" max="100" step="5" value="${Math.round(prefs.musica * 100)}"></label><button class="botao" data-act="som-mudo" aria-pressed="${!!prefs.mudo}">${prefs.mudo ? 'Ligar o som' : 'Desligar o som'}</button></div></div>
     <div class="config-item"><div><h2>Códigos secretos</h2><p>${cheats.unlocked ? 'Modo de testes liberado.' : 'Tem um código? Digite aqui.'}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">Código</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código"><button class="botao" data-act="code">Usar</button>${cheats.unlocked ? '<button class="botao" data-act="cheats">Menu de testes</button>' : ''}</div></div>
     <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
@@ -1829,6 +1840,7 @@ function renderScreen() {
 }
 async function runClick(ds) {
   const act = ds.act;
+  if (act === 'som-mudo') { toggleMute(); render(); return true; }
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }
@@ -1929,6 +1941,7 @@ function render() {
   </div>${ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : ''}${st.over && !ui.overClosed ? overPanel() : ''}${st.pending && st.pending.kind === 'mulligan' ? mulliganHtml() : ''}${ui.modal ? modalHtml() : ''}`;
   if ($('.mao')) $('.mao').scrollLeft = handScroll;
   if ($('.registro ol')) $('.registro ol').scrollTop = logScroll;
+  Fx.flush(st);
 }
 function refreshInfo() { const el = $('.info'); if (el) el.outerHTML = infoPanel(); }
 
@@ -2010,7 +2023,10 @@ function startGame() {
   window.scrollTo(0, 0);
 }
 
-document.addEventListener('change', ev => { if (ev.target && ev.target.id === 'instr' && camp) guildClick('g-instrutor', { adv: ev.target.value }); });
+document.addEventListener('change', ev => {
+  if (ev.target && ev.target.id === 'instr' && camp) guildClick('g-instrutor', { adv: ev.target.value });
+  if (ev.target && ev.target.id === 'vol-efeitos') Som.tocar('jogar');
+});
 document.addEventListener('click', async ev => {
   const t = ev.target.closest('[data-act],[data-hand],[data-ent],[data-leader],[data-disc],[data-enc],[data-sdisc],[data-senc],[data-choice],[data-prever],[data-newdisc],[data-floor],[data-node],[data-deckadd],[data-deckrem],[data-deckdisc],[data-deckfilter],[data-evc],[data-pick],[data-pack]');
   if (!t) return;
@@ -2103,6 +2119,7 @@ document.addEventListener('click', async ev => {
 });
 document.addEventListener('input', ev => {
   if (ev.target && ev.target.id === 'apelido') { ui.nick = ev.target.value.slice(0, 40); lsSet(LS_NICK, ui.nick); }
+  if (ev.target && (ev.target.id === 'vol-efeitos' || ev.target.id === 'vol-musica')) { prefs[ev.target.id === 'vol-efeitos' ? 'efeitos' : 'musica'] = +ev.target.value / 100; savePrefs(); }
 });
 document.addEventListener('mouseover', ev => {
   if (!st) return;
@@ -2110,6 +2127,7 @@ document.addEventListener('mouseover', ev => {
   if (t && t.dataset.info !== ui.info) { ui.info = t.dataset.info; refreshInfo(); }
 });
 document.addEventListener('keydown', ev => {
+  if ((ev.key === 'm' || ev.key === 'M') && !ev.ctrlKey && !ev.metaKey && !ev.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test((ev.target && ev.target.tagName) || '')) { toggleMute(); toast(prefs.mudo ? 'Som desligado.' : 'Som ligado.'); return; }
   if (ev.key === 'Escape') {
     if (ui.modal && ui.modal.kind === 'choice') { const m = ui.modal; ui.modal = null; render(); m.resolve(null); return; }
     if (ui.mode) { ui.mode = null; render(); }

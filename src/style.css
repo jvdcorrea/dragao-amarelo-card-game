@@ -314,6 +314,14 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .engrenagem { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 15; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px var(--sombra); }
 .engrenagem svg { width: 26px; height: 26px; fill: currentColor; transition: transform .3s ease; }
 .engrenagem:hover svg, .engrenagem:focus-visible svg { transform: rotate(45deg); }
+/* Som (P94): botão ao lado da engrenagem, na faixa da batalha e nas Configurações */
+.alto-falante { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 64px; z-index: 15; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px var(--sombra); }
+.alto-falante svg { width: 24px; height: 24px; fill: currentColor; }
+.som-faixa { display: inline-flex; align-items: center; }
+.som-faixa svg { width: 1.15em; height: 1.15em; fill: currentColor; }
+.som-controles { display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; }
+.som-controles label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.som-controles input[type=range] { width: 120px; accent-color: var(--ouro); }
 .titulo-tela { min-height: calc(100dvh - 120px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 12px 12px; }
 .titulo-ico svg { width: 96px; height: 96px; fill: var(--ouro-vivo); filter: drop-shadow(0 2px 2px var(--sombra)); }
 .titulo-tela h1 { font-size: clamp(2.8rem, 10vw, 5.2rem); line-height: 1; margin: 8px 0 0; color: var(--ouro); letter-spacing: -.01em; }

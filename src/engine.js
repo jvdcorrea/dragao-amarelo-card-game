@@ -64,7 +64,7 @@ def('matriarca', { name: 'Matriarca dos Ninhos', cost: 5, type: 'unit', atk: 4, 
 def('tita', { name: 'Titã do Bosque', cost: 7, type: 'unit', atk: 7, hp: 7, kw: ['guarda'], disc: 'draconic', text: 'Guarda. Ao Entrar: recupere 5 de vida.', onPlay(st, s) { heal(st, s, 5); } });
 
 // Necrodance
-def('pacto', { name: 'Pacto Sangrento', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 3 de vida. Ganhe 2 de mana neste turno.', playable(st, s) { return S(st, s).leader.hp > 3; }, onPlay(st, s) { S(st, s).leader.hp -= 3; S(st, s).mana += 2; } });
+def('pacto', { name: 'Pacto Sangrento', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 3 de vida. Ganhe 2 de mana neste turno.', playable(st, s) { return S(st, s).leader.hp > 3; }, onPlay(st, s) { loseLife(st, { t: 'l', side: s }, 3); S(st, s).mana += 2; } });
 def('esqueleto', { name: 'Esqueleto Bailarino', cost: 1, type: 'unit', atk: 1, hp: 1, disc: 'necro', text: 'Ao Morrer: dê +1/+1 a uma unidade aliada aleatória.', onDeath(st, e) { const o = pick(st, aliveUnits(st, e.owner)); if (o) buff(o, 1, 1); } });
 def('passo', { name: 'Passo de Abertura', cost: 0, type: 'spell', disc: 'necro', compasso: [1], target: () => 'enemyUnit', targetRequired: true, text: 'Cause 1 de dano a uma unidade inimiga. Compasso 1: compre 1 carta.', onPlay(st, s, c) { dmg(st, c.target, 1, src(s, { spell: true })); if (onBeat(st, s, c, 1)) draw(st, s, 1); } });
 def('metronomo', { name: 'Metrônomo Ósseo', cost: 2, type: 'unit', atk: 2, hp: 2, disc: 'necro', compasso: [2], text: 'Compasso 2: invoque um Esqueleto Bailarino.', onPlay(st, s, c) { if (onBeat(st, s, c, 2)) summon(st, s, 'esqueleto'); } });
@@ -248,7 +248,7 @@ const ENC = {
   imperatriz: { name: 'Centopeia Imperatriz', tier: 'Elite', leader: 'Centopeia Imperatriz', hp: 25, hand: 4, rule: 'Suas unidades com Letal custam 1 a menos e têm +0/+1.', deck: { centopeia: 6, aranha: 4, lagarto: 4, besouro: 4, mordida_inf: 3, esporos: 2, morcego: 2 }, costMod(st, id) { return DEF[id].kw.includes('letal') ? -1 : 0; }, onSummon(st, e) { if (e.kw.letal) { e.hp += 1; e.maxHp += 1; } } },
   fungo: { name: 'Fungo Colossal Desperto', tier: 'Elite', leader: 'Fungo Colossal Desperto', hp: 25, hand: 4, rule: 'Seus Cogumelos Adultos têm Guarda.', deck: { broto_cog: 6, fungoide: 4, toupeira: 4, besouro: 4, esporos: 3, fungo_colossal: 2, mordida_inf: 2 }, onBrotar(st, e) { if (e.id === 'cog_adulto') e.kw.guarda = true; } },
   basilisco: { name: 'Basilisco das Grutas', tier: 'Chefe', leader: 'Basilisco das Grutas', hp: 40, hand: 4, boss: true, resonance: 2, phaseAt: 20,
-    onPhase2(st) { const l = S(st, 'E').leader; st.gazeCount = 2; l.hp = Math.min(l.maxHp, l.hp + 8); log(st, 'O Basilisco troca de pele: recupera 8 de Vida e o Olhar passa a pegar duas unidades.'); }, rule: 'Olhar Petrificante: no fim do turno dele, sua unidade de maior Ataque fica Imóvel. Com 20 de Vida ou menos, troca de pele (recupera 8) e o Olhar pega duas unidades.', deck: { ninhada: 3, filhote_bas: 3, mordida_pet: 3, estatua: 2, cauda: 2, lagarto: 4, broto_cog: 4, besouro: 3, fungoide: 2, mordida_inf: 2, fungo_colossal: 2 },
+    onPhase2(st) { st.gazeCount = 2; heal(st, 'E', 8); log(st, 'O Basilisco troca de pele: recupera 8 de Vida e o Olhar passa a pegar duas unidades.'); }, rule: 'Olhar Petrificante: no fim do turno dele, sua unidade de maior Ataque fica Imóvel. Com 20 de Vida ou menos, troca de pele (recupera 8) e o Olhar pega duas unidades.', deck: { ninhada: 3, filhote_bas: 3, mordida_pet: 3, estatua: 2, cauda: 2, lagarto: 4, broto_cog: 4, besouro: 3, fungoide: 2, mordida_inf: 2, fungo_colossal: 2 },
     onEndTurn(st) { const us = aliveUnits(st, 'P'); us.sort((a, b) => getAtk(st, b) - getAtk(st, a)); us.slice(0, st.gazeCount).forEach(e => { setImovel(st, e); log(st, `Olhar Petrificante: ${e.name} fica Imóvel.`); }); } },
 };
 
@@ -314,6 +314,10 @@ function ent(st, ref) {
   return null;
 }
 function rec(st, ev) { if (!st.events) return; ev.ms = Date.now() - st.t0; st.events.push(ev); }
+/* Fila de apresentação (P94): a interface liga com st.fxq = [] e lê depois de cada desenho. Sem a fila (Node, simulações), não faz nada.
+   Não vai para o log exportado. */
+function fx(st, ev) { if (st.fxq) st.fxq.push(ev); }
+function refCopy(ref) { return ref.t === 'l' ? { t: 'l', side: ref.side } : { t: 'e', uid: ref.uid }; }
 function uidOf(e) { return e.id + '#' + e.uid; }
 function refOut(st, ref) { if (!ref) return null; if (ref.t === 'l') return 'L' + ref.side; const e = ent(st, ref); return e ? uidOf(e) : '#' + ref.uid; }
 function statOf(st, ref) { if (!ref) return null; if (ref.t === 'l') return [0, S(st, ref.side).leader.hp]; const e = ent(st, ref); return e ? [e.kind === 'unit' ? getAtk(st, e) : 0, e.kind === 'ritual' ? e.countdown : e.hp] : null; }
@@ -343,25 +347,33 @@ function draw(st, side, n) {
   for (let k = 0; k < n; k++) {
     if (!sd.deck.length) {
       sd.fatigue = (sd.fatigue || 0) + 1;
-      sd.leader.hp -= sd.fatigue;
+      loseLife(st, { t: 'l', side }, sd.fatigue);
       log(st, `${sd.leader.name} está sem cartas e sofre ${sd.fatigue} de fadiga.`);
       continue;
     }
     const inst = sd.deck.shift();
-    if (sd.hand.length >= HAND_MAX) { log(st, `Mão cheia: ${DEF[inst.id].name} é queimada.`); continue; }
+    if (sd.hand.length >= HAND_MAX) { log(st, `Mão cheia: ${DEF[inst.id].name} é queimada.`); fx(st, { k: 'burn', s: side, c: inst.id }); continue; }
     sd.hand.push(inst);
+    fx(st, { k: 'draw', s: side, u: inst.uid });
   }
 }
 function addToHand(st, side, id, costMod) {
   const sd = S(st, side);
   if (sd.hand.length >= HAND_MAX) { log(st, `Mão cheia: ${DEF[id].name} se perde.`); return null; }
-  const inst = newInst(st, id, costMod); sd.hand.push(inst); return inst;
+  const inst = newInst(st, id, costMod); sd.hand.push(inst); fx(st, { k: 'gain', s: side, u: inst.uid }); return inst;
 }
 function shuffleInto(st, side, id) {
   const deck = S(st, side).deck;
   deck.splice(Math.floor(st.rng() * (deck.length + 1)), 0, newInst(st, id));
 }
-function heal(st, side, n) { const l = S(st, side).leader; l.hp = Math.min(l.maxHp, l.hp + n); }
+function heal(st, side, n) { const l = S(st, side).leader; const h0 = l.hp; l.hp = Math.min(l.maxHp, l.hp + n); if (l.hp !== h0) fx(st, { k: 'heal', ref: { t: 'l', side }, n: l.hp - h0 }); }
+/* Perda de vida que não é dano: não passa por Escudo nem Blindagem (fadiga, Sangria, Pacto, Superaquecer). */
+function loseLife(st, ref, n) {
+  if (n <= 0) return;
+  if (ref.t === 'l') S(st, ref.side).leader.hp -= n;
+  else { const e = ent(st, ref); if (!e) return; e.hp -= n; }
+  fx(st, { k: 'dmg', ref: refCopy(ref), n, vida: 1 });
+}
 function cristal(st, side) {
   const sd = S(st, side);
   if (sd.maxMana >= 10) { draw(st, side, 1); log(st, 'Mana máxima já é 10: Cristal vira compra.'); }
@@ -401,19 +413,22 @@ function applyBlind(st, ref, amount, sc) {
 }
 function dmg(st, ref, amount, sc) {
   if (!ref || amount <= 0) return 0;
+  const a0 = amount;
   if (ref.t === 'l') {
-    amount = applyBlind(st, ref, amount, sc); if (amount <= 0) return 0;
+    amount = applyBlind(st, ref, amount, sc); if (amount <= 0) { fx(st, { k: 'bloq', ref: refCopy(ref), n: a0 }); return 0; }
     const sd = S(st, ref.side);
     sd.leader.hp -= amount;
+    fx(st, { k: 'dmg', ref: refCopy(ref), n: amount, sp: sc.spell ? 1 : 0 });
     if (sc.dreno) heal(st, sc.side, amount);
     afterLeaderDamage(st, ref.side);
     return amount;
   }
   const e = ent(st, ref);
   if (!e || isDead(e) || e.kind === 'ritual') return 0;
-  if (hasKw(e, 'escudo')) { e.kw.escudo = false; e.tempKw.escudo = false; log(st, `${e.name} perde o Escudo.`); return 0; }
-  amount = applyBlind(st, ref, amount, sc); if (amount <= 0) return 0;
+  if (hasKw(e, 'escudo')) { e.kw.escudo = false; e.tempKw.escudo = false; log(st, `${e.name} perde o Escudo.`); fx(st, { k: 'escudo', ref: refCopy(ref), n: a0 }); return 0; }
+  amount = applyBlind(st, ref, amount, sc); if (amount <= 0) { fx(st, { k: 'bloq', ref: refCopy(ref), n: a0 }); return 0; }
   e.hp -= amount;
+  fx(st, { k: 'dmg', ref: refCopy(ref), n: amount, sp: sc.spell ? 1 : 0, letal: sc.letal && e.kind === 'unit' ? 1 : 0 });
   if (sc.letal && e.kind === 'unit') e.destroyed = true;
   if (sc.dreno) heal(st, sc.side, amount);
   return amount;
@@ -456,6 +471,7 @@ function summon(st, side, id) {
   const e = makeEntity(st, side, id);
   sd.board.push(e);
   if (side === 'E' && st.enc.onSummon) st.enc.onSummon(st, e);
+  fx(st, { k: 'summon', s: side, u: e.uid });
   return e;
 }
 function removeFromBoard(st, e) { const b = S(st, e.owner).board; const i = b.indexOf(e); if (i >= 0) b.splice(i, 1); }
@@ -542,6 +558,7 @@ function resolveDeaths(st) {
       const sd = S(st, e.owner); const d = DEF[e.id];
       log(st, `${e.name} ${e.kind === 'structure' ? 'é destruída' : 'morre'}.`);
       rec(st, { k: 'die', u: uidOf(e), o: e.owner });
+      fx(st, { k: 'die', u: e.uid, o: e.owner, kind: e.kind });
       e.modules.forEach(m => { addToHand(st, e.owner, m); });
       if (e.kind === 'structure' && d.onDestroyed) d.onDestroyed(st, e);
       if (e.kind === 'unit') {
@@ -643,21 +660,22 @@ function playCard(st, side, idx, opts) {
   const adiantar = !!opts.adiantar && chk.canAdiantar && !payLife;
   const tgtOut = refOut(st, target);
   sd.hand.splice(idx, 1);
-  if (payLife) sd.leader.hp -= d.sangria; else sd.mana -= chk.cost + (adiantar ? d.adiantar : 0);
+  if (payLife) loseLife(st, { t: 'l', side }, d.sangria); else sd.mana -= chk.cost + (adiantar ? d.adiantar : 0);
   const pos = compassoPos(st, side); sd.cardsPlayedThisTurn++;
   log(st, `${sd.leader.short} joga ${d.name}${payLife ? ` pagando ${d.sangria} de vida` : ''}${adiantar ? ', Adiantada' : ''}.`);
   rec(st, { k: 'play', s: side, c: inst.id, u: inst.uid, cost: payLife ? 0 : chk.cost + (adiantar ? d.adiantar : 0), life: payLife ? d.sangria : 0, adi: adiantar ? 1 : 0, pos, tgt: tgtOut, mana: sd.mana, car: inst.cargas || 0 });
+  const fev = { k: 'play', s: side, c: inst.id, u: inst.uid, e: null, tgt: target ? refCopy(target) : null }; fx(st, fev);
   const ctx = { target, pos, inst, ent: null };
   if (d.type === 'unit') {
     if (d.atraso) { sd.delayed.push(inst.id); log(st, `${d.name} chega no próximo turno.`); }
     else {
-      const e = summon(st, side, inst.id); ctx.ent = e;
+      const e = summon(st, side, inst.id); ctx.ent = e; if (e) fev.e = e.uid;
       if (e && (adiantar || inst.acelerar)) e.kw.investida = true;
       if (e && side === 'E') triggerTrap(st, 'P', 'play', e);
       if (e && d.onPlay) d.onPlay(st, side, ctx);
     }
   } else if (d.type === 'structure' || d.type === 'ritual') {
-    const e = summon(st, side, inst.id); ctx.ent = e;
+    const e = summon(st, side, inst.id); ctx.ent = e; if (e) fev.e = e.uid;
     if (e && d.onPlay) d.onPlay(st, side, ctx);
   } else if (d.type === 'weapon') {
     sd.weapon = { id: d.id, name: d.name, atk: d.atk, dur: d.hp, letal: !!d.letal };
@@ -764,6 +782,7 @@ function startTurn(st, side) {
   sd.resonance.used = false; sd.heroAttacked = false;
   sd.board.forEach(e => { e.attacked = false; });
   log(st, `Turno ${sd.turnCount}: ${sd.leader.name}.`);
+  fx(st, { k: 'turn', s: side, n: sd.turnCount });
   sd.delayed.splice(0).forEach(id => {
     const e = summon(st, side, id);
     if (e) { log(st, `${e.name} aparece.`); if (DEF[id].onAppear) DEF[id].onAppear(st, e); }
@@ -775,7 +794,7 @@ function startTurn(st, side) {
   });
   if (sd.strikes && sd.strikes.length) { sd.strikes.splice(0).forEach(n => { const t = randomEnemyRef(st, side); if (t) { dmg(st, t, n, src(side, { spell: true })); log(st, `O golpe que vinha chega: ${n} de dano.`); } }); }
   sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].brotar) brotar(st, e); });
-  sd.board.slice().forEach(e => { if (e.kind === 'unit' && !isDead(e) && hasKw(e, 'superaquecer')) { e.atk += 1; e.hp -= 1; log(st, `${e.name} superaquece: +1 de Ataque, -1 de Vida.`); } });
+  sd.board.slice().forEach(e => { if (e.kind === 'unit' && !isDead(e) && hasKw(e, 'superaquecer')) { e.atk += 1; loseLife(st, { t: 'e', uid: e.uid }, 1); log(st, `${e.name} superaquece: +1 de Ataque, -1 de Vida.`); } });
   sd.board.slice().forEach(e => { if (e.kind === 'ritual' && !e.removed) tickRitual(st, e, 1); });
   sd.board.slice().forEach(e => { if (!isDead(e) && !e.silenced && DEF[e.id].onStartTurn) DEF[e.id].onStartTurn(st, e); });
   if (sd.boomerang) { const n = sd.boomerang; sd.boomerang = 0; if (aliveUnits(st, side).some(x => x.tags.includes('Felino'))) for (let i = 0; i < n; i++) { addToHand(st, side, 'bumerangue'); log(st, 'O Bumerangue volta.'); } }
@@ -836,6 +855,7 @@ function mulligan(st) {
   if (!sd.hand.length) return false;
   const size = nextMulliganSize(st);
   st.mulligans += 1;
+  fx(st, { k: 'mull', n: st.mulligans });
   sd.deck.push(...sd.hand.splice(0)); shuffle(st, sd.deck);
   draw(st, 'P', size);
   log(st, `Mulligan ${st.mulligans}: nova mão com ${size} carta${size === 1 ? '' : 's'}.`);
@@ -964,15 +984,15 @@ sd_('s_presenca', { name: 'Presença Colossal', cost: 6, type: 'unit', atk: 5, h
 sd_('s_tesouro', { name: 'Tesouro do Ninho', cost: 3, type: 'spell', disc: 'draconic', text: 'Cause 2 de dano à Resistência. Perfil Ganância: cause 6 em vez disso.', onPlay(st, s) { hitR(st, s, perfil(st, 'Ganância') ? 6 : 2); } });
 sd_('s_voz_anciao', { name: 'Voz do Ancião', cost: 8, type: 'unit', atk: 7, hp: 7, disc: 'draconic', text: 'Abertura: cause 5 de dano à Resistência.', onPlay(st, s) { hitR(st, s, 5); } });
 // Necrodance
-sd_('s_desabafo', { name: 'Desabafo Mórbido', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 2 de Compostura. Ganhe 1 de Lábia neste turno.', onPlay(st, s) { S(st, s).leader.hp -= 2; S(st, s).mana += 1; } });
-sd_('s_piada', { name: 'Piada de Velório', cost: 1, type: 'spell', disc: 'necro', text: 'Cause 2 de dano à Resistência. Perfil Princípios: cause 2 de dano à sua Compostura em vez disso.', onPlay(st, s) { if (perfil(st, 'Princípios')) { S(st, s).leader.hp -= 2; log(st, 'A piada pegou mal.'); } else hitR(st, s, 2); } });
+sd_('s_desabafo', { name: 'Desabafo Mórbido', cost: 0, type: 'spell', disc: 'necro', text: 'Perca 2 de Compostura. Ganhe 1 de Lábia neste turno.', onPlay(st, s) { loseLife(st, { t: 'l', side: s }, 2); S(st, s).mana += 1; } });
+sd_('s_piada', { name: 'Piada de Velório', cost: 1, type: 'spell', disc: 'necro', text: 'Cause 2 de dano à Resistência. Perfil Princípios: cause 2 de dano à sua Compostura em vez disso.', onPlay(st, s) { if (perfil(st, 'Princípios')) { loseLife(st, { t: 'l', side: s }, 2); log(st, 'A piada pegou mal.'); } else hitR(st, s, 2); } });
 sd_('s_charme', { name: 'Charme Fúnebre', cost: 2, type: 'unit', atk: 2, hp: 2, compasso: [2], disc: 'necro', text: 'Compasso 2: ganha Álibi.', onPlay(st, s, c) { if (c.ent && onBeat(st, s, c, 2)) c.ent.kw.escudo = true; } });
 sd_('s_elogio_postumo', { name: 'Elogio Póstumo', cost: 2, type: 'spell', disc: 'necro', exigeCompasso: 3, text: 'Exige Compasso 3. Cause 5 de dano à Resistência.', onPlay(st, s) { hitR(st, s, 5); } });
 sd_('s_boato', { name: 'Boato Assombrado', cost: 3, type: 'unit', atk: 2, hp: 3, disc: 'necro', text: 'Repercussão: embaralhe 2 Rumores no deck do interlocutor.', onDeath(st, e) { shuffleInto(st, opp(e.owner), 's_rumor'); shuffleInto(st, opp(e.owner), 's_rumor'); log(st, '2 Rumores correm pela cidade.'); } });
 sd_('s_testamento', { name: 'Testamento Revelado', cost: 3, type: 'spell', sangria: 3, disc: 'necro', target: () => 'enemyUnit', targetRequired: true, text: 'Sangria 3. Destrua um Argumento inimigo.', onPlay(st, s, c) { const e = ent(st, c.target); if (e) e.destroyed = true; } });
 sd_('s_marcha', { name: 'Marcha Fúnebre', cost: 4, type: 'spell', compasso: [1, 3], disc: 'necro', text: 'Cause 1 de dano à Resistência para cada Argumento aliado destruído nesta negociação. Compasso 1 ou 3: em dobro.', onPlay(st, s, c) { const n = (S(st, s).deadUnits || []).length * ((onBeat(st, s, c, 1) || onBeat(st, s, c, 3)) ? 2 : 1); if (n) hitR(st, s, n); } });
 sd_('s_coral', { name: 'Coral de Carpideiras', cost: 5, type: 'unit', atk: 3, hp: 5, compasso: [3], disc: 'necro', text: 'Abertura: se for Compasso 3, cause 3 de dano à Resistência.', onPlay(st, s, c) { if (onBeat(st, s, c, 3)) hitR(st, s, 3); } });
-sd_('s_rumor', { name: 'Rumor', cost: 1, type: 'spell', token: true, junk: true, text: 'Não faz nada. Se estiver na mão do interlocutor no fim do turno dele, cause 1 de dano à Resistência dele.', onEndTurnInHand(st, s) { if (s === 'E') { S(st, s).leader.hp -= 1; log(st, 'Um Rumor incomoda o interlocutor.'); } } });
+sd_('s_rumor', { name: 'Rumor', cost: 1, type: 'spell', token: true, junk: true, text: 'Não faz nada. Se estiver na mão do interlocutor no fim do turno dele, cause 1 de dano à Resistência dele.', onEndTurnInHand(st, s) { if (s === 'E') { loseLife(st, { t: 'l', side: s }, 1); log(st, 'Um Rumor incomoda o interlocutor.'); } } });
 // Holy Shadowmancy
 sd_('s_bencao', { name: 'Bênção Calculada', cost: 1, type: 'spell', disc: 'holy', text: 'Recupere 3 de Compostura. Perfil Princípios: também cause 2 de dano à Resistência.', onPlay(st, s) { heal(st, s, 3); if (perfil(st, 'Princípios')) hitR(st, s, 2); } });
 sd_('s_informante', { name: 'Informante das Sombras', cost: 2, type: 'unit', atk: 1, hp: 3, kw: ['emboscada'], disc: 'holy', text: 'Emboscada. Abertura: a carta mais cara na mão do interlocutor custa 2 a mais no próximo turno dele (chantagem).', onPlay(st, s) { const h = S(st, opp(s)).hand.filter(i => !DEF[i.id].junk); if (!h.length) return; h.sort((a, b) => DEF[b.id].cost - DEF[a.id].cost); h[0].costMod = (h[0].costMod || 0) + 2; h[0].chantagem = (h[0].chantagem || 0) + 2; log(st, `Chantagem: ${DEF[h[0].id].name} fica mais cara.`); } });

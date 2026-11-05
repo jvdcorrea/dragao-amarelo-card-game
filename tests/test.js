@@ -44,6 +44,16 @@ function invariants(st) {
     sd.board.forEach(e => { if (!Number.isFinite(e.atk) || !Number.isFinite(e.hp)) throw new Error('stats inválidos ' + e.id); });
   }
 }
+// A fila de apresentação (P94) precisa contar toda mudança de vida dos líderes: dano, cura e perda de vida.
+function fxCheck(st) {
+  const evs = st.fxq.splice(0);
+  for (const s of ['P', 'E']) {
+    const d = evs.reduce((n, x) => (x.ref && x.ref.t === 'l' && x.ref.side === s ? n + (x.k === 'heal' ? x.n : x.k === 'dmg' ? -x.n : 0) : n), 0);
+    const hp = E.S(st, s).leader.hp;
+    if (st.fxHp[s] + d !== hp) throw new Error(`fila de efeitos não bate com a vida de ${s}: ${st.fxHp[s]} ${d >= 0 ? '+' : ''}${d}, mas a vida é ${hp}`);
+    st.fxHp[s] = hp;
+  }
+}
 
 const discs = Object.keys(E.DISC), encs = Object.keys(E.ENC);
 const results = {}; let games = 0, errors = 0;
@@ -54,6 +64,7 @@ for (const d of discs) for (const en of encs) {
     let st;
     try {
       st = E.newGame(d, en, seed);
+      st.fxq = []; st.fxHp = { P: E.S(st, 'P').leader.hp, E: E.S(st, 'E').leader.hp };
       const mm = Math.floor(st.rng() * 4); for (let q = 0; q < mm; q++) E.mulligan(st);
       E.keepHand(st);
       let guard = 0;
@@ -61,11 +72,11 @@ for (const d of discs) for (const en of encs) {
         if (st.turnSide === 'P') botTurn(st);
         else {
           let steps = 0;
-          while (E.enemyStep(st) && steps++ < 60) invariants(st);
+          while (E.enemyStep(st) && steps++ < 60) { invariants(st); fxCheck(st); }
           if (steps >= 60) throw new Error('IA em loop');
           if (!st.over) E.endTurn(st);
         }
-        invariants(st);
+        invariants(st); fxCheck(st);
       }
       if (!st.over) throw new Error('partida não terminou');
       if (st.over === 'P') wins++;

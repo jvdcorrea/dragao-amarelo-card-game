@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.57 · rascunho para editar*
+*Documento de design preliminar · v0.61 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -613,3 +613,13 @@ Regras (renda de descida por dia = Gd):
 | Grupo 2 (credor depois do andar 8) | 700 | 840 | 15% | 4 ou 3 dias | 3 ou 2 dias |
 
 Os números ficam numa tabela única no código (ECON). O simulador em `tools/economia/simula.py` estima, para um jogador mediano, cerca de 78% de pagamento no prazo, 106 de ouro por dia contra 98 de um jogador mais fraco e juros médios de 11 (grupo 1) e 26 (grupo 2). A calibração fina depende de uma campanha sem o menu de testes, para medir a renda real e as chances por andar.
+
+## Game feel: camada de apresentação (P94)
+
+O combate ganha som e animação sem que a lógica dependa disso.
+
+- **O motor só avisa.** Funções centrais (`dmg`, `heal`, `draw`, `summon`, `playCard`, `resolveDeaths`, `startTurn`, `mulligan`) põem eventos numa fila (`st.fxq`). Sem a fila, como nas simulações, nada acontece. Perdas de vida que não são dano (fadiga, Sangria, Pacto Sangrento, Superaquecer, Desabafo, Piada de Velório, Rumor) passam por `loseLife`, com a mesma conta de antes. O `tests/test.js` confere que a soma da fila bate com a vida dos líderes.
+- **A apresentação lê.** Depois de cada desenho da batalha, `Fx` lê a fila e toca sons; as próximas fases acrescentam animações sobre o mesmo fluxo. O motor nunca espera a animação.
+- **Configuração num lugar só.** Durações, intensidades e a lista de sons ficam em `src/feel.js`.
+- **Áudio.** Howler (MIT) embutido no build, para funcionar offline. Os sons ficam em `assets/audio/`, fora da página: o jogo tenta `.ogg` e cai para `.wav`. Os atuais são placeholders gerados por `tools/audio/placeholders.py`; os definitivos virão do Kenney.nl (CC0), com autoria no `CREDITS.md`. Preferências de volume e mudo ficam no navegador, fora da campanha.
+

@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 28/10/2026 · acompanha o design v0.60*
+*Atualizada em 05/11/2026 · acompanha o design v0.61*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -70,6 +70,18 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
+
+## Game feel (P94)
+
+- [x] Fase 1: áudio base. Howler embutido, canais de efeitos e música, volumes e mudo (Configurações, botão de som, tecla M), sons de comprar, jogar, impacto, bloqueio, cura e morte com placeholders.
+- [ ] Trocar os placeholders pelos sons definitivos (Kenney.nl, CC0) e preencher o `CREDITS.md`.
+- [ ] Fase 2: impacto (hit-stop, tremida, flash).
+- [ ] Fase 3: números flutuantes.
+- [ ] Fase 4: cartas na mão (elevação, inclinação 3D, arco até a mesa).
+- [ ] Fase 5: música ambiente com troca suave entre estados.
+- [ ] Fase 6: configurações de animação (1x, 2x, instantâneo, desligado).
+- [ ] A cópia no claude.ai não tem a pasta `assets/audio/` e fica sem som. Decidir se os sons vão embutidos nela.
+- *Decisões minhas para revisar:* compras do inimigo não tocam som; até 2 cópias do mesmo som por ação; dano de 5 ou mais toca o impacto forte; a negociação social usa os mesmos sons; botão de som ao lado da engrenagem e na faixa da batalha.
 
 ## Pendências da leva P92
 
