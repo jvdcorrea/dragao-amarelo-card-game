@@ -26,8 +26,10 @@ function init() {
   });
 }
 function config(p) {
+  const m0 = cfg.musica;
   ['efeitos', 'musica', 'mudo'].forEach(k => { if (p[k] !== undefined) cfg[k] = p[k]; });
   if (ok) Howler.mute(!!cfg.mudo);
+  if (ok && atual && atual.id !== null && cfg.musica !== m0) atual.howl.volume(volMusica(atual), atual.id);
 }
 // O controle vai de 0 a 1; elevar ao quadrado espalha a mudança de volume percebida pelo curso todo.
 function ganho(v) { return v * v; }
@@ -45,6 +47,51 @@ function tocar(nome) {
   if (v) h.rate(1 + (Math.random() * 2 - 1) * v, id);
 }
 
+/* ---------- Música ---------- */
+// Uma faixa em loop por estado. Trocar de estado esmaece a que sai e cresce a que entra; a que sai fica em pausa
+// (ou para, sem FEEL.musica.retomar). As faixas só carregam quando o estado aparece pela primeira vez.
+const faixas = {};   // estado -> { estado, howl, id, base, src, fmt }
+let atual = null;
+function volMusica(f) { return f.base * ganho(cfg.musica); }
+function criarFaixa(f) {
+  const fmts = FEEL.audio.formatos;
+  f.howl = new Howl({
+    src: [f.src + '.' + fmts[f.fmt]], html5, loop: true, preload: true, volume: 0,
+    onloaderror: () => { f.howl.unload(); f.id = null; if (++f.fmt < fmts.length) { criarFaixa(f); if (atual === f) entrar(f); } },
+    // Antes do primeiro clique o navegador não deixa tocar; o Howler avisa quando liberar.
+    onplayerror: () => f.howl.once('unlock', () => { if (atual === f) entrar(f); }),
+  });
+}
+function faixaDe(estado) {
+  if (faixas[estado]) return faixas[estado];
+  const F = FEEL.musica.faixas[estado]; if (!F) return null;
+  const n = 1 + Math.floor(Math.random() * F.arqs);
+  const f = { estado, id: null, fmt: 0, base: F.vol === undefined ? 1 : F.vol, src: `${FEEL.audio.pasta}music/${estado}_${n}` };
+  criarFaixa(f);
+  return (faixas[estado] = f);
+}
+function entrar(f) {
+  const h = f.howl;
+  const crescer = () => { if (atual === f && f.id !== null) h.fade(h.volume(f.id), volMusica(f), FEEL.musica.fadeMs, f.id); };
+  if (f.id !== null && h.playing(f.id)) { crescer(); return; }
+  // O fade só pega depois que o som começou de fato (no áudio HTML5 o play é assíncrono e um fade antes dele se perde).
+  h.once('play', crescer);
+  f.id = f.id === null ? h.play() : h.play(f.id);
+}
+function sair(f) {
+  if (!f || f.id === null) return;
+  const h = f.howl, id = f.id;
+  h.fade(h.volume(id), 0, FEEL.musica.fadeMs, id);
+  h.once('fade', () => { if (atual !== f) { if (FEEL.musica.retomar) h.pause(id); else h.stop(id); } }, id);
+}
+// estado null ou desconhecido mantém o que está tocando.
+function musica(estado) {
+  if (!ok || !estado || (atual && atual.estado === estado)) return;
+  const f = faixaDe(estado); if (!f) return;
+  const antes = atual; atual = f;
+  sair(antes); entrar(f);
+}
+
 init();
-return { tocar, config, ativo: () => ok };
+return { tocar, musica, config, ativo: () => ok, estadoMusica: () => (atual ? atual.estado : null) };
 })();

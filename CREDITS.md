@@ -32,6 +32,12 @@ Para sons do Kenney.nl: origem é o nome do pacote com o link (por exemplo, [Imp
 
 ## Música
 
+Faixas em loop: o fim precisa emendar no começo sem estalo. O pacote Music Loops do Kenney já vem assim.
+
 | Arquivo | Origem | Autor | Licença |
 |---|---|---|---|
-| | | | |
+| `assets/audio/music/chefe_1.wav` | placeholder gerado por `tools/audio/placeholders.py` (loop de 8 s) | projeto Dragão Amarelo | domínio público |
+| `assets/audio/music/combate_1.wav` | placeholder gerado por `tools/audio/placeholders.py` (loop de 8 s) | projeto Dragão Amarelo | domínio público |
+| `assets/audio/music/mapa_1.wav` | placeholder gerado por `tools/audio/placeholders.py` (loop de 8 s) | projeto Dragão Amarelo | domínio público |
+| `assets/audio/music/menu_1.wav` | placeholder gerado por `tools/audio/placeholders.py` (loop de 8 s) | projeto Dragão Amarelo | domínio público |
+| `assets/audio/music/social_1.wav` | placeholder gerado por `tools/audio/placeholders.py` (loop de 8 s) | projeto Dragão Amarelo | domínio público |

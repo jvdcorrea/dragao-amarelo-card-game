@@ -75,6 +75,19 @@ const FEEL = {
     compraDesloc: 60,     // px de onde ela vem (direita e baixo)
     reflowMs: 220,        // cartas e peças que mudam de lugar deslizam
   },
+  // Música ambiente: uma faixa em loop por estado, com troca suave entre elas.
+  musica: {
+    fadeMs: 1400,         // na troca, a faixa que sai some enquanto a que entra cresce
+    retomar: true,        // ao voltar a um estado, a faixa continua de onde parou (false: recomeça)
+    // Arquivos em assets/audio/music/<estado>_<n>.ogg (ou .wav); sorteia uma variação quando o estado começa.
+    faixas: {
+      menu:    { arqs: 1, vol: 0.5 },    // título, guilda, cidade e o resto fora da dungeon
+      mapa:    { arqs: 1, vol: 0.5 },    // descida: mapa, eventos e cenas da dungeon
+      combate: { arqs: 1, vol: 0.55 },   // batalhas comuns, Elites e defesas
+      chefe:   { arqs: 1, vol: 0.6 },    // chefes
+      social:  { arqs: 1, vol: 0.5 },    // negociações
+    },
+  },
   // Arquivos em assets/audio/sfx/<nome>_<n>.ogg (ou .wav), de 1 até arqs; um sorteado a cada toque.
   // vol multiplica o volume de efeitos; etapa 0 toca na hora, 1 depois de etapaMs, 2 depois do dobro.
   sons: {

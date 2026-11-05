@@ -145,6 +145,13 @@ const discOf = e => E.DEF[e.id].disc || (e.owner === 'E' ? 'inimigo' : 'neutra')
 const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Sem escolha salva, as animações seguem o sistema: com prefers-reduced-motion, ficam desligadas.
 const animModo = () => prefs.anim || (reduced() ? 'desligada' : 'normal');
+// Música por tela (P94): na batalha, o encontro decide; fora dela, a descida tem trilha própria.
+// Configurações, créditos e menu de testes não trocam a faixa.
+function estadoMusica() {
+  if (ui.screen === 'battle' && st) return st.social ? 'social' : (st.enc && st.enc.tier === 'Chefe' ? 'chefe' : 'combate');
+  if (['settings', 'credits', 'cheats'].includes(ui.screen)) return null;
+  return camp && camp.run ? 'mapa' : 'menu';
+}
 
 /* ---------- Abertura ---------- */
 function renderSetup() {
@@ -1925,6 +1932,7 @@ function syncGrupo() { if (!camp) return R.setGrupo(1, 0.35); R.setGrupo(camp.cl
 function render() {
   syncGrupo();
   document.documentElement.dataset.anim = animModo();
+  Som.musica(estadoMusica());
   if (ui.screen !== 'battle' || !st) { renderScreen(); $('#app').insertAdjacentHTML('beforeend', (ui.toast ? `<div class="aviso" role="status">${esc(ui.toast)}</div>` : '') + (ui.modal ? modalHtml() : '')); return; }
   persist();
   const handScroll = $('.mao') ? $('.mao').scrollLeft : 0;

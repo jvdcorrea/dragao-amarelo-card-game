@@ -623,6 +623,7 @@ O combate ganha som e animação sem que a lógica dependa disso.
 - **Impacto.** O atacante avança até o alvo e congela no contato (hit-stop); o alvo pisca em branco. Ataque com arma mostra um corte. Sem tremida de tela (testada e descartada).
 - **Mão.** A carta sob o mouse sobe e inclina seguindo o cursor. A carta jogada voa num arco até onde ela age; compras chegam em sequência e o que muda de lugar desliza (FLIP), sem saltos.
 - **Números.** Dano e cura sobem sobre o alvo em vermelho e verde; Escudo e Blindagem sobem com a cara dos selos das cartas; a vida mostrada só muda no impacto, e a cura acende o número de vida em verde. As animações correm numa camada por cima da mesa, com cópias das peças, para não serem cortadas pelas fileiras nem apagadas pelo próximo desenho. O turno inimigo espera cada ação terminar de animar.
+- **Música.** Uma faixa em loop por estado (menu, mapa da dungeon, combate, chefe, negociação), escolhida pela tela; a troca esmaece uma e cresce a outra, e a que sai continua de onde parou ao voltar.
 - **Configuração num lugar só.** Durações, intensidades e a lista de sons ficam em `src/feel.js`.
 - **Áudio.** Howler (MIT) embutido no build, para funcionar offline. Os sons ficam em `assets/audio/`, fora da página: o jogo tenta `.ogg` e cai para `.wav`. Os atuais são placeholders gerados por `tools/audio/placeholders.py`; os definitivos virão do Kenney.nl (CC0), com autoria no `CREDITS.md`. Preferências de volume e mudo ficam no navegador, fora da campanha.
 
