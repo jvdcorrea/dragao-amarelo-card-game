@@ -172,8 +172,8 @@ g2('lingote', { name: 'Lingote Temperado', cost: 1, type: 'spell', disc: 'neutra
 // Temporal
 g2('golpe_vem', { name: 'Golpe que Ainda Vem', cost: 3, type: 'spell', disc: 'temporal', text: 'Atraso. No início do seu próximo turno, cause 5 de dano a um inimigo aleatório.', onPlay(st, s) { const sd = S(st, s); sd.strikes = sd.strikes || []; sd.strikes.push(5); log(st, 'Um golpe parte para o futuro.'); } });
 g2('ferreiro_eras', { name: 'Ferreiro de Outras Eras', cost: 3, type: 'unit', atk: 3, hp: 3, kw: ['eco'], disc: 'temporal', text: 'Eco. Ao Entrar: sua arma ganha +1/+0.', onPlay(st, s) { const w = S(st, s).weapon; if (w) { w.atk += 1; log(st, `${w.name} ganha +1 de Ataque.`); } } });
-g2('veterano_bigorna', { name: 'Veterano da Bigorna', cost: 4, type: 'unit', atk: 4, hp: 3, kw: ['acelerar', 'perfurar'], disc: 'temporal', text: 'Acelerar. Perfurar.' });
-g2('ensaio', { name: 'Ensaio de Batalha', cost: 1, type: 'spell', disc: 'temporal', text: 'Prever 2. Se você controlar uma unidade com Acelerar, compre 1 carta.', onPlay(st, s) { prever(st, s, 2); if (aliveUnits(st, s).some(x => hasKw(x, 'acelerar'))) draw(st, s, 1); } });
+g2('veterano_bigorna', { name: 'Veterano da Bigorna', cost: 4, type: 'unit', atk: 4, hp: 3, kw: ['investida', 'perfurar'], disc: 'temporal', text: 'Acelerar. Perfurar.' });
+g2('ensaio', { name: 'Ensaio de Batalha', cost: 1, type: 'spell', disc: 'temporal', text: 'Prever 2. Se você controlar uma unidade com Acelerar, compre 1 carta.', onPlay(st, s) { prever(st, s, 2); if (aliveUnits(st, s).some(x => hasKw(x, 'investida'))) draw(st, s, 1); } });
 // Draconic
 g2('dragao_escoria', { name: 'Dragão de Escória', cost: 5, type: 'unit', atk: 5, hp: 5, kw: ['guarda'], tags: ['Dragão'], disc: 'draconic', text: 'Dragão. Guarda. Despertar: ganha Blindagem 3.', onPlay(st, s, c) { if (despertar(st, s)) blindGive(c.ent, 3); } });
 g2('sopro_magma', { name: 'Sopro de Magma', cost: 3, type: 'spell', disc: 'draconic', text: 'Cause 2 de dano a todos os inimigos. Despertar: 3.', onPlay(st, s) { aoeAll(st, s, despertar(st, s) ? 3 : 2, src(s, { spell: true })); } });

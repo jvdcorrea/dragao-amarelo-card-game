@@ -114,6 +114,14 @@ function corte(rect, k) {
   ], { duration: Math.max(1, ms), easing: 'cubic-bezier(.3,.8,.4,1)' });
   an.onfinish = () => d.remove();
 }
+// Escudo quebrado: a bolha dourada se abre e some.
+function estouraBolha(el, k) {
+  const r = el.getBoundingClientRect(), b = document.createElement('div'); b.className = 'fx-bolha';
+  Object.assign(b.style, { left: r.left - 3 + 'px', top: r.top - 3 + 'px', width: r.width + 6 + 'px', height: r.height + 6 + 'px' });
+  pegaCamada().appendChild(b);
+  b.animate([{ transform: 'scale(1)', opacity: 0.95 }, { transform: 'scale(1.06)', opacity: 1, offset: 0.25 }, { transform: 'scale(1.35)', opacity: 0 }],
+    { duration: Math.max(1, FEEL.impacto.bolhaMs * k), easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => b.remove();
+}
 function brilhoCura(ref, k) {
   const C = FEEL.cura, n = numNo(elDe(ref), ref); if (!n) return;
   const g = `0 0 ${C.raioPx / 2}px ${C.cor}, 0 0 ${C.raioPx}px ${C.cor}, 0 0 ${C.raioPx * 2}px ${C.cor}`;
@@ -332,6 +340,7 @@ function linha(st, evs, cap) {
         const el = elOuCopia(ev.ref); if (!el) return;
         const raio = getComputedStyle(el.classList.contains('fx-copia') ? el.firstElementChild || el : el).borderRadius;
         flash(el.getBoundingClientRect(), ev.k === 'dmg' ? I.flashOpacidade : I.flashBloqueio, hs, I.flashMs * k, raio);
+        if (ev.k === 'escudo') estouraBolha(el, k);
       });
       agendar(tm, () => {
         const x = vida.get(chave(ev.ref));

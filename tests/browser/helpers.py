@@ -7,10 +7,19 @@ END = '[data-act=soc-continue],[data-act=pas-continue],[data-act=run-continue],[
 URL = (Path(__file__).resolve().parents[2] / 'index.html').as_uri()
 # Por padrão usa o Chromium do Playwright (playwright install chromium). Para outro binário, defina CHROME_PATH.
 CHROME = os.environ.get('CHROME_PATH')
-# Sem saída de áudio: em sessões longas, o áudio do Chrome headless às vezes trava a aba e derruba o teste.
-# O jogo continua carregando e tocando os sons (o código de áudio roda); só não chega ao dispositivo.
+# Use o Chromium do Playwright (python -m playwright install chromium). Com o Chrome do sistema (CHROME_PATH), em sessões
+# longas a aba parava de rodar os temporizadores e caía ("Target crashed"). A saída de áudio fica desligada para não
+# fazer barulho; o código de áudio roda normalmente. TESTE_SEM_SOM=1 esconde o Howler, para testar o jogo sem som.
+SEM_SOM = "for (const k of ['Howl', 'Howler', 'HowlerGlobal']) Object.defineProperty(window, k, { get: () => undefined, set: () => {}, configurable: false });"
 async def launch(p):
-    return await p.chromium.launch(args=['--disable-audio-output'], **({'executable_path': CHROME} if CHROME else {}))
+    b = await p.chromium.launch(args=['--disable-audio-output'], **({'executable_path': CHROME} if CHROME else {}))
+    nova = b.new_page
+    async def new_page(**kw):
+        page = await nova(**kw)
+        if os.environ.get('TESTE_SEM_SOM') == '1': await page.add_init_script(SEM_SOM)
+        return page
+    b.new_page = new_page
+    return b
 async def sc(page, sel):
     try: await page.locator(sel).first.click(timeout=3000); return True
     except Exception: return False

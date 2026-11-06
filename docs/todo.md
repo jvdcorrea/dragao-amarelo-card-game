@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 06/11/2026 · acompanha o design v0.64*
+*Atualizada em 06/11/2026 · acompanha o design v0.65*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -71,6 +71,13 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
 
+## Palavras-chave na mesa (P98)
+
+- [x] Primeira leva: Guarda (moldura de escudo), Escudo (bolha que estoura), Emboscada (hachura e olho riscado), Letal (gota), Blindagem (peitoral com número), Imóvel (correntes) e Ao Morrer (caveira; Repercussão na negociação). Opção “Palavras-chave por extenso” nas Configurações.
+- [x] Corrigido: Veterano da Bigorna não tinha Acelerar (palavra-chave com o nome interno errado); o Ensaio de Batalha agora conta qualquer unidade com Acelerar.
+- [ ] Segunda leva: Dreno, Perfurar, Superaquecer, Eco (ícone de tempo), Avanço e Acelerar, tribos, gatilhos de início e fim de turno, Esperando e Já atacou.
+- *Decisões minhas para revisar:* cinza-metal para a Guarda (não azul, que é a cor da mana); tamanho dos ícones (15 px); a opção por extenso começa desligada; a fileira da mesa ficou um pouco mais alta para caber a moldura.
+
 ## Mapa (P97)
 
 - [x] Nós livres crescem, acendem e dão um pulinho ao apontar (mouse ou teclado); a trilha até eles acende; todos os nós mostram o nome num rótulo.
@@ -83,7 +90,8 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Números de dano, cura e Evolução com contorno branco (`numeros.contornoPx` e `contornoCor` no `feel.js`).
 - [x] A camada de apresentação e o áudio rodam protegidos: um erro neles vira aviso no console e a partida segue (antes, um erro de áudio durante o desenho parava o turno inimigo).
 - [x] `test_grupo2` também desliga as regras dos encontros enfraquecidos (Blindagem do líder, ganchos de turno), que derrubavam o bot no andar 7.
-- [x] Em testes longos, o áudio do Chrome headless travava e derrubava a aba; os testes de navegador agora abrem o Chrome com `--disable-audio-output` (5 de 5 rodadas do `test_grupo2` limpas, contra 2 quedas em 4 antes).
+- [x] Testes de navegador que travavam e derrubavam a aba: a causa era o Chrome do sistema (via `CHROME_PATH`) rodando sem janela, que parava os temporizadores em sessões longas; com o Chromium do Playwright, 4 de 4 rodadas limpas com som. A suspeita inicial no áudio estava errada.
+- [x] A tela não pula mais para o lado quando a barra de rolagem aparece (`scrollbar-gutter: stable`).
 - [x] `test_grupo2` dá a engrenagem quando o mapa sorteado não passa pelo Cofre de Ergos.
 - Nota: abrindo por `file://`, o Howler avisa “HTML5 Audio pool exhausted” no console; é inofensivo no computador e não acontece no GitHub Pages (Web Audio).
 - *Decisões minhas para revisar:* dourado como cor da Evolução em todas as Disciplinas; mesmo efeito para chefes e para a negociação; pausa de 0,28 s antes dos efeitos Ao Evoluir.

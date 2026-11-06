@@ -48,7 +48,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.19/design-v0.60/inimigos-v0.13/proto-2026-11-05';
+const RULES = 'cartas-v0.20/design-v0.65/inimigos-v0.13/proto-2026-11-06';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -219,26 +219,41 @@ function targetSet() {
 }
 function dots(n, total) { let h = ''; for (let i = 0; i < total; i++) h += `<i class="${i < n ? 'cheio' : ''}"></i>`; return `<span class="pontos" aria-label="${n} de ${total}">${h}</span>`; }
 
+/* Palavras-chave na peça (P98): o que muda a decisão vira forma ou ícone, em lugares fixos; o resto segue em selo de texto.
+   Guarda: moldura de escudo. Escudo: bolha dourada. Emboscada: peça esmaecida com hachura. Letal: ícone junto do ataque.
+   Blindagem: placa com o número junto da vida. Imóvel, Emboscada e Ao Morrer: ícones no alto. O detalhe segue no painel. */
+const KW_FORMA = ['guarda', 'escudo', 'emboscada', 'letal'];
+const SOC_KW = { guarda: 'Ponto Sensível', escudo: 'Álibi' };
+const nomeKw = k => (SOC() && SOC_KW[k]) || KW_LABEL[k];
+const kwIco = (nome, rotulo, extra) => `<span class="kw-ico kw-${nome}" title="${esc(rotulo)}">${iconSvg(typeof ART !== 'undefined' && ART.kw ? ART.kw[nome] : null, 'ico-kw')}${extra || ''}</span>`;
 function piece(e, tgt) {
   const isT = tgt.has('e:' + e.uid);
   const mine = e.owner === 'P';
   const can = mine && !ui.busy && E.canAttack(st, e) && E.attackTargets(st, 'P', e).length > 0;
   const sick = e.kind === 'unit' && e.summonedTurn === E.S(st, e.owner).turnCount && st.turnSide === e.owner && !E.hasKw(e, 'investida') && !E.hasKw(e, 'avanco') && !e.rushThisTurn;
-  const kws = Object.keys(KW_LABEL).filter(k => E.hasKw(e, k)).map(k => `<span class="selo">${KW_LABEL[k]}</span>`).join('');
+  const extenso = !!prefs.kwTexto;
+  const temKw = Object.keys(KW_LABEL).filter(k => E.hasKw(e, k));
+  const kws = temKw.filter(k => extenso || !KW_FORMA.includes(k)).map(k => `<span class="selo">${nomeKw(k)}</span>`).join('');
   const tags = e.tags.map(t => `<span class="selo tag">${esc(t)}</span>`).join('');
+  const morte = !e.silenced && E.DEF[e.id].onDeath;
+  const altos = (e.imovel > 0 ? kwIco('imovel', 'Imóvel') : '') + (E.hasKw(e, 'emboscada') ? kwIco('emboscada', 'Emboscada') : '') + (morte ? (SOC() ? kwIco('repercussao', 'Repercussão') : kwIco('morte', 'Ao Morrer')) : '');
+  const doAtaque = E.hasKw(e, 'letal') ? kwIco('letal', 'Letal') : '';
+  const daVida = e.blind ? `<span class="kw-lado-vida">${kwIco('blindagem', `Blindagem ${e.blind}`, `<span class="kw-n">${e.blind}</span>`)}</span>` : '';
   let body = '';
-  if (e.kind === 'unit') body = `<span class="stats"><b class="atk" title="${W('Ataque')}">${E.getAtk(st, e)}</b><b class="hp ${e.hp < e.maxHp ? 'ferido' : ''}" title="${W('Vida')}">${e.hp}</b></span>`;
-  else if (e.kind === 'structure') body = `<span class="stats"><b class="hp" title="${W('Vida')}">${e.hp}</b></span>`;
+  if (e.kind === 'unit') body = `<span class="stats"><b class="atk" title="${W('Ataque')}">${E.getAtk(st, e)}</b>${doAtaque}${daVida}<b class="hp ${e.hp < e.maxHp ? 'ferido' : ''}" title="${W('Vida')}">${e.hp}</b></span>`;
+  else if (e.kind === 'structure') body = `<span class="stats">${daVida}<b class="hp" title="${W('Vida')}">${e.hp}</b></span>`;
   else if (e.kind === 'ritual') body = `<span class="contagem" title="Contagem">${e.countdown}</span>`;
   const estados = [];
-  if (e.imovel > 0) estados.push('Imóvel');
+  if (e.imovel > 0 && extenso) estados.push('Imóvel');
   if (sick && mine && !e.attacked) estados.push('Esperando');
   if (e.attacked && mine && st.turnSide === 'P') estados.push('Já atacou');
   if (e.modules.length) estados.push(`${e.modules.length} Módulo${e.modules.length > 1 ? 's' : ''}`);
-  if (e.blind) estados.push(`Blindagem ${e.blind}`);
+  if (e.blind && extenso) estados.push(`Blindagem ${e.blind}`);
   const sel = ui.mode && ui.mode.kind === 'attack' && ui.mode.uid === e.uid;
-  const cls = ['peca', e.kind, 'disc-' + discOf(e), isT ? 'alvo' : '', can ? 'pode' : '', e.imovel > 0 ? 'imovel' : '', E.hasKw(e, 'guarda') ? 'guarda' : '', e.resonated ? 'ressoou' : '', sel ? 'sel' : ''].join(' ');
-  return `<button class="${cls}" data-ent="${e.uid}" data-info="e:${e.uid}" aria-label="${esc(e.name)}"><span class="marca" aria-hidden="true">${iconSvg(cardIconName(e.id))}</span><span class="nome">${esc(e.name)}</span><span class="selos">${kws}${tags}</span>${estados.length ? `<span class="estado">${estados.join(', ')}</span>` : ''}${body}</button>`;
+  const guarda = E.hasKw(e, 'guarda'), escudo = E.hasKw(e, 'escudo');
+  const cls = ['peca', e.kind, 'disc-' + discOf(e), isT ? 'alvo' : '', can ? 'pode' : '', e.imovel > 0 ? 'imovel' : '', guarda ? 'guarda' : '', escudo ? 'escudo' : '', E.hasKw(e, 'emboscada') ? 'emboscada' : '', e.resonated ? 'ressoou' : '', sel ? 'sel' : ''].join(' ');
+  const rotulo = [e.name].concat(temKw.map(nomeKw), e.blind ? [`Blindagem ${e.blind}`] : [], e.imovel > 0 ? ['Imóvel'] : [], morte ? [SOC() ? 'Repercussão' : 'Ao Morrer'] : []).join(', ');
+  return `<button class="${cls}" data-ent="${e.uid}" data-info="e:${e.uid}" aria-label="${esc(rotulo)}">${guarda ? `<span class="kw-guarda-selo" aria-hidden="true">${iconSvg(ART.kw && ART.kw.guarda, 'ico-kw')}</span>` : ''}${escudo ? '<span class="bolha" aria-hidden="true"></span>' : ''}<span class="marca" aria-hidden="true">${iconSvg(cardIconName(e.id))}</span><span class="nome">${esc(e.name)}</span><span class="selos">${altos}${kws}${tags}</span>${estados.length ? `<span class="estado">${estados.join(', ')}</span>` : ''}${body}</button>`;
 }
 
 function leaderE(tgt) {
@@ -1773,6 +1788,7 @@ function renderSettings() {
   <section class="cena config">
     <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
     <div class="config-item"><div><h2>Som</h2><p>${Som.ativo() ? 'Volumes separados para efeitos e música. A tecla M liga e desliga o som em qualquer tela.' : 'O áudio não carregou neste navegador.'}</p></div><div class="som-controles"><label>Efeitos <input id="vol-efeitos" type="range" min="0" max="100" step="5" value="${Math.round(prefs.efeitos * 100)}"></label><label>Música <input id="vol-musica" type="range" min="0" max="100" step="5" value="${Math.round(prefs.musica * 100)}"></label><button class="botao" data-act="som-mudo" aria-pressed="${!!prefs.mudo}">${prefs.mudo ? 'Ligar o som' : 'Desligar o som'}</button></div></div>
+    <div class="config-item"><div><h2>Palavras-chave na mesa</h2><p>Molduras e ícones mostram Guarda, Escudo, Blindagem, Emboscada, Letal, Imóvel e Ao Morrer. Por extenso, as peças também escrevem o nome de cada uma, bom para quem está aprendendo.</p></div><button class="botao" data-act="kw-texto" aria-pressed="${!!prefs.kwTexto}">${prefs.kwTexto ? 'Por extenso: ligado' : 'Por extenso: desligado'}</button></div>
     <div class="config-item"><div><h2>Códigos secretos</h2><p>${cheats.unlocked ? 'Modo de testes liberado.' : 'Tem um código? Digite aqui.'}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">Código</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código"><button class="botao" data-act="code">Usar</button>${cheats.unlocked ? '<button class="botao" data-act="cheats">Menu de testes</button>' : ''}</div></div>
     <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
@@ -1897,6 +1913,7 @@ function renderScreen() {
 async function runClick(ds) {
   const act = ds.act;
   if (act === 'som-mudo') { toggleMute(); render(); return true; }
+  if (act === 'kw-texto') { prefs.kwTexto = !prefs.kwTexto; savePrefs(); render(); return true; }
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }

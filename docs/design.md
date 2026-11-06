@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.64 · rascunho para editar*
+*Documento de design preliminar · v0.65 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -643,4 +643,17 @@ A Evolução é rara (3 por partida, uma por turno) e decide jogos, então ganha
 ## Mapa que responde ao mouse (P97)
 
 No mapa da dungeon, o nó para onde dá para ir cresce com sobra, acende e o ícone dá um pulinho quando o mouse passa ou quando o teclado foca nele; ao clicar, ele afunda um pouco. A trilha da posição atual até esse nó acende. Todos os nós, inclusive os já visitados e os trancados, mostram o nome (Batalha, Elite, Evento...) num rótulo logo abaixo, para planejar o caminho sem esperar a dica do navegador. Sem animação, o rótulo e a trilha continuam; o crescimento e o pulinho somem.
+
+## Palavras-chave visíveis na mesa (P98)
+
+Para ler o combate de relance, as palavras-chave que mudam a decisão deixam de ser só texto e viram forma ou ícone, sempre no mesmo lugar da peça. Contorno e brilho continuam reservados para a interação (pode atacar, alvo, selecionada), e cor nunca vem sozinha.
+
+- **Guarda** (Ponto Sensível): moldura de escudo por fora da peça e um selo de escudo no alto.
+- **Escudo** (Álibi): bolha dourada translúcida sobre a peça, que estoura quando segura o dano.
+- **Emboscada:** peça esmaecida com hachura e um olho riscado.
+- **Letal:** gota verde junto do ataque. **Blindagem N:** peitoral com o número junto da vida.
+- **Imóvel** (correntes) e **Ao Morrer** (caveira; na negociação, Repercussão vira ondas): ícones no alto da peça.
+- O resto (Dreno, Perfurar, Superaquecer, Eco, Avanço, Acelerar e as tribos) segue em selo de texto por enquanto; é a segunda leva. Eco vai usar um ícone de tempo, não de fantasma: é um eco temporal.
+- Nas Configurações, “Palavras-chave por extenso” volta a escrever os nomes nas peças, para quem está aprendendo.
+- O detalhe de cada uma segue no painel ao passar o mouse.
 

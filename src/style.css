@@ -1,6 +1,6 @@
 :root {
   --bg: #e2e8df; --mesa: #d3dccf; --surface: #f3f6f0; --card: #fbfcf8; --ink: #1b231f; --muted: #536059; --line: #b6c2b4;
-  --ouro: #8d6100; --ouro-vivo: #e0a21c; --ouro-tinta: #2b1d00; --glow: #1c7a65; --vida: #a93a24; --mana: #2a58bb; --sombra: rgba(20, 32, 26, .16);
+  --ouro: #8d6100; --ouro-vivo: #e0a21c; --ouro-tinta: #2b1d00; --glow: #1c7a65; --vida: #a93a24; --mana: #2a58bb; --metal: #6f7d8a; --sombra: rgba(20, 32, 26, .16);
   --d-temporal: #9a6a3a; --d-draconic: #477f35; --d-necro: #74539f; --d-holy: #a9862c; --d-tech: #ad5a33; --d-space: #3c55a4; --d-neutra: #76847d; --d-inimigo: #2b8670;
   color-scheme: light;
   box-sizing: border-box;
@@ -10,18 +10,19 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111714; --mesa: #18211d; --surface: #1d2722; --card: #24302a; --ink: #e4ebe3; --muted: #99a79e; --line: #34433b;
-    --ouro: #e9b23e; --ouro-vivo: #f0bd48; --ouro-tinta: #2b1d00; --glow: #5fcdaf; --vida: #ee7d64; --mana: #88aafa; --sombra: rgba(0, 0, 0, .45);
+    --ouro: #e9b23e; --ouro-vivo: #f0bd48; --ouro-tinta: #2b1d00; --glow: #5fcdaf; --vida: #ee7d64; --mana: #88aafa; --metal: #a7b4c0; --sombra: rgba(0, 0, 0, .45);
     --d-temporal: #c79361; --d-draconic: #77b562; --d-necro: #a587d1; --d-holy: #d9b85a; --d-tech: #da875e; --d-space: #7b93e0; --d-neutra: #9aa8a0; --d-inimigo: #4fc0a2;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111714; --mesa: #18211d; --surface: #1d2722; --card: #24302a; --ink: #e4ebe3; --muted: #99a79e; --line: #34433b;
-  --ouro: #e9b23e; --ouro-vivo: #f0bd48; --ouro-tinta: #2b1d00; --glow: #5fcdaf; --vida: #ee7d64; --mana: #88aafa; --sombra: rgba(0, 0, 0, .45);
+  --ouro: #e9b23e; --ouro-vivo: #f0bd48; --ouro-tinta: #2b1d00; --glow: #5fcdaf; --vida: #ee7d64; --mana: #88aafa; --metal: #a7b4c0; --sombra: rgba(0, 0, 0, .45);
   --d-temporal: #c79361; --d-draconic: #77b562; --d-necro: #a587d1; --d-holy: #d9b85a; --d-tech: #da875e; --d-space: #7b93e0; --d-neutra: #9aa8a0; --d-inimigo: #4fc0a2;
   color-scheme: dark;
 }
-html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+/* A barra de rolagem tem espaço reservado: quando a página cresce (um texto maior no painel, por exemplo), nada pula para o lado */
+html { scroll-padding-top: env(safe-area-inset-top, 0px); scrollbar-gutter: stable; }
 *, *::before, *::after { box-sizing: inherit; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
@@ -94,7 +95,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .pontos i { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ouro); display: inline-block; }
 .pontos i.cheio { background: var(--ouro-vivo); }
 
-.fileira { display: flex; gap: 8px; min-height: 124px; overflow-x: auto; padding: 6px 4px; align-items: center; border-radius: 12px; }
+.fileira { display: flex; gap: 12px; min-height: 124px; overflow-x: auto; padding: 12px 9px; align-items: center; border-radius: 12px; }
 .fileira.aliado { background: color-mix(in srgb, var(--glow) 7%, transparent); }
 .vazio { color: var(--muted); font-style: italic; padding: 0 8px; }
 
@@ -114,7 +115,11 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .stats .hp { background: var(--vida); color: #fff; margin-left: auto; }
 .stats .dur { background: var(--muted); color: var(--card); margin-left: auto; }
 .stats .hp.ferido { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--vida); }
-.peca.guarda { border-left: 4px solid var(--cor); border-right: 4px solid var(--cor); }
+/* Guarda (P98): moldura de escudo por fora da peça (não corta o conteúdo nem os contornos de interação) e o selo do escudo no alto */
+.peca.guarda { border-color: var(--metal); border-width: 2px; border-top-width: 5px; }
+.peca.guarda::before { content: ""; position: absolute; inset: -6px -6px -10px; border: 3px solid var(--metal); border-radius: 14px 14px 50% 50% / 14px 14px 30px 30px; pointer-events: none; }
+.kw-guarda-selo { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 2px solid var(--metal); display: inline-flex; align-items: center; justify-content: center; z-index: 1; }
+.kw-guarda-selo .ico-kw { width: 12px; height: 12px; fill: var(--metal); }
 .peca.structure { border-radius: 4px; border-style: solid; background: repeating-linear-gradient(135deg, var(--card) 0 8px, var(--surface) 8px 16px); }
 .peca.ritual { border-radius: 48px 48px 10px 10px; }
 .contagem { margin: auto auto 2px; font-family: "Alegreya", Georgia, serif; font-size: 1.8rem; font-weight: 700; color: var(--cor); }
@@ -552,4 +557,26 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 /* Evolução (P96): anéis e faíscas na camada de animação */
 .fx-anel { position: fixed; z-index: 3; border: 3px solid; box-sizing: border-box; pointer-events: none; }
 .fx-faisca { position: fixed; z-index: 3; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px 2px rgba(255, 220, 140, .8); opacity: 0; }
+
+/* Palavras-chave na peça (P98) */
+.peca .bolha { position: absolute; inset: -3px; border-radius: 13px; pointer-events: none; z-index: 1; border: 1.5px solid rgba(240, 189, 72, .85);
+  background: radial-gradient(ellipse at 30% 18%, rgba(255, 255, 255, .55), rgba(255, 220, 140, .14) 38%, rgba(255, 205, 90, .08) 70%, rgba(255, 195, 70, .26));
+  box-shadow: 0 0 10px 2px rgba(240, 189, 72, .45), inset 0 0 12px rgba(255, 220, 140, .45); animation: bolha 2.6s ease-in-out infinite; }
+@keyframes bolha { 50% { box-shadow: 0 0 15px 4px rgba(240, 189, 72, .6), inset 0 0 16px rgba(255, 220, 140, .6); } }
+.fx-bolha { position: fixed; z-index: 3; border-radius: 13px; border: 2px solid rgba(240, 189, 72, .95); box-shadow: 0 0 16px 4px rgba(240, 189, 72, .6); pointer-events: none; }
+.peca.emboscada { opacity: .8; background-image: repeating-linear-gradient(-45deg, transparent 0 6px, color-mix(in srgb, var(--ink) 8%, transparent) 6px 8px); }
+.kw-ico { display: inline-flex; align-items: center; gap: 1px; line-height: 1; }
+.ico-kw { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+.peca .selos .kw-ico { padding: 0 1px; }
+.kw-letal { color: #2f9e4f; margin-left: 3px; align-self: center; }
+.kw-morte, .kw-repercussao { color: var(--muted); }
+.kw-emboscada { color: var(--ink); }
+.kw-imovel { color: var(--d-space); }
+.kw-lado-vida { margin-left: auto; margin-right: 3px; align-self: center; }
+.kw-lado-vida + .hp { margin-left: 0 !important; }
+.kw-blindagem { color: var(--metal); font-size: .78rem; font-weight: 800; }
+.kw-blindagem .ico-kw { width: 17px; height: 17px; }
+.kw-n { font-size: .8rem; font-weight: 800; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .kw-letal { color: #5fd27f; } }
+:root[data-theme="dark"] .kw-letal { color: #5fd27f; }
 

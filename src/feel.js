@@ -42,6 +42,7 @@ const FEEL = {
     flashBloqueio: 0.45,  // flash mais fraco quando Escudo ou Blindagem segura o dano
     morteMs: 340,         // unidade morta some
     barraMs: 260,         // barra de vida do líder desce ou sobe
+    bolhaMs: 420,         // a bolha do Escudo estoura quando segura o dano
   },
   cura: {
     brilhoMs: 700,        // brilho verde em volta do número de vida que subiu

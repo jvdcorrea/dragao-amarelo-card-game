@@ -1,6 +1,8 @@
 # Dragão Amarelo: Grupo 2 · A Forja Esquecida
 
-*v0.2 · implementado no protótipo · andares 6 a 10 · complementa o design (v0.58), as cartas (v0.19) e os inimigos (v0.13) · números provisórios*
+*v0.3 · implementado no protótipo · andares 6 a 10 · complementa o design (v0.65), as cartas (v0.20) e os inimigos (v0.13) · números provisórios*
+
+> v0.3 (P98): Veterano da Bigorna passa a ter Acelerar de verdade (antes o código usava um nome de palavra-chave que o motor não conhecia).
 
 ---
 

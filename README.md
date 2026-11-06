@@ -52,7 +52,7 @@ python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 
 ## Versões dos documentos
 
-Design v0.64, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
+Design v0.65, cartas v0.20, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
 
 ## Créditos
 

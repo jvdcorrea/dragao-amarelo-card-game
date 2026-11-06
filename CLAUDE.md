@@ -96,7 +96,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 - **Diálogos:** `MESTRE_INFO` (Mestres) e `NPC_INFO` (Lerael, Banco, Felix). Cada opção pode ter condições (`requires, after + laterDay, met, reqOther, needBoss, needFlag, notFlag, once`) e efeitos (`rot` para texto em rodízio, `dyn` para resposta calculada, `quest`, `questDone`, `gold`, `always`). Linhas que começam com `>` viram narração. O selo “!” de falas novas vem de `hasNewTalk()`.
 - **Outros sistemas:** `ATIV` (passeios na cidade), `BANCA` (vantagens do Kryoret por Sucata), `FAC` (instalações), `FELIX_TIPS` (dicas por encontro), `CODES` e `CHEATS` (menu de testes).
 - **Menu de testes:** em Configurações, o código `SanerionTestMode1337` (sem diferença de maiúsculas) libera o menu. Campanhas que usam o menu ficam marcadas com `cheatUsed` no log.
-- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. O Chrome dos testes abre sem saída de áudio (`--disable-audio-output` em `helpers.launch`), porque o áudio do Chrome headless travava a aba em sessões longas. Sem o Chromium do Playwright instalado, use `CHROME_PATH` com o Chrome do sistema e `PYTHONUTF8=1` no Windows.
+- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. Use o Chromium do Playwright (`python -m playwright install chromium`), não o Chrome do sistema via `CHROME_PATH`: com ele, em sessões longas a aba parava de rodar os temporizadores e caía. O navegador dos testes abre sem saída de áudio; `TESTE_SEM_SOM=1` esconde o Howler para testar o jogo sem som. No Windows, rode com `PYTHONUTF8=1`.
 
 ## Checklists
 
@@ -107,7 +107,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 4. Documentar em `docs/cartas.md` (ou no documento do grupo).
 5. Rodar `node tests/test_pool.js`.
 
-**Palavra-chave nova:** motor, glossário (`GLOSS`), destaque (`KW_RE`), selo (`KW_LABEL`) e, se for estado, os estados da peça em campo.
+**Palavra-chave nova:** motor, glossário (`GLOSS`), destaque (`KW_RE`), selo (`KW_LABEL`) e, se for estado, os estados da peça em campo. Use o nome interno que o motor checa (Acelerar é `investida`). Se ela muda a decisão na mesa, ganha ícone em `KW` no `tools/arte/map.py` e tratamento em `piece()` (`KW_FORMA`), e rode `tools/arte/gen.py`.
 
 **Encontro novo:** `ENC`, `FLOORS`, `FELIX_TIPS`, ícone em `map.py`, `docs/inimigos.md` e uma rodada de `tools/balance/encontros.js`.
 
@@ -115,7 +115,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P98**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P99**).
 3. `docs/todo.md` atualizado.
 4. Commit em português, com título curto e itens no corpo.
 
@@ -123,10 +123,10 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P97; a P de cada mudança vai no texto e no commit. | v0.64 |
-| `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.19 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P98; a P de cada mudança vai no texto e no commit. | v0.65 |
+| `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.20 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
-| `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.2 |
+| `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.3 |
 | `todo.md` | Pendências e decisões a revisar. | acompanha o design |
 
 ## Logs de playtest
