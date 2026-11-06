@@ -96,7 +96,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 - **Diálogos:** `MESTRE_INFO` (Mestres) e `NPC_INFO` (Lerael, Banco, Felix). Cada opção pode ter condições (`requires, after + laterDay, met, reqOther, needBoss, needFlag, notFlag, once`) e efeitos (`rot` para texto em rodízio, `dyn` para resposta calculada, `quest`, `questDone`, `gold`, `always`). Linhas que começam com `>` viram narração. O selo “!” de falas novas vem de `hasNewTalk()`.
 - **Outros sistemas:** `ATIV` (passeios na cidade), `BANCA` (vantagens do Kryoret por Sucata), `FAC` (instalações), `FELIX_TIPS` (dicas por encontro), `CODES` e `CHEATS` (menu de testes).
 - **Menu de testes:** em Configurações, o código `SanerionTestMode1337` (sem diferença de maiúsculas) libera o menu. Campanhas que usam o menu ficam marcadas com `cheatUsed` no log.
-- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste.
+- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. O Chrome dos testes abre sem saída de áudio (`--disable-audio-output` em `helpers.launch`), porque o áudio do Chrome headless travava a aba em sessões longas. Sem o Chromium do Playwright instalado, use `CHROME_PATH` com o Chrome do sistema e `PYTHONUTF8=1` no Windows.
 
 ## Checklists
 

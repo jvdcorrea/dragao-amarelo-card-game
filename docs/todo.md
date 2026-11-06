@@ -83,7 +83,9 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Números de dano, cura e Evolução com contorno branco (`numeros.contornoPx` e `contornoCor` no `feel.js`).
 - [x] A camada de apresentação e o áudio rodam protegidos: um erro neles vira aviso no console e a partida segue (antes, um erro de áudio durante o desenho parava o turno inimigo).
 - [x] `test_grupo2` também desliga as regras dos encontros enfraquecidos (Blindagem do líder, ganchos de turno), que derrubavam o bot no andar 7.
-- [ ] Em testes longos, o Chrome headless desta máquina às vezes derruba a aba com erro do dispositivo de áudio; se continuar, desligar o som só nos testes de navegador.
+- [x] Em testes longos, o áudio do Chrome headless travava e derrubava a aba; os testes de navegador agora abrem o Chrome com `--disable-audio-output` (5 de 5 rodadas do `test_grupo2` limpas, contra 2 quedas em 4 antes).
+- [x] `test_grupo2` dá a engrenagem quando o mapa sorteado não passa pelo Cofre de Ergos.
+- Nota: abrindo por `file://`, o Howler avisa “HTML5 Audio pool exhausted” no console; é inofensivo no computador e não acontece no GitHub Pages (Web Audio).
 - *Decisões minhas para revisar:* dourado como cor da Evolução em todas as Disciplinas; mesmo efeito para chefes e para a negociação; pausa de 0,28 s antes dos efeitos Ao Evoluir.
 
 ## Ajustes de fluxo

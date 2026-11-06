@@ -7,8 +7,10 @@ END = '[data-act=soc-continue],[data-act=pas-continue],[data-act=run-continue],[
 URL = (Path(__file__).resolve().parents[2] / 'index.html').as_uri()
 # Por padrão usa o Chromium do Playwright (playwright install chromium). Para outro binário, defina CHROME_PATH.
 CHROME = os.environ.get('CHROME_PATH')
+# Sem saída de áudio: em sessões longas, o áudio do Chrome headless às vezes trava a aba e derruba o teste.
+# O jogo continua carregando e tocando os sons (o código de áudio roda); só não chega ao dispositivo.
 async def launch(p):
-    return await p.chromium.launch(**({'executable_path': CHROME} if CHROME else {}))
+    return await p.chromium.launch(args=['--disable-audio-output'], **({'executable_path': CHROME} if CHROME else {}))
 async def sc(page, sel):
     try: await page.locator(sel).first.click(timeout=3000); return True
     except Exception: return False

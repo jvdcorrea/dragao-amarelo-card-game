@@ -46,7 +46,9 @@ async def main():
         await page.reload(wait_until='domcontentloaded'); await page.click('[data-act=title-continue]')
         print('   cena:', await page.inner_text('.cena h2')); await page.click('[data-act=g-credor]'); r = await finish(page); print('   negociação:', r, '|', (await page.inner_text('.cena p'))[:120])
         await page.click('[data-act=home]')
-        # Chrome: entregar a engrenagem
+        # Chrome: entregar a engrenagem. O cofre só aparece se o caminho do bot passar por um evento nos andares 7 ou 8;
+        # quando o mapa não ajuda, o teste dá a engrenagem para seguir conferindo a fala da Chrome.
+        if not (await camp(page))['flags'].get('engrenagem'): print('   (cofre fora do caminho: engrenagem dada pelo teste)'); await setcamp(page, "c => { c.flags.engrenagem = true; }")
         await setcamp(page, "c => { c.acts = {}; c.cityTrip = null; }")
         await page.click('[data-act=g-cidade]'); await page.click('[data-npc=mestre-tech]')
         print('5. Chrome tem a fala?', bool(await page.query_selector('[data-opt=h]'))); await page.click('[data-opt=h]')
