@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 05/11/2026 · acompanha o design v0.61*
+*Atualizada em 06/11/2026 · acompanha o design v0.62*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -70,6 +70,12 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
+
+## Tela de Instalações (P95)
+
+- [x] Estados claros por instalação, custo em chips, efeito de agora e do próximo nível, topo com ouro e obra do dia, selo “!” na guilda.
+- [ ] Ideias para depois: som e selo animado ao começar uma obra; aplicar o mesmo tratamento de botões ao Quadro de Missões e à Taverna.
+- *Decisões minhas para revisar:* o selo “!” conta também a faxina da Taverna e a Área de treinamento do Kryoret; com obra em andamento a linha mostra “Ao fim do dia” com o ganho; o botão continua visível (tracejado) quando não dá, para o jogador ver o custo.
 
 ## Game feel (P94)
 

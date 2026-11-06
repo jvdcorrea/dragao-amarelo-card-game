@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.61 · rascunho para editar*
+*Documento de design preliminar · v0.62 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -626,4 +626,13 @@ O combate ganha som e animação sem que a lógica dependa disso.
 - **Música.** Uma faixa em loop por estado (menu, mapa da dungeon, combate, chefe, negociação), escolhida pela tela; a troca esmaece uma e cresce a outra, e a que sai continua de onde parou ao voltar.
 - **Configuração num lugar só.** Durações, intensidades e a lista de sons ficam em `src/feel.js`.
 - **Áudio.** Howler (MIT) embutido no build, para funcionar offline. Os sons ficam em `assets/audio/`, fora da página: o jogo tenta `.ogg` e cai para `.wav`. Os atuais são placeholders gerados por `tools/audio/placeholders.py`; os definitivos virão do Kenney.nl (CC0), com autoria no `CREDITS.md`. Preferências de volume e mudo ficam no navegador, fora da campanha.
+
+## Tela de Instalações mais clara (P95)
+
+Depois de um playtest, a tela não deixava claro quando dava para construir ou ampliar. Agora:
+
+- **Cada instalação tem um estado visível:** pode construir agora (borda e botão dourados), espera (botão tracejado e o motivo escrito: falta de ouro, obra do dia já feita ou obra em andamento), em obra, trancada (cadeado e a condição; só ela fica esmaecida), completa ou em uso.
+- **Custo e efeito separados do botão:** chips de ouro e de dia de obra (vermelhos quando faltam), pontos de nível e a comparação “Agora → Próximo nível”.
+- **Topo com o ouro e a obra do dia** (disponível, já feita ou em andamento).
+- **Selo “!” no botão Instalações da guilda** quando alguma obra dá para fazer hoje.
 

@@ -380,9 +380,36 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .missao-acao select { max-width: 260px; padding: 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
 .lista-adv .estado-adv { margin-left: auto; color: var(--muted); font-size: .9rem; }
 .selo-fac { font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
-.instalacao.ativo .selo-fac, .instalacao.ativa .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
-.instalacao.suja .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
-.instalacao.bloq { opacity: .75; }
+/* Instalações: o estado de cada uma tem cara própria; só a trancada fica esmaecida */
+.fac-topo { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 10px; }
+.fac-ouro { font-family: "Alegreya", Georgia, serif; font-size: 1.35rem; font-weight: 700; color: var(--ouro); }
+.fac-obra { font-size: .9rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.fac-obra.livre { color: var(--d-draconic); border-color: var(--d-draconic); }
+.fac-obra.usada { color: var(--muted); }
+.fac-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lista-fac .fac-info { flex: 1 1 300px; }
+.fac-efeito { font-size: .92rem; margin-top: 4px !important; display: flex; flex-wrap: wrap; gap: 2px 8px; color: var(--muted); }
+.fac-efeito b { color: var(--ink); }
+.fac-efeito .seta { color: var(--ouro); font-weight: 700; }
+.fac-acao { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 0 1 auto; text-align: right; }
+.fac-custos { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.custo-chip { font-size: .82rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); }
+.custo-chip.falta { color: var(--vida); border-color: var(--vida); }
+.fac-motivo { font-size: .86rem; color: var(--muted); margin: 0 !important; max-width: 300px; }
+.ico-cadeado { width: 1em; height: 1em; fill: currentColor; vertical-align: -0.15em; margin-right: .35em; }
+.pips { display: inline-flex; gap: 3px; margin-left: 2px; }
+.pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ouro); }
+.pips i.cheio { background: var(--ouro-vivo); border-color: var(--ouro-vivo); }
+.lista-fac .botao { background: var(--card); border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); font-weight: 700; }
+.lista-fac .botao.construir { background: var(--ouro-vivo); color: var(--ouro-tinta); border-color: var(--ouro); padding: 7px 18px; }
+.lista-fac .botao:disabled { opacity: 1; background: transparent; color: var(--muted); border-style: dashed; border-color: var(--line); font-weight: 500; }
+.instalacao.est-pode { border-color: var(--ouro-vivo); box-shadow: inset 4px 0 0 var(--ouro-vivo), 0 0 0 1px color-mix(in srgb, var(--ouro-vivo) 40%, transparent); }
+.instalacao.est-pode .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
+.instalacao.est-uso .selo-fac, .instalacao.est-max .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
+.instalacao.est-obra { border-style: dashed; border-color: var(--ouro); }
+.instalacao.est-obra .selo-fac { color: var(--ouro-tinta); background: var(--ouro-vivo); border-color: var(--ouro); }
+.instalacao.est-tranc > div { opacity: .62; }
+@media (max-width: 600px) { .fac-acao { align-items: flex-start; text-align: left; width: 100%; } .fac-custos { justify-content: flex-start; } }
 .npc.visitando { border-color: var(--ouro-vivo); }
 .lista-adv li.vazio, .lista-missoes li.vazio { color: var(--muted); justify-content: flex-start; }
 

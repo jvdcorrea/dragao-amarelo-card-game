@@ -391,9 +391,36 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .missao-acao select { max-width: 260px; padding: 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
 .lista-adv .estado-adv { margin-left: auto; color: var(--muted); font-size: .9rem; }
 .selo-fac { font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
-.instalacao.ativo .selo-fac, .instalacao.ativa .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
-.instalacao.suja .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
-.instalacao.bloq { opacity: .75; }
+/* Instalações: o estado de cada uma tem cara própria; só a trancada fica esmaecida */
+.fac-topo { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 10px; }
+.fac-ouro { font-family: "Alegreya", Georgia, serif; font-size: 1.35rem; font-weight: 700; color: var(--ouro); }
+.fac-obra { font-size: .9rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.fac-obra.livre { color: var(--d-draconic); border-color: var(--d-draconic); }
+.fac-obra.usada { color: var(--muted); }
+.fac-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lista-fac .fac-info { flex: 1 1 300px; }
+.fac-efeito { font-size: .92rem; margin-top: 4px !important; display: flex; flex-wrap: wrap; gap: 2px 8px; color: var(--muted); }
+.fac-efeito b { color: var(--ink); }
+.fac-efeito .seta { color: var(--ouro); font-weight: 700; }
+.fac-acao { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 0 1 auto; text-align: right; }
+.fac-custos { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.custo-chip { font-size: .82rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); }
+.custo-chip.falta { color: var(--vida); border-color: var(--vida); }
+.fac-motivo { font-size: .86rem; color: var(--muted); margin: 0 !important; max-width: 300px; }
+.ico-cadeado { width: 1em; height: 1em; fill: currentColor; vertical-align: -0.15em; margin-right: .35em; }
+.pips { display: inline-flex; gap: 3px; margin-left: 2px; }
+.pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ouro); }
+.pips i.cheio { background: var(--ouro-vivo); border-color: var(--ouro-vivo); }
+.lista-fac .botao { background: var(--card); border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); font-weight: 700; }
+.lista-fac .botao.construir { background: var(--ouro-vivo); color: var(--ouro-tinta); border-color: var(--ouro); padding: 7px 18px; }
+.lista-fac .botao:disabled { opacity: 1; background: transparent; color: var(--muted); border-style: dashed; border-color: var(--line); font-weight: 500; }
+.instalacao.est-pode { border-color: var(--ouro-vivo); box-shadow: inset 4px 0 0 var(--ouro-vivo), 0 0 0 1px color-mix(in srgb, var(--ouro-vivo) 40%, transparent); }
+.instalacao.est-pode .selo-fac { color: var(--ouro); border-color: var(--ouro-vivo); }
+.instalacao.est-uso .selo-fac, .instalacao.est-max .selo-fac { color: var(--d-draconic); border-color: var(--d-draconic); }
+.instalacao.est-obra { border-style: dashed; border-color: var(--ouro); }
+.instalacao.est-obra .selo-fac { color: var(--ouro-tinta); background: var(--ouro-vivo); border-color: var(--ouro); }
+.instalacao.est-tranc > div { opacity: .62; }
+@media (max-width: 600px) { .fac-acao { align-items: flex-start; text-align: left; width: 100%; } .fac-custos { justify-content: flex-start; } }
 .npc.visitando { border-color: var(--ouro-vivo); }
 .lista-adv li.vazio, .lista-missoes li.vazio { color: var(--muted); justify-content: flex-start; }
 
@@ -3333,44 +3360,89 @@ function renderQuadro() {
     <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div>
   </section>`;
 }
-function renderInstalacoes() {
-  const row = (id) => {
-    const f = FAC[id]; const s = camp.fac[id];
-    let act = '';
-    if (id === 'taverna' && s === 'suja') act = camp.building ? '<span class="linha">Faxina em andamento: fica pronta ao fim do dia.</span>' : `<button class="botao" data-act="g-build-taverna" ${camp.acts.construir ? 'disabled' : ''}>Fazer faxina na taverna (1 dia de trabalho)</button>`;
-    else if (id === 'taverna' && s === 'ativa') act = '<button class="botao" data-act="g-taverna">Entrar</button>';
-    else if (id === 'quadro' && s === 'ativo') act = '<button class="botao" data-act="g-quadro">Abrir</button>';
-    else if (id === 'alojamento') {
-      const lvl = s || 0; const cost = ALOJ[lvl];
-      if (camp.building && camp.building.id === 'alojamento') act = '<span class="linha">Obra em andamento: fica pronta ao fim do dia.</span>';
-      else if (camp.fac.taverna !== 'ativa') act = '<span class="linha">Precisa da Taverna aberta.</span>';
-      else if (cost === undefined) act = '<span class="linha">Todos os quartos construídos.</span>';
-      else act = `<button class="botao" data-act="g-build-aloj" ${camp.acts.construir || camp.building || camp.gold < cost ? 'disabled' : ''}>${lvl ? 'Ampliar' : 'Construir'} (nível ${lvl + 1}): ${cost} de ouro e 1 dia de trabalho</button>`;
-      return `<li class="instalacao ${lvl ? 'ativo' : 'bloq'}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${lvl ? `Nível ${lvl}` : 'Não construído'}</span><p class="linha">${esc(f.desc)} Hoje cabem ${advMax()} aventureiros${cost !== undefined ? `; o próximo nível leva a ${advMax() + 2}` : ''}.</p></div><div>${act}</div></li>`;
-    }
-    else if (id === 'ferraria' || id === 'rh') {
-      const lvl = id === 'ferraria' ? ferrLvl() : rhLvl(); const table = id === 'ferraria' ? FERR : RH; const cost = table[lvl];
-      const efeito = id === 'ferraria' ? (lvl ? `Hoje: +${5 * lvl}% de sucesso nas missões.` : '') : (lvl ? `Hoje: ${RH_TXT[lvl - 1]}.` : '');
-      if (camp.building && camp.building.id === id) act = '<span class="linha">Obra em andamento: fica pronta ao fim do dia.</span>';
-      else if (id === 'ferraria' && !camp.flags.odie) act = `<span class="linha">${esc(f.lock)}</span>`;
-      else if (id === 'rh' && camp.fac.taverna !== 'ativa') act = '<span class="linha">Precisa da Taverna aberta.</span>';
-      else if (cost === undefined) act = '<span class="linha">Nível máximo.</span>';
-      else act = `<button class="botao" data-act="g-build-up" data-fac="${id}" ${camp.acts.construir || camp.building || camp.gold < cost ? 'disabled' : ''}>${lvl ? 'Ampliar' : 'Construir'} (nível ${lvl + 1}): ${cost} de ouro e 1 dia de trabalho</button>`;
-      return `<li class="instalacao ${lvl ? 'ativo' : 'bloq'}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${lvl ? `Nível ${lvl}` : 'Não construída'}</span><p class="linha">${esc(f.desc)} ${efeito}${cost !== undefined && lvl < table.length ? (id === 'rh' ? ` Próximo nível: ${RH_TXT[lvl]}.` : '') : ''}</p></div><div>${act}</div></li>`;
-    }
-    else if (id === 'treino') {
-      if (camp.fac.treino !== 'ativo') act = camp.cleared[10] ? `<button class="botao" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>Kryoret constrói: 150 de ouro</button>` : `<span class="linha">${esc(f.lock)}</span>`;
-      else { const cur = instrutor(); const cands = camp.advs.filter(a => a.status === 'livre' || a.status === 'instrutor');
-        act = `<label class="linha" for="instr">Instrutor:</label> <select id="instr" data-act-change="g-instrutor">${['<option value="">Ninguém</option>'].concat(cands.map(a => `<option value="${a.id}" ${cur && cur.id === a.id ? 'selected' : ''}>${esc(a.name)}, nível ${a.lvl}</option>`)).join('')}</select>`;
-        return `<li class="instalacao ativo"><div><b>${esc(f.name)}</b> <span class="selo-fac">Ativa</span><p class="linha">${esc(f.desc)} ${cur ? `Hoje: ${esc(cur.name)} dá +${3 * cur.lvl}% a todos.` : 'Sem instrutor.'}</p></div><div>${act}</div></li>`; }
-    }
-    else if (f.lock) act = `<span class="linha">${esc(f.lock)}</span>`;
-    const estado = { ativo: 'Ativo', ativa: 'Ativa', suja: 'Abandonada', bloq: 'Bloqueada' }[s] || (s == null || s === 0 ? 'Não construída' : s);
-    return `<li class="instalacao ${s}"><div><b>${esc(f.name)}</b> <span class="selo-fac">${estado}</span><p class="linha">${esc(f.desc)}</p></div><div>${act}</div></li>`;
+/* Instalações: cada uma vira um estado claro (pode construir agora, espera, em obra, trancada, completa ou em uso),
+   com custo, efeito de agora e do próximo nível. facInfo também alimenta o selo "!" da guilda. */
+const FAC_ORDEM = ['quadro', 'taverna', 'alojamento', 'rh', 'ferraria', 'treino'];
+function motivoObra(cost) {
+  if (camp.building) return 'Já há uma obra em andamento hoje.';
+  if (camp.acts.construir) return 'A obra de hoje já foi feita. Volte amanhã.';
+  if (cost && camp.gold < cost) return `Faltam ${cost - camp.gold} de ouro.`;
+  return '';
+}
+function facInfo(id) {
+  const f = FAC[id], s = camp.fac[id];
+  const i = { id, name: f.name, desc: f.desc };
+  const emObra = camp.building && camp.building.id === id;
+  const taverna = camp.fac.taverna === 'ativa';
+  const nivelado = (lvl, table, agora, prox, attrs) => {
+    Object.assign(i, { nivel: lvl, max: table.length, agora, prox });
+    const cost = table[lvl];
+    if (emObra) return Object.assign(i, { estado: 'obra', motivo: 'Em obra: fica pronta ao fim do dia.' });
+    if (cost === undefined) return Object.assign(i, { estado: 'max' });
+    const motivo = motivoObra(cost);
+    return Object.assign(i, { estado: motivo ? 'espera' : 'pode', motivo, ouro: cost, obra: true, label: lvl ? 'Ampliar' : 'Construir', attrs });
   };
-  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Instalações</h1><p class="sub">Dia ${camp.day} · ${camp.gold} de ouro · ${camp.acts.construir ? 'obra de hoje já feita' : 'obra de hoje disponível'}</p></header>
-  <section class="cena larga guilda-tela"><ul class="lista-fac">${['quadro', 'taverna', 'alojamento', 'rh', 'ferraria', 'treino'].map(row).join('')}</ul>
-  <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+  if (id === 'quadro') return Object.assign(i, s === 'ativo' ? { estado: 'uso', label: 'Abrir', attrs: 'data-act="g-quadro"' } : { estado: 'tranc' });
+  if (id === 'taverna') {
+    if (s === 'ativa') return Object.assign(i, { estado: 'uso', label: 'Entrar', attrs: 'data-act="g-taverna"' });
+    if (s !== 'suja') return Object.assign(i, { estado: 'tranc' });
+    if (emObra) return Object.assign(i, { estado: 'obra', motivo: 'Faxina em andamento: fica pronta ao fim do dia.' });
+    const motivo = motivoObra(0);
+    return Object.assign(i, { estado: motivo ? 'espera' : 'pode', motivo, obra: true, label: 'Fazer faxina', attrs: 'data-act="g-build-taverna"' });
+  }
+  if (id === 'alojamento') {
+    if (!taverna) return Object.assign(i, { estado: 'tranc', motivo: 'Precisa da Taverna aberta.' });
+    const lvl = s || 0;
+    return nivelado(lvl, ALOJ, `${advMax()} vagas`, `${advMax() + 2} vagas`, 'data-act="g-build-aloj"');
+  }
+  if (id === 'rh') {
+    if (!taverna) return Object.assign(i, { estado: 'tranc', motivo: 'Precisa da Taverna aberta.' });
+    const lvl = rhLvl();
+    return nivelado(lvl, RH, lvl ? RH_TXT[lvl - 1] : 'nenhum bônus', RH_TXT[lvl], 'data-act="g-build-up" data-fac="rh"');
+  }
+  if (id === 'ferraria') {
+    if (!camp.flags.odie) return Object.assign(i, { estado: 'tranc', motivo: f.lock });
+    const lvl = ferrLvl();
+    return nivelado(lvl, FERR, `+${5 * lvl}% de sucesso nas missões`, `+${5 * (lvl + 1)}% de sucesso nas missões`, 'data-act="g-build-up" data-fac="ferraria"');
+  }
+  if (id === 'treino') {
+    if (camp.fac.treino === 'ativo') { const cur = instrutor(); return Object.assign(i, { estado: 'uso', agora: cur ? `${cur.name} dá +${3 * cur.lvl}% a todos` : 'sem instrutor' }); }
+    if (!camp.cleared[10]) return Object.assign(i, { estado: 'tranc', motivo: f.lock });
+    const motivo = camp.gold < 150 ? `Faltam ${150 - camp.gold} de ouro.` : '';
+    return Object.assign(i, { estado: motivo ? 'espera' : 'pode', motivo, ouro: 150, label: 'Kryoret constrói', attrs: 'data-act="g-treino-build"' });
+  }
+  return Object.assign(i, { estado: 'tranc', motivo: f.lock || '' });
+}
+const podeConstruirHoje = () => !!(camp && camp.flags.facilities && FAC_ORDEM.some(id => facInfo(id).estado === 'pode'));
+const CADEADO = '<svg class="ico-cadeado" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
+function facRow(id) {
+  const i = facInfo(id);
+  const selo = { pode: i.nivel ? `Nível ${i.nivel} de ${i.max}` : 'Disponível', espera: i.nivel ? `Nível ${i.nivel} de ${i.max}` : 'Não construída', obra: 'Em obra', tranc: 'Trancada', max: 'Completa', uso: 'Ativa' }[i.estado];
+  const pips = i.max ? `<span class="pips" aria-hidden="true">${Array.from({ length: i.max }, (_, k) => `<i class="${k < i.nivel ? 'cheio' : ''}"></i>`).join('')}</span>` : '';
+  let efeito = '';
+  if (i.agora && i.prox && (i.estado === 'pode' || i.estado === 'espera')) efeito = `<p class="fac-efeito"><span>Agora: ${esc(i.agora)}</span> <span><span class="seta" aria-hidden="true">→</span> Próximo nível: <b>${esc(i.prox)}</b></span></p>`;
+  else if (i.prox && i.estado === 'obra') efeito = `<p class="fac-efeito"><span>Ao fim do dia: <b>${esc(i.prox)}</b></span></p>`;
+  else if (i.agora) efeito = `<p class="fac-efeito"><span>Agora: ${esc(i.agora)}</span></p>`;
+  const custos = (i.ouro ? `<span class="custo-chip ${camp.gold < i.ouro ? 'falta' : ''}">${i.ouro} de ouro</span>` : '') + (i.obra ? `<span class="custo-chip ${camp.acts.construir || camp.building ? 'falta' : ''}">1 dia de obra</span>` : '');
+  let acao = '';
+  if (id === 'treino' && i.estado === 'uso') {
+    const cur = instrutor(); const cands = camp.advs.filter(a => a.status === 'livre' || a.status === 'instrutor');
+    acao = `<label class="linha" for="instr">Instrutor:</label> <select id="instr" data-act-change="g-instrutor">${['<option value="">Ninguém</option>'].concat(cands.map(a => `<option value="${a.id}" ${cur && cur.id === a.id ? 'selected' : ''}>${esc(a.name)}, nível ${a.lvl}</option>`)).join('')}</select>`;
+  } else if (i.attrs) acao = `<button class="botao ${i.estado === 'pode' ? 'construir' : ''}" ${i.attrs} ${i.estado === 'pode' || i.estado === 'uso' ? '' : 'disabled'}>${esc(i.label)}</button>`;
+  const motivo = i.motivo ? `<p class="fac-motivo">${i.estado === 'tranc' ? CADEADO : ''}${esc(i.motivo)}</p>` : '';
+  return `<li class="instalacao est-${i.estado}"><div class="fac-info"><div class="fac-titulo"><b>${esc(i.name)}</b> <span class="selo-fac">${selo}</span>${pips}</div><p class="linha">${esc(i.desc)}</p>${efeito}</div>
+    <div class="fac-acao">${custos ? `<div class="fac-custos">${custos}</div>` : ''}${acao}${motivo}</div></li>`;
+}
+function renderInstalacoes() {
+  const obra = camp.building ? `em andamento (${esc(FAC[camp.building.id] ? FAC[camp.building.id].name : camp.building.id)})` : camp.acts.construir ? 'já feita hoje' : 'disponível';
+  $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>Instalações</h1><p class="sub">Dia ${camp.day}</p></header>
+  <section class="cena larga guilda-tela">
+    <div class="fac-topo"><span class="fac-ouro">${camp.gold} de ouro</span><span class="fac-obra ${camp.building || camp.acts.construir ? 'usada' : 'livre'}">Obra do dia: ${obra}</span></div>
+    <ul class="lista-fac">${FAC_ORDEM.map(facRow).join('')}</ul>
+    <p class="intro-dica">Cada obra usa a ação de obra do dia e fica pronta ao fim do dia.</p>
+    <div class="linha-logs"><button class="botao principal" data-act="home">Voltar à guilda</button></div></section>`;
+  // Ao abrir a tela, o foco do teclado vai para a primeira obra possível (ou o primeiro botão ativo).
+  if (ui.focarFac) { ui.focarFac = false; const alvo = $('.lista-fac .botao.construir') || $('.lista-fac .botao:not([disabled])'); if (alvo) alvo.focus({ preventScroll: true }); }
 }
 function renderTaverna() {
   const full = camp.advs.length >= advMax();
@@ -3674,7 +3746,7 @@ async function guildClick(act, ds) {
   if (act === 'g-passeio-social') { startSocial(ds.se, { passeio: true, enc: ds.se }); return true; }
   if (act === 'g-felix') { ui.talkLogs = ui.talkLogs || {}; ui.talkLogs.felix = []; ui.screen = 'felix'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-quadro') { ui.screen = 'quadro'; render(); window.scrollTo(0, 0); return true; }
-  if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; render(); window.scrollTo(0, 0); return true; }
+  if (act === 'g-instalacoes') { ui.screen = 'instalacoes'; ui.focarFac = true; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-taverna') { ui.screen = 'taverna'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-cidade') { if (!camp.cityTrip && camp.acts.npc) { toast('Você já foi à cidade hoje.'); return true; } startCityTrip(); ui.screen = 'cidade'; render(); window.scrollTo(0, 0); return true; }
   if (act === 'g-build-taverna') {
@@ -4042,7 +4114,7 @@ function renderHome() {
       <button class="botao cidade-grande ${camp.acts.npc ? 'usada' : ''}" data-act="g-cidade" ${camp.run || camp.acts.npc ? 'disabled' : ''}>${bi('cidade')}<span>${camp.acts.npc ? 'Você já foi à cidade hoje' : 'Ir à cidade'}</span><small>${camp.acts.npc ? 'Volte amanhã.' : 'Mestres, Banco da Coroa, Sociedade Mágica e passeios.'}</small></button>
     </section>
     <section class="painel-camp"><h2>${bi('instalacoes')}Guilda</h2>
-      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/${notesMax()})</button></div>
+      <div class="linha-logs guilda-botoes"><button class="botao" data-act="g-felix">${bi('felix')}Falar com Felix</button>${camp.fac.quadro === 'ativo' ? `<button class="botao" data-act="g-quadro">${bi('quadro')}Quadro de Missões</button>` : ''}${camp.flags.facilities ? `<button class="botao" data-act="g-instalacoes">${bi('instalacoes')}Instalações${podeConstruirHoje() ? ' <span class="badge-novo" title="Dá para construir ou ampliar hoje" aria-label="Dá para construir ou ampliar hoje">!</span>' : ''}</button>` : ''}${camp.fac.taverna === 'ativa' ? `<button class="botao" data-act="g-taverna">${bi('taverna')}Taverna</button>` : ''}<button class="botao" data-act="camp-notes">${bi('notas')}Notas de Ergos (${camp.notes.length}/${notesMax()})</button></div>
     </section>
     <section class="painel-camp"><h2>${bi('deck')}Decks</h2>
       <p class="camp-linha">Deck de batalha: ${esc(DISC_NAME[camp.deck.disc])}, ${R.deckSize(camp.deck)}/30${valid ? '' : ' (precisa de ajuste)'} · Deck social: ${camp.social ? `${esc(DISC_NAME[camp.social.disc])}, ${Object.values(camp.social.cards).reduce((a, b) => a + b, 0)}/20` : 'ainda não montado'} · Coleção: ${collectionSize()} cartas${camp.socialColl ? ` e ${Object.values(camp.socialColl).reduce((a, b) => a + b, 0)} sociais` : ''}</p>
