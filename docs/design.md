@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.64 · rascunho para editar*
+*Documento de design preliminar · v0.65 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -624,6 +624,7 @@ O combate ganha som e animação sem que a lógica dependa disso.
 - **Mão.** A carta sob o mouse sobe e inclina seguindo o cursor. A carta jogada voa num arco até onde ela age; compras chegam em sequência e o que muda de lugar desliza (FLIP), sem saltos.
 - **Números.** Dano e cura sobem sobre o alvo em vermelho e verde; Escudo e Blindagem sobem com a cara dos selos das cartas; a vida mostrada só muda no impacto, e a cura acende o número de vida em verde. As animações correm numa camada por cima da mesa, com cópias das peças, para não serem cortadas pelas fileiras nem apagadas pelo próximo desenho. O turno inimigo espera cada ação terminar de animar.
 - **Música.** Uma faixa em loop por estado (menu, mapa da dungeon, combate, chefe, negociação), escolhida pela tela; a troca esmaece uma e cresce a outra, e a que sai continua de onde parou ao voltar.
+- **Modos de animação.** Nas Configurações: Normal, Rápida (dobro da velocidade, inclusive a pausa entre ações do inimigo), Instantânea (sem animação, só som) e Sem movimento (os números aparecem no lugar e as unidades mortas só esmaecem). Sem escolha salva, o jogo segue o sistema: com `prefers-reduced-motion`, fica sem movimento. A escolha vale para o navegador, como o som, e pode voltar para “Seguir o sistema”.
 - **Configuração num lugar só.** Durações, intensidades e a lista de sons ficam em `src/feel.js`.
 - **Áudio.** Howler (MIT) embutido no build, para funcionar offline. Os sons ficam em `assets/audio/`, fora da página: o jogo tenta `.ogg` e cai para `.wav`. Os atuais são placeholders gerados por `tools/audio/placeholders.py`; os definitivos virão do Kenney.nl (CC0), com autoria no `CREDITS.md`. Preferências de volume e mudo ficam no navegador, fora da campanha.
 
@@ -644,3 +645,13 @@ A Evolução é rara (3 por partida, uma por turno) e decide jogos, então ganha
 
 No mapa da dungeon, o nó para onde dá para ir cresce com sobra, acende e o ícone dá um pulinho quando o mouse passa ou quando o teclado foca nele; ao clicar, ele afunda um pouco. A trilha da posição atual até esse nó acende. Todos os nós, inclusive os já visitados e os trancados, mostram o nome (Batalha, Elite, Evento...) num rótulo logo abaixo, para planejar o caminho sem esperar a dica do navegador. Sem animação, o rótulo e a trilha continuam; o crescimento e o pulinho somem.
 
+## Ataque total (P98)
+
+Um botão ao lado de “Encerrar turno” faz todas as unidades prontas atacarem de uma vez, para poupar cliques nos turnos em que a escolha é óbvia.
+
+- **Ordem dos atacantes:** da esquerda para a direita no seu campo [provisório].
+- **Alvo:** se o oponente tem Guarda visível, o Guarda mais à esquerda; quando ele cai, o próximo; sem Guarda, a vida do líder. Unidades sem Guarda nunca são atacadas, nem Estruturas; Guardas em Emboscada não são alvo, como no ataque normal.
+- **Quem não alcança a vida fica parado:** uma unidade com Avanço no turno em que entrou só ataca se houver Guarda; sem Guarda, ela não ataca. As outras seguem.
+- **A arma do protagonista não entra** [provisório]; o ataque com arma continua manual.
+- **Ritmo:** um ataque por vez, cada um esperando as animações do anterior, no mesmo passo do turno inimigo e respeitando o modo de animação.
+- **Negociação:** o botão vira “Pressão total” [provisório], com a mesma regra.

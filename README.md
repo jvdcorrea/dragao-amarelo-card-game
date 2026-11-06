@@ -52,13 +52,13 @@ python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 
 ## Versões dos documentos
 
-Design v0.64, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
+Design v0.65, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
 
 ## Créditos
 
 A arte atual é provisória. Os ícones das cartas, dos inimigos e do mapa vêm do [game-icons.net](https://game-icons.net), sob a licença [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), de Lorc, Delapouite, Skoll, Caro Asercion, DarkZaitzev, Carl Olsen, Cathelineau, Sbed e Zajkonur; foram recoloridos, simplificados e combinados com fundos gerados pelo jogo. A lista completa, com a contagem por autor, fica na tela de Créditos do jogo.
 
-As ilustrações (fachada da guilda, Felix, sala de guerra e os Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane e do Azer Kryoret) ficam em `src/img/` como WebP e são embutidas no `index.html` pelo build.
+As ilustrações (fachada da guilda, Felix, sala de guerra e os Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane, do Azer Kryoret e do Gato Artífice Odie) ficam em `src/img/` como WebP e são embutidas no `index.html` pelo build.
 
 Fontes Alegreya e Alegreya Sans (SIL Open Font License), servidas pelo Google Fonts. Compactação dos logs com JSZip (MIT). Áudio com howler.js (MIT). Os sons e suas licenças ficam listados no [`CREDITS.md`](CREDITS.md).
 

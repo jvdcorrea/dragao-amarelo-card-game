@@ -2,7 +2,9 @@
 import json, os
 from pathlib import Path
 K = 'dragao-amarelo-campanha-v1'
-END = '[data-act=soc-continue],[data-act=pas-continue],[data-act=run-continue],[data-act=def-continue]'
+# Fim de partida: os botões de continuar da campanha ou, na batalha avulsa, o "Jogar de novo" visível
+# (nos modos de campanha ele existe, mas fica escondido).
+END = '[data-act=soc-continue],[data-act=pas-continue],[data-act=run-continue],[data-act=def-continue],.resultado .opcoes:not([hidden]) [data-act=again]'
 # A página montada (python3 tools/build.py) na raiz do repositório.
 URL = (Path(__file__).resolve().parents[2] / 'index.html').as_uri()
 # Por padrão usa o Chromium do Playwright (playwright install chromium). Para outro binário, defina CHROME_PATH.

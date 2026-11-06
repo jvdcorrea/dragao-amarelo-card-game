@@ -48,7 +48,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.19/design-v0.60/inimigos-v0.13/proto-2026-11-05';
+const RULES = 'cartas-v0.19/design-v0.65/inimigos-v0.13/proto-2026-11-06';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -263,6 +263,7 @@ function centerBar() {
   let msg, cancel = false, cls = '';
   if (st.over) msg = st.over === 'P' ? (SOC() ? 'Acordo fechado.' : 'Vitória.') : (SOC() ? 'Negociação perdida.' : 'Derrota.');
   else if (st.pending && st.pending.kind === 'mulligan') msg = 'Escolha sua mão inicial.';
+  else if (ui.auto && ui.busy) msg = SOC() ? 'Pressão total.' : 'Ataque total.';
   else if (ui.busy || st.turnSide === 'E') { msg = `Vez de ${O().leader.name}.`; cls = 'inimigo-vez'; }
   else if (ui.mode) {
     cancel = true;
@@ -303,7 +304,7 @@ function panelP() {
     ${weapon}${traps}
     <span class="conta">Deck ${p.deck.length}</span>
     ${pend.length ? `<p class="pendente">${esc(pend.join('; '))}.</p>` : ''}
-    </div><button class="selo-turno" data-act="end" ${endOk ? '' : 'disabled'}>Encerrar turno</button>
+    </div><div class="turno-botoes"><button class="botao ataque-total" data-act="total" ${endOk && E.totalAttackNext(st, 'P') ? '' : 'disabled'} title="${SOC() ? 'Seus Argumentos prontos pressionam a Compostura do oponente, ou o primeiro com Guarda, da esquerda para a direita' : 'Suas unidades prontas atacam a vida do oponente, ou o primeiro com Guarda, da esquerda para a direita'}">${SOC() ? 'Pressão total' : 'Ataque total'}</button><button class="selo-turno" data-act="end" ${endOk ? '' : 'disabled'}>Encerrar turno</button></div>
   </section>`;
 }
 
@@ -807,8 +808,8 @@ function guildScene(sc) {
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
   if (sc.kind === 'banca') return bancaScene(sc);
-  if (sc.kind === 'odie-chega') return `<h2>Recado da Chrome</h2><p>Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.</p><div class="fala"><span class="quem">Odie</span><p>Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?</p></div><p class="intro-dica">A Ferraria pode ser reconstruída nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Bem-vindo, Odie</button></div>`;
-  if (sc.kind === 'odie-ferraria') return `<h2>A Ferraria acesa</h2><p>A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.</p><div class="fala"><span class="quem">Odie</span><p>Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.</p><p>Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.</p></div><p class="intro-dica">Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Ao trabalho</button></div>`;
+  if (sc.kind === 'odie-chega') return `${HAS_IMG('odie') ? '<div class="npc-arte" role="img" aria-label="Odie, o Gato Artífice, na Ferraria" style="background-image: var(--img-odie)"></div>' : ''}<h2>Recado da Chrome</h2><p>Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.</p><div class="fala"><span class="quem">Odie</span><p>Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?</p></div><p class="intro-dica">A Ferraria pode ser reconstruída nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Bem-vindo, Odie</button></div>`;
+  if (sc.kind === 'odie-ferraria') return `${HAS_IMG('odie') ? '<div class="npc-arte" role="img" aria-label="Odie, o Gato Artífice, na Ferraria" style="background-image: var(--img-odie)"></div>' : ''}<h2>A Ferraria acesa</h2><p>A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.</p><div class="fala"><span class="quem">Odie</span><p>Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.</p><p>Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.</p></div><p class="intro-dica">Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">Ao trabalho</button></div>`;
   if (sc.kind === 'kryoret-treino') return `${HAS_IMG('kryoret') ? '<div class="npc-arte" role="img" aria-label="Kryoret" style="background-image: var(--img-kryoret)"></div>' : ''}<h2>Uma visita da Forja</h2><p>Kryoret aparece na porta da guilda com uma caixa de ferramentas nas costas e fuligem até as sobrancelhas.</p><div class="fala"><span class="quem">Kryoret</span><p>Ignar apagou, e a Forja ficou quieta demais. Lembrei de uma conversa com o seu tio: ele queria um pátio de treino aqui atrás. Nunca tivemos tempo.</p><p>Eu construo. Cento e cinquenta de ouro, e é preço de amigo. Um dos seus vira instrutor, e todo o resto melhora.</p></div><div class="opcoes"><button class="botao principal" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>Aceitar (150 de ouro)</button><button class="botao" data-act="g-ok-pend">Depois (a oferta fica nas Instalações)</button></div>`;
   if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'g-banca-back' : 'scene-ok'}">Continuar</button></div>`;
   if (sc.kind === 'felix-divida') return felixDebtScene();
@@ -1632,7 +1633,7 @@ function renderCredits() {
     <p>Os ${total} ícones das cartas, dos inimigos e do mapa vêm do <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>, sob a licença <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">Creative Commons Atribuição 3.0 (CC BY 3.0)</a>. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.</p>
     <ul>${lista}</ul>
     <h2>Ilustrações</h2>
-    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) e de Kryoret, o Azer da banca (Forja Esquecida) são ilustrações do projeto, enviadas pelo autor do jogo.</p>
+    <p>A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade), de Kryoret, o Azer da banca (Forja Esquecida), e de Odie, o Gato Artífice (Ferraria), são ilustrações do projeto, enviadas pelo autor do jogo.</p>
     <h2>Fontes e bibliotecas</h2>
     <p>Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>, servidas pelo Google Fonts. Compactação dos logs com <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>, de Stuart Knightley e colaboradores, sob a licença MIT. Áudio com <a href="https://howlerjs.com" target="_blank" rel="noopener">howler.js</a>, de James Simpson (GoldFire Studios), sob a licença MIT.</p>
     <h2>Sons</h2>
@@ -1768,11 +1769,26 @@ async function cheatClick(act) {
   if (act === 'ch-adv-up') { camp.advs.forEach(a => { if (a.lvl < 5) { a.lvl += 1; a.xp = 0; } }); return done('Todos os aventureiros subiram um nível.', 'nível aventureiros'); }
   return false;
 }
+// Animações (P94, fase 6): quatro modos; sem escolha salva, segue o prefers-reduced-motion do sistema.
+const ANIM_MODOS = [
+  ['normal', 'Normal', 'Todas as animações, na velocidade normal.'],
+  ['rapida', 'Rápida', 'As mesmas animações, no dobro da velocidade.'],
+  ['instantanea', 'Instantânea', 'Sem animações: o resultado aparece na hora, com som.'],
+  ['desligada', 'Sem movimento', 'Nada se move: os números aparecem no lugar e as unidades mortas só esmaecem.'],
+];
+function animConfig() {
+  const modo = animModo(), atual = ANIM_MODOS.find(m => m[0] === modo) || ANIM_MODOS[0];
+  const auto = !prefs.anim;
+  const botoes = ANIM_MODOS.map(([id, nome]) => `<button class="botao ${id === modo ? 'principal' : ''}" data-act="anim-${id}" aria-pressed="${id === modo}">${nome}</button>`).join('');
+  return `<div class="config-item"><div><h2>Animações</h2><p>${esc(atual[2])}${auto ? ` Seguindo o sistema${reduced() ? ', que pede menos movimento' : ''}.` : ''}</p></div><div class="som-controles" role="group" aria-label="Modo de animação">${botoes}${auto ? '' : '<button class="botao" data-act="anim-auto">Seguir o sistema</button>'}</div></div>`;
+}
+function setAnim(m) { if (m === 'auto') delete prefs.anim; else prefs.anim = m; savePrefs(); render(); }
 function renderSettings() {
   $('#app').innerHTML = `<header class="abertura"><h1>Configurações</h1></header>
   <section class="cena config">
     <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
     <div class="config-item"><div><h2>Som</h2><p>${Som.ativo() ? 'Volumes separados para efeitos e música. A tecla M liga e desliga o som em qualquer tela.' : 'O áudio não carregou neste navegador.'}</p></div><div class="som-controles"><label>Efeitos <input id="vol-efeitos" type="range" min="0" max="100" step="5" value="${Math.round(prefs.efeitos * 100)}"></label><label>Música <input id="vol-musica" type="range" min="0" max="100" step="5" value="${Math.round(prefs.musica * 100)}"></label><button class="botao" data-act="som-mudo" aria-pressed="${!!prefs.mudo}">${prefs.mudo ? 'Ligar o som' : 'Desligar o som'}</button></div></div>
+    ${animConfig()}
     <div class="config-item"><div><h2>Códigos secretos</h2><p>${cheats.unlocked ? 'Modo de testes liberado.' : 'Tem um código? Digite aqui.'}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">Código</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código"><button class="botao" data-act="code">Usar</button>${cheats.unlocked ? '<button class="botao" data-act="cheats">Menu de testes</button>' : ''}</div></div>
     <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
@@ -1897,6 +1913,7 @@ function renderScreen() {
 async function runClick(ds) {
   const act = ds.act;
   if (act === 'som-mudo') { toggleMute(); render(); return true; }
+  if (act && act.startsWith('anim-') && (act === 'anim-auto' || ANIM_MODOS.some(m => 'anim-' + m[0] === act))) { setAnim(act.slice(5)); return true; }
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }
@@ -2055,6 +2072,20 @@ function runTarget(ref) {
 }
 function inTargets(ref) { return ui.mode && ui.mode.targets && ui.mode.targets.some(r => E.sameRef(r, ref)); }
 
+// Ataque total: um ataque por vez, cada um esperando as animações do anterior, como no turno inimigo.
+function totalAttack() {
+  if (ui.busy || st.turnSide !== 'P' || st.over || st.pending || !E.totalAttackNext(st, 'P')) return;
+  ui.mode = null; ui.busy = true; ui.auto = true;
+  const delay = FEEL.tempo.passoInimigo[animModo()];
+  const fim = () => { ui.busy = false; ui.auto = false; afterAction(); };
+  const step = () => {
+    const n = st && E.totalAttackNext(st, 'P');
+    if (!n || !E.attack(st, 'P', n.uid, n.ref)) { fim(); return; }
+    render();
+    Fx.idle().then(() => setTimeout(step, delay));
+  };
+  step();
+}
 function endPlayerTurn() {
   if (ui.busy || st.turnSide !== 'P' || st.over || st.pending) return;
   ui.mode = null;
@@ -2134,6 +2165,7 @@ document.addEventListener('click', async ev => {
   if (act === 'cancel') { ui.mode = null; render(); return; }
   if (act === 'confirm-play') { if (ui.mode && ui.mode.kind === 'confirm') { const i = ui.mode.idx; ui.mode = null; await startPlay(i); } return; }
   if (act === 'end') { endPlayerTurn(); return; }
+  if (act === 'total') { totalAttack(); return; }
   if (act === 'resonate') {
     if (ui.mode && ui.mode.kind === 'resonate') { ui.mode = null; render(); return; }
     if (E.canResonate(st, 'P')) { ui.mode = { kind: 'resonate' }; render(); }

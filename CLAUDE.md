@@ -58,7 +58,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 | `src/vendor/howler.core.min.js` | Howler 2.2.4 (MIT), embutido pelo build. |
 | `assets/audio/sfx/`, `assets/audio/music/` | Sons e músicas `<nome>_<n>.ogg` ou `.wav`. Placeholders: `python3 tools/audio/placeholders.py`. Autoria no `CREDITS.md`. A música de cada tela sai de `estadoMusica()` no `ui.js`. |
 | `src/art.js` | Ícones das cartas, inimigos e mapa. **Gerado** por `tools/arte/gen.py`. |
-| `src/img/*.webp` | Ilustrações (guilda, Felix, sala de guerra, Mestres, Lerael, Kryoret). O build embute em base64. |
+| `src/img/*.webp` | Ilustrações (guilda, Felix, sala de guerra, Mestres, Lerael, Kryoret, Odie). O build embute em base64. |
 | `tools/build.py` | Junta `src/` num `index.html` único (imagens viram variáveis CSS `--img-<nome>`). |
 | `tools/arte/` | `map.py` (carta ou inimigo para ícone) e `gen.py` (gera `src/art.js` a partir do repositório game-icons). |
 | `tools/balance/`, `tools/economia/` | Simuladores de balanceamento. |
@@ -115,7 +115,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P98**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P99**).
 3. `docs/todo.md` atualizado.
 4. Commit em português, com título curto e itens no corpo.
 
@@ -123,7 +123,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P97; a P de cada mudança vai no texto e no commit. | v0.64 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P98; a P de cada mudança vai no texto e no commit. | v0.65 |
 | `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.19 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
 | `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.2 |
@@ -147,7 +147,7 @@ O `index.html` montado e commitado na `main` é servido pelo GitHub Pages em `ht
 Pendências principais (detalhes em `docs/todo.md`):
 - Calibrar a economia com uma campanha sem o menu de testes.
 - Envio automático de logs. Opções estudadas: banco de dados do artefato no claude.ai, Google Apps Script para o GitHub Pages, Firebase.
-- Retrato do Odie e a recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
+- Recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
 - Playtests humanos do grupo 2.
 - Grupo 3: o frio e o resgate de Ergos.
 - Draconic segue mais forte que as outras Disciplinas nos testes.
