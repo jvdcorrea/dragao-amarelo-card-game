@@ -519,9 +519,14 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .fx-camada { position: fixed; inset: 0; pointer-events: none; z-index: 12; overflow: hidden; }
 .fx-copia { position: fixed; display: flex; }
 .fx-copia > * { margin: 0; width: 100%; min-width: 0; height: 100%; }
-.fx-flash { position: fixed; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
+.fx-flash { position: fixed; z-index: 3; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
 .fx-corte { position: fixed; border-radius: 50%; background: linear-gradient(90deg, transparent, var(--corte) 18%, #fff 50%, var(--corte) 82%, transparent); box-shadow: 0 0 0 1px rgba(60, 30, 0, .35), 0 0 12px 3px color-mix(in srgb, var(--corte) 75%, transparent); }
-.fx-num { position: fixed; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; -webkit-text-stroke: 1px rgba(0, 0, 0, .55); text-shadow: 0 2px 3px rgba(0, 0, 0, .45); opacity: 0; }
+.fx-num { position: fixed; z-index: 4; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; opacity: 0;
+  /* Contorno (P96): oito sombras sem desfoque desenham a borda em volta da letra, sem comer o miolo como o text-stroke; a última dá profundidade */
+  --c: var(--fx-contorno, 2.5px); --cc: var(--fx-contorno-cor, #fff);
+  text-shadow: calc(-1 * var(--c)) 0 0 var(--cc), var(--c) 0 0 var(--cc), 0 calc(-1 * var(--c)) 0 var(--cc), 0 var(--c) 0 var(--cc),
+    calc(-.7 * var(--c)) calc(-.7 * var(--c)) 0 var(--cc), calc(.7 * var(--c)) calc(-.7 * var(--c)) 0 var(--cc), calc(-.7 * var(--c)) calc(.7 * var(--c)) 0 var(--cc), calc(.7 * var(--c)) calc(.7 * var(--c)) 0 var(--cc),
+    0 3px 6px rgba(0, 0, 0, .45); }
 .fx-num.fx-selo { font-family: inherit; font-size: .95rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); -webkit-text-stroke: 0; text-shadow: none; box-shadow: 0 2px 6px var(--sombra); }
 
 /* Mão (P94): a carta sob o mouse sobe, cresce e inclina seguindo o cursor, com um reflexo */
@@ -533,4 +538,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .mao .carta::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .6), transparent 60%); opacity: 0; transition: opacity .14s; }
   .mao .carta:hover::after { opacity: var(--mao-brilho, .35); }
 }
+/* Evolução (P96): anéis e faíscas na camada de animação */
+.fx-anel { position: fixed; z-index: 3; border: 3px solid; box-sizing: border-box; pointer-events: none; }
+.fx-faisca { position: fixed; z-index: 3; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px 2px rgba(255, 220, 140, .8); opacity: 0; }
 

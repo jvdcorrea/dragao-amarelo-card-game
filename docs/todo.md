@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 06/11/2026 · acompanha o design v0.62*
+*Atualizada em 06/11/2026 · acompanha o design v0.63*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -70,6 +70,16 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
+
+## Efeito da Evolução (P96)
+
+- [x] Som e efeito visual ao Evoluir (e ao Enfatizar): antecipação, crescimento com sobra, brilho e anéis dourados, faíscas, atributos pulsando e “+2/+2”; pausa curta antes dos efeitos Ao Evoluir.
+- [ ] Trocar o placeholder `evoluir_1/2` por um som definitivo (sugestão: algo de “power up” do Kenney, como o pacote Digital Audio ou Sci-fi Sounds, ou um sino curto do RPG Audio).
+- [x] Números de dano, cura e Evolução com contorno branco (`numeros.contornoPx` e `contornoCor` no `feel.js`).
+- [x] A camada de apresentação e o áudio rodam protegidos: um erro neles vira aviso no console e a partida segue (antes, um erro de áudio durante o desenho parava o turno inimigo).
+- [x] `test_grupo2` também desliga as regras dos encontros enfraquecidos (Blindagem do líder, ganchos de turno), que derrubavam o bot no andar 7.
+- [ ] Em testes longos, o Chrome headless desta máquina às vezes derruba a aba com erro do dispositivo de áudio; se continuar, desligar o som só nos testes de navegador.
+- *Decisões minhas para revisar:* dourado como cor da Evolução em todas as Disciplinas; mesmo efeito para chefes e para a negociação; pausa de 0,28 s antes dos efeitos Ao Evoluir.
 
 ## Ajustes de fluxo
 

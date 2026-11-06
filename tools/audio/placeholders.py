@@ -52,6 +52,14 @@ def receita(nome, var, rng):
     if nome == 'morte':        # queda descendo
         d = 0.42
         return onda(d, lambda t, i: (math.sin(2 * math.pi * (420 * p - 700 * t) * t) * 0.6 + ruido(rng) * 0.25) * env(t, d, 0.01))
+    if nome == 'evoluir':      # arpejo subindo com brilho agudo por cima
+        notas = (523.25, 659.25, 783.99, 1046.5); d = 0.62
+        def f(t, i):
+            k = min(3, int(t / 0.07)); tt = t - k * 0.07
+            base = math.sin(2 * math.pi * notas[k] * p * t) * 0.45 * math.exp(-tt * 9)
+            brilho = math.sin(2 * math.pi * (2200 + 1800 * t / d) * p * t) * 0.12 * (t / d) * math.exp(-max(0, t - 0.4) * 12)
+            return (base + brilho + ruido(rng) * 0.04 * math.exp(-t * 6)) * env(t, d, 0.004)
+        return onda(d, f)
     d = 0.15                   # som novo sem receita: um bipe
     return onda(d, lambda t, i: math.sin(2 * math.pi * 660 * p * t) * 0.5 * env(t, d))
 
@@ -82,7 +90,7 @@ def pad(buf, fs, amp, trem=0.0, ciclos=1):
         tt = i / TAXA_M
         m = 1 - trem * (0.5 + 0.5 * math.cos(2 * math.pi * ciclos * tt / LOOP))
         buf[i] += amp * m * sum(math.sin(2 * math.pi * cheia(f) * tt) for f in fs)
-def ruido(buf, ini, dur, amp, rng):
+def ruido_m(buf, ini, dur, amp, rng):
     s0, n = int(ini * TAXA_M), int(dur * TAXA_M)
     for i in range(n): buf[(s0 + i) % N_M] += amp * rng.uniform(-1, 1) * (1 - i / n) ** 2
 NT = {'G1': 49.0, 'A1': 55.0, 'D2': 73.42, 'G2': 98.0, 'A2': 110.0, 'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'G3': 196.0, 'G#3': 207.65,
@@ -103,7 +111,7 @@ def musica(estado, var, rng):
         for k in range(20):
             nota(b, k * 0.4, 0.18, 62, 0.6, 18.0, desce=90)
             nota(b, k * 0.4, 0.38, NT[baixo[k % 4]], 0.22, 5.0, 'saw')
-            ruido(b, k * 0.4 + 0.2, 0.03, 0.12, rng)
+            ruido_m(b, k * 0.4 + 0.2, 0.03, 0.12, rng)
     elif estado == 'chefe':    # pesado: trítono, bumbo grave e golpes dissonantes
         pad(b, (NT['D3'], NT['G#3']), 0.07, trem=0.6, ciclos=4)
         for k in range(16): nota(b, k * 0.5, 0.48, NT['D2'], 0.2, 2.0, 'saw')

@@ -20,6 +20,8 @@ Para sons do Kenney.nl: origem é o nome do pacote com o link (por exemplo, [Imp
 | `assets/audio/sfx/comprar_3.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
 | `assets/audio/sfx/cura_1.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
 | `assets/audio/sfx/embaralhar_1.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
+| `assets/audio/sfx/evoluir_1.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
+| `assets/audio/sfx/evoluir_2.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
 | `assets/audio/sfx/impacto_1.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
 | `assets/audio/sfx/impacto_2.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |
 | `assets/audio/sfx/impacto_3.wav` | placeholder gerado por `tools/audio/placeholders.py` | projeto Dragão Amarelo | domínio público |

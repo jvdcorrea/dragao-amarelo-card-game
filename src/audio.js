@@ -25,7 +25,8 @@ function init() {
     for (let i = 1; i <= s.arqs; i++) carregar(nome, `${FEEL.audio.pasta}sfx/${nome}_${i}`, 0);
   });
 }
-function config(p) {
+function config(p) { try { config_(p); } catch (e) { console.warn('Som:', e); } }
+function config_(p) {
   const m0 = cfg.musica;
   ['efeitos', 'musica', 'mudo'].forEach(k => { if (p[k] !== undefined) cfg[k] = p[k]; });
   if (ok) Howler.mute(!!cfg.mudo);
@@ -33,7 +34,8 @@ function config(p) {
 }
 // O controle vai de 0 a 1; elevar ao quadrado espalha a mudança de volume percebida pelo curso todo.
 function ganho(v) { return v * v; }
-function tocar(nome) {
+function tocar(nome) { try { tocar_(nome); } catch (e) { console.warn('Som:', e); } }
+function tocar_(nome) {
   if (!ok || cfg.mudo || !cfg.efeitos) return;
   const s = FEEL.sons[nome], lista = banco[nome];
   if (!s || !lista || !lista.length) return;
@@ -48,6 +50,7 @@ function tocar(nome) {
 }
 
 /* ---------- Música ---------- */
+// tocar, musica e config passam por try/catch (nas versões sem _): erro de áudio do navegador nunca para o jogo.
 // Uma faixa em loop por estado. Trocar de estado esmaece a que sai e cresce a que entra; a que sai fica em pausa
 // (ou para, sem FEEL.musica.retomar). As faixas só carregam quando o estado aparece pela primeira vez.
 const faixas = {};   // estado -> { estado, howl, id, base, src, fmt }
@@ -85,7 +88,8 @@ function sair(f) {
   h.once('fade', () => { if (atual !== f) { if (FEEL.musica.retomar) h.pause(id); else h.stop(id); } }, id);
 }
 // estado null ou desconhecido mantém o que está tocando.
-function musica(estado) {
+function musica(estado) { try { musica_(estado); } catch (e) { console.warn('Som:', e); } }
+function musica_(estado) {
   if (!ok || !estado || (atual && atual.estado === estado)) return;
   const f = faixaDe(estado); if (!f) return;
   const antes = atual; atual = f;

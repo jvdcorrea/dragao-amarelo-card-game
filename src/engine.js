@@ -767,6 +767,7 @@ function resonate(st, side, uid) {
   if (!e || e.owner !== side || e.kind !== 'unit' || isDead(e)) return false;
   const sd = S(st, side);
   buff(e, 2, 2); e.resonated = true; e.rushThisTurn = true;
+  fx(st, { k: 'evolve', s: side, u: e.uid, a: 2, h: 2 });
   sd.resonance.points -= 1; sd.resonance.used = true;
   log(st, `${e.name} evolui: +2/+2.`);
   rec(st, { k: 'res', s: side, u: uidOf(e) });

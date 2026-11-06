@@ -12,7 +12,10 @@ let camada = null;
 function config(p) { Object.assign(cfg, p); }
 function agora() { return performance.now(); }
 function ate(ms) { fimEm = Math.max(fimEm, agora() + ms); }
-function agendar(ms, fn) { ate(ms); if (ms <= 0) fn(); else setTimeout(fn, ms); }
+// A apresentação nunca derruba o jogo: um erro aqui (no áudio do navegador, por exemplo) vira aviso no console
+// e a partida segue. Sem isso, uma exceção dentro do render() parava o turno inimigo no meio.
+function seguro(fn) { try { fn(); } catch (e) { if (typeof console !== 'undefined') console.warn('Fx:', e); } }
+function agendar(ms, fn) { ate(ms); if (ms <= 0) seguro(fn); else setTimeout(() => seguro(fn), ms); }
 // Promessa que resolve quando as animações em curso acabam (o turno inimigo espera por ela).
 function idle() { const r = fimEm - agora(); return new Promise(res => (r > 0 ? setTimeout(res, r) : res())); }
 
@@ -25,6 +28,7 @@ function somDe(ev) {
     case 'escudo': case 'bloq': return 'bloqueio';
     case 'heal': return 'cura';
     case 'die': return 'morte';
+    case 'evolve': return 'evoluir';
   }
   return null;
 }
@@ -167,6 +171,45 @@ function desliza(el, r0, delay, ms) {
   const r1 = el.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
   el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: Math.max(1, ms), delay, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' });
+}
+// Evolução: antecipação e crescimento da peça, brilho, anéis, faíscas e atributos pulsando.
+// Sem movimento (modo desligado), fica só o brilho e o texto parado.
+function evoluir(real, k, mov) {
+  const V = FEEL.evoluir; if (!real) return;
+  const r = real.getBoundingClientRect(), c = centro(r), ms = V.ms * k, cor = V.cor;
+  const brilho = `0 0 0 3px ${cor}, 0 0 26px 8px color-mix(in srgb, ${cor} 70%, transparent)`;
+  const acender = (alvo, dur) => alvo.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: brilho, offset: 0.35 }, { boxShadow: '0 0 0 0 transparent' }], { duration: Math.max(1, dur), easing: 'ease-out' });
+  if (!mov) { acender(real, V.ms * 1.3); return; }
+  // A fileira corta o que passa da borda; a peça cresce numa cópia por cima e a real fica escondida até o fim.
+  let el = real, solta = null;
+  if (!real.classList.contains('fx-copia')) { el = solta = copia(real.outerHTML, r); el.style.zIndex = 2; real.style.visibility = 'hidden'; }
+  const peca = el.firstElementChild || el;
+  acender(peca, ms * 1.3);
+  const cresce = el.animate([
+    { transform: 'none' },
+    { transform: `scale(${V.encolhe})`, offset: 0.18, easing: 'cubic-bezier(.3,0,.2,1)' },
+    { transform: `translateY(${-V.subirPx}px) scale(${V.escala})`, offset: 0.5, easing: 'cubic-bezier(.34,1.56,.64,1)' },
+    { transform: 'none' },
+  ], { duration: Math.max(1, ms) });
+  if (solta) cresce.onfinish = () => { real.style.visibility = ''; solta.remove(); };
+  el.querySelectorAll('.stats b').forEach(b => b.animate([{ transform: 'none' }, { transform: `scale(${V.statPop})`, offset: 0.55 }, { transform: 'none' }], { duration: Math.max(1, ms), easing: 'ease-out' }));
+  const raio = getComputedStyle(peca).borderRadius, camada = pegaCamada();
+  for (let i = 0; i < V.aneis; i++) {
+    const a = document.createElement('div'); a.className = 'fx-anel';
+    Object.assign(a.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: raio, borderColor: cor });
+    camada.appendChild(a);
+    a.animate([{ transform: 'scale(1)', opacity: 0.9 }, { transform: `scale(${V.anelEscala})`, opacity: 0 }],
+      { duration: Math.max(1, V.anelMs * k), delay: i * V.anelIntervalo * k, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'backwards' }).onfinish = () => a.remove();
+  }
+  for (let i = 0; i < V.faiscas; i++) {
+    const f = document.createElement('div'); f.className = 'fx-faisca'; f.style.background = cor;
+    const x = c.x + (Math.random() - 0.5) * r.width * 0.8, y = r.top + r.height * (0.55 + Math.random() * 0.35);
+    Object.assign(f.style, { left: x + 'px', top: y + 'px' });
+    camada.appendChild(f);
+    const dx = (Math.random() - 0.5) * 30, dy = -V.faiscaAltura * (0.6 + Math.random() * 0.6), s = 0.6 + Math.random() * 0.8;
+    f.animate([{ transform: `translate(-50%, -50%) scale(${s})`, opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.2)`, opacity: 0 }],
+      { duration: Math.max(1, V.faiscaMs * k * (0.7 + Math.random() * 0.5)), delay: Math.random() * 160 * k, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'backwards' }).onfinish = () => f.remove();
+  }
 }
 function morte(g, ms, mov) {
   if (!g) return;
@@ -325,6 +368,14 @@ function linha(st, evs, cap) {
         }
         break;
       }
+      case 'evolve': {
+        fechar();
+        const t0 = t, txt = `+${ev.a}/+${ev.h}`;
+        tocar(ev, t0);
+        agendar(t0, () => { const el = elOuCopia({ t: 'e', uid: ev.u }); if (!el) return; const r = el.getBoundingClientRect(); evoluir(el, k, mov); numero(r, true, txt, FEEL.evoluir.cor, 0, k, mov); });
+        t += FEEL.evoluir.pausaDepois * k;
+        break;
+      }
       case 'summon':
         if (!entradas.has(ev.u)) entradas.set(ev.u, { t });
         break;
@@ -381,13 +432,14 @@ function flush(st, cap) {
   if (!st.fxq) { st.fxq = []; return; }
   const evs = st.fxq.splice(0);
   if (!evs.length) return;
-  if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap);
+  seguro(() => { if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap); });
 }
 function pendente(st) { return !!(st && st.fxq && st.fxq.length); }
 
 /* ---------- Mão: inclinação seguindo o cursor ---------- */
 (function ligarMao() {
   const M = FEEL.mao, raiz = document.documentElement.style;
+  raiz.setProperty('--fx-contorno', FEEL.numeros.contornoPx + 'px'); raiz.setProperty('--fx-contorno-cor', FEEL.numeros.contornoCor);
   raiz.setProperty('--mao-subir', -M.subirPx + 'px'); raiz.setProperty('--mao-escala', M.escala); raiz.setProperty('--mao-brilho', M.brilho);
   const base = new WeakMap();   // retângulo da carta antes de inclinar (inclinada, ela muda de tamanho e a conta tremeria)
   const cartaDe = ev => (ev.target && ev.target.closest ? ev.target.closest('.mao .carta') : null);

@@ -74,7 +74,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 - **Blindagem** (P91): **limiar**. Danos menores que N não passam; danos de N ou mais passam inteiros; feitiços ignoram; Perfurar ignora. A regra está em `BLIND` e `applyBlind`. Blindagem 1 não faz nada sob essa regra, então use 2 ou mais.
 - **Encontros** ficam em `ENC`: `name, tier (Comum, Elite, Chefe, Defesa, Social), grupo, leader, hp, hand, deck, rule`, e ganchos opcionais `onStart, onStartTurn, onEndTurn, onSummon, onBrotar, leaderBlind, phaseAt + onPhase2, onEnemyResonate, extraMana, resonance`. Encontros sociais têm `social: true` e `perfil`.
 - O estado da partida (`st`) tem `log` (texto para o registro) e `events` (gravados pelo `rec()` e exportados no log).
-- **Fila de apresentação** (P94): `fx(st, ev)` põe eventos em `st.fxq` (`draw, gain, burn, mull, play, summon, atk, hero, dmg, bloq, escudo, heal, die, turn`) só quando a interface ligou a fila. Toda mudança de vida passa por `dmg`, `heal` ou `loseLife`; nunca mexa em `hp` direto, ou o `tests/test.js` acusa.
+- **Fila de apresentação** (P94): `fx(st, ev)` põe eventos em `st.fxq` (`draw, gain, burn, mull, play, summon, atk, hero, evolve, dmg, bloq, escudo, heal, die, turn`) só quando a interface ligou a fila. Toda mudança de vida passa por `dmg`, `heal` ou `loseLife`; nunca mexa em `hp` direto, ou o `tests/test.js` acusa.
 
 ### Campanha (`src/run.js`)
 
@@ -115,7 +115,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P96**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P97**).
 3. `docs/todo.md` atualizado.
 4. Commit em português, com título curto e itens no corpo.
 
@@ -123,7 +123,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P95; a P de cada mudança vai no texto e no commit. | v0.62 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P96; a P de cada mudança vai no texto e no commit. | v0.63 |
 | `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.19 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
 | `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.2 |

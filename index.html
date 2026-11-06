@@ -530,9 +530,14 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .fx-camada { position: fixed; inset: 0; pointer-events: none; z-index: 12; overflow: hidden; }
 .fx-copia { position: fixed; display: flex; }
 .fx-copia > * { margin: 0; width: 100%; min-width: 0; height: 100%; }
-.fx-flash { position: fixed; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
+.fx-flash { position: fixed; z-index: 3; background: #fff; box-shadow: 0 0 18px 6px rgba(255, 255, 255, .65); opacity: 0; }
 .fx-corte { position: fixed; border-radius: 50%; background: linear-gradient(90deg, transparent, var(--corte) 18%, #fff 50%, var(--corte) 82%, transparent); box-shadow: 0 0 0 1px rgba(60, 30, 0, .35), 0 0 12px 3px color-mix(in srgb, var(--corte) 75%, transparent); }
-.fx-num { position: fixed; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; -webkit-text-stroke: 1px rgba(0, 0, 0, .55); text-shadow: 0 2px 3px rgba(0, 0, 0, .45); opacity: 0; }
+.fx-num { position: fixed; z-index: 4; font-family: "Alegreya", Georgia, serif; font-weight: 700; font-size: 1.7rem; line-height: 1; white-space: nowrap; opacity: 0;
+  /* Contorno (P96): oito sombras sem desfoque desenham a borda em volta da letra, sem comer o miolo como o text-stroke; a última dá profundidade */
+  --c: var(--fx-contorno, 2.5px); --cc: var(--fx-contorno-cor, #fff);
+  text-shadow: calc(-1 * var(--c)) 0 0 var(--cc), var(--c) 0 0 var(--cc), 0 calc(-1 * var(--c)) 0 var(--cc), 0 var(--c) 0 var(--cc),
+    calc(-.7 * var(--c)) calc(-.7 * var(--c)) 0 var(--cc), calc(.7 * var(--c)) calc(-.7 * var(--c)) 0 var(--cc), calc(-.7 * var(--c)) calc(.7 * var(--c)) 0 var(--cc), calc(.7 * var(--c)) calc(.7 * var(--c)) 0 var(--cc),
+    0 3px 6px rgba(0, 0, 0, .45); }
 .fx-num.fx-selo { font-family: inherit; font-size: .95rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); -webkit-text-stroke: 0; text-shadow: none; box-shadow: 0 2px 6px var(--sombra); }
 
 /* Mão (P94): a carta sob o mouse sobe, cresce e inclina seguindo o cursor, com um reflexo */
@@ -544,6 +549,9 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .mao .carta::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .6), transparent 60%); opacity: 0; transition: opacity .14s; }
   .mao .carta:hover::after { opacity: var(--mao-brilho, .35); }
 }
+/* Evolução (P96): anéis e faíscas na camada de animação */
+.fx-anel { position: fixed; z-index: 3; border: 3px solid; box-sizing: border-box; pointer-events: none; }
+.fx-faisca { position: fixed; z-index: 3; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px 2px rgba(255, 220, 140, .8); opacity: 0; }
 
 
 </style>
@@ -1332,6 +1340,7 @@ function resonate(st, side, uid) {
   if (!e || e.owner !== side || e.kind !== 'unit' || isDead(e)) return false;
   const sd = S(st, side);
   buff(e, 2, 2); e.resonated = true; e.rushThisTurn = true;
+  fx(st, { k: 'evolve', s: side, u: e.uid, a: 2, h: 2 });
   sd.resonance.points -= 1; sd.resonance.used = true;
   log(st, `${e.name} evolui: +2/+2.`);
   rec(st, { k: 'res', s: side, u: uidOf(e) });
@@ -1943,11 +1952,32 @@ const FEEL = {
     raioPx: 10,
   },
   // Números flutuantes sobre o alvo, depois do hit-stop.
+  // Evolução: momento raro (3 por partida), então ganha mais camadas que um golpe comum, mas sem hit-stop:
+  // a peça se encolhe (antecipação), cresce com sobra e assenta; anéis dourados se abrem, faíscas sobem,
+  // os atributos pulsam e o “+2/+2” flutua. Depois, uma pausa curta antes dos efeitos Ao Evoluir.
+  evoluir: {
+    ms: 640,              // a peça encolhe, cresce e assenta
+    encolhe: 0.92,        // antecipação
+    escala: 1.16,         // pico, antes de assentar com sobra
+    subirPx: 8,
+    cor: '#f0bd48',       // dourado da Evolução (anéis, brilho, faíscas e o texto)
+    aneis: 2,             // anéis que se abrem a partir da peça
+    anelMs: 560,
+    anelIntervalo: 130,
+    anelEscala: 1.55,
+    faiscas: 12,          // faíscas que sobem da peça
+    faiscaMs: 760,
+    faiscaAltura: 70,     // px
+    statPop: 1.4,         // ataque e vida pulsam
+    pausaDepois: 280,     // respiro antes dos efeitos Ao Evoluir
+  },
   numeros: {
     ms: 900,
     subirPx: 44,
     pop: 1.3,             // escala no começo
     pilhaPx: 20,          // números seguidos no mesmo alvo sobem em degraus
+    contornoPx: 2.5,      // contorno em volta dos números, para ler sobre qualquer fundo
+    contornoCor: '#fff',
     cores: { dano: '#e5483c', cura: '#3fcf62' },   // Escudo e Blindagem saem como os selos das cartas
     rotulos: { escudo: 'Escudo', escudoSocial: 'Álibi', bloq: 'Blindagem' },
   },
@@ -1993,6 +2023,7 @@ const FEEL = {
     bloqueio:      { arqs: 1, vol: 0.7,  etapa: 1 },   // Escudo ou Blindagem segurou o dano
     cura:          { arqs: 1, vol: 0.6,  etapa: 1 },   // líder recuperou vida
     morte:         { arqs: 2, vol: 0.8,  etapa: 2 },   // unidade morreu ou estrutura caiu
+    evoluir:       { arqs: 2, vol: 0.8,  etapa: 0 },   // Evolução (Enfatizar na negociação)
   },
 };
 
@@ -2025,7 +2056,8 @@ function init() {
     for (let i = 1; i <= s.arqs; i++) carregar(nome, `${FEEL.audio.pasta}sfx/${nome}_${i}`, 0);
   });
 }
-function config(p) {
+function config(p) { try { config_(p); } catch (e) { console.warn('Som:', e); } }
+function config_(p) {
   const m0 = cfg.musica;
   ['efeitos', 'musica', 'mudo'].forEach(k => { if (p[k] !== undefined) cfg[k] = p[k]; });
   if (ok) Howler.mute(!!cfg.mudo);
@@ -2033,7 +2065,8 @@ function config(p) {
 }
 // O controle vai de 0 a 1; elevar ao quadrado espalha a mudança de volume percebida pelo curso todo.
 function ganho(v) { return v * v; }
-function tocar(nome) {
+function tocar(nome) { try { tocar_(nome); } catch (e) { console.warn('Som:', e); } }
+function tocar_(nome) {
   if (!ok || cfg.mudo || !cfg.efeitos) return;
   const s = FEEL.sons[nome], lista = banco[nome];
   if (!s || !lista || !lista.length) return;
@@ -2048,6 +2081,7 @@ function tocar(nome) {
 }
 
 /* ---------- Música ---------- */
+// tocar, musica e config passam por try/catch (nas versões sem _): erro de áudio do navegador nunca para o jogo.
 // Uma faixa em loop por estado. Trocar de estado esmaece a que sai e cresce a que entra; a que sai fica em pausa
 // (ou para, sem FEEL.musica.retomar). As faixas só carregam quando o estado aparece pela primeira vez.
 const faixas = {};   // estado -> { estado, howl, id, base, src, fmt }
@@ -2085,7 +2119,8 @@ function sair(f) {
   h.once('fade', () => { if (atual !== f) { if (FEEL.musica.retomar) h.pause(id); else h.stop(id); } }, id);
 }
 // estado null ou desconhecido mantém o que está tocando.
-function musica(estado) {
+function musica(estado) { try { musica_(estado); } catch (e) { console.warn('Som:', e); } }
+function musica_(estado) {
   if (!ok || !estado || (atual && atual.estado === estado)) return;
   const f = faixaDe(estado); if (!f) return;
   const antes = atual; atual = f;
@@ -2112,7 +2147,10 @@ let camada = null;
 function config(p) { Object.assign(cfg, p); }
 function agora() { return performance.now(); }
 function ate(ms) { fimEm = Math.max(fimEm, agora() + ms); }
-function agendar(ms, fn) { ate(ms); if (ms <= 0) fn(); else setTimeout(fn, ms); }
+// A apresentação nunca derruba o jogo: um erro aqui (no áudio do navegador, por exemplo) vira aviso no console
+// e a partida segue. Sem isso, uma exceção dentro do render() parava o turno inimigo no meio.
+function seguro(fn) { try { fn(); } catch (e) { if (typeof console !== 'undefined') console.warn('Fx:', e); } }
+function agendar(ms, fn) { ate(ms); if (ms <= 0) seguro(fn); else setTimeout(() => seguro(fn), ms); }
 // Promessa que resolve quando as animações em curso acabam (o turno inimigo espera por ela).
 function idle() { const r = fimEm - agora(); return new Promise(res => (r > 0 ? setTimeout(res, r) : res())); }
 
@@ -2125,6 +2163,7 @@ function somDe(ev) {
     case 'escudo': case 'bloq': return 'bloqueio';
     case 'heal': return 'cura';
     case 'die': return 'morte';
+    case 'evolve': return 'evoluir';
   }
   return null;
 }
@@ -2267,6 +2306,45 @@ function desliza(el, r0, delay, ms) {
   const r1 = el.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
   el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: Math.max(1, ms), delay, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' });
+}
+// Evolução: antecipação e crescimento da peça, brilho, anéis, faíscas e atributos pulsando.
+// Sem movimento (modo desligado), fica só o brilho e o texto parado.
+function evoluir(real, k, mov) {
+  const V = FEEL.evoluir; if (!real) return;
+  const r = real.getBoundingClientRect(), c = centro(r), ms = V.ms * k, cor = V.cor;
+  const brilho = `0 0 0 3px ${cor}, 0 0 26px 8px color-mix(in srgb, ${cor} 70%, transparent)`;
+  const acender = (alvo, dur) => alvo.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: brilho, offset: 0.35 }, { boxShadow: '0 0 0 0 transparent' }], { duration: Math.max(1, dur), easing: 'ease-out' });
+  if (!mov) { acender(real, V.ms * 1.3); return; }
+  // A fileira corta o que passa da borda; a peça cresce numa cópia por cima e a real fica escondida até o fim.
+  let el = real, solta = null;
+  if (!real.classList.contains('fx-copia')) { el = solta = copia(real.outerHTML, r); el.style.zIndex = 2; real.style.visibility = 'hidden'; }
+  const peca = el.firstElementChild || el;
+  acender(peca, ms * 1.3);
+  const cresce = el.animate([
+    { transform: 'none' },
+    { transform: `scale(${V.encolhe})`, offset: 0.18, easing: 'cubic-bezier(.3,0,.2,1)' },
+    { transform: `translateY(${-V.subirPx}px) scale(${V.escala})`, offset: 0.5, easing: 'cubic-bezier(.34,1.56,.64,1)' },
+    { transform: 'none' },
+  ], { duration: Math.max(1, ms) });
+  if (solta) cresce.onfinish = () => { real.style.visibility = ''; solta.remove(); };
+  el.querySelectorAll('.stats b').forEach(b => b.animate([{ transform: 'none' }, { transform: `scale(${V.statPop})`, offset: 0.55 }, { transform: 'none' }], { duration: Math.max(1, ms), easing: 'ease-out' }));
+  const raio = getComputedStyle(peca).borderRadius, camada = pegaCamada();
+  for (let i = 0; i < V.aneis; i++) {
+    const a = document.createElement('div'); a.className = 'fx-anel';
+    Object.assign(a.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: raio, borderColor: cor });
+    camada.appendChild(a);
+    a.animate([{ transform: 'scale(1)', opacity: 0.9 }, { transform: `scale(${V.anelEscala})`, opacity: 0 }],
+      { duration: Math.max(1, V.anelMs * k), delay: i * V.anelIntervalo * k, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'backwards' }).onfinish = () => a.remove();
+  }
+  for (let i = 0; i < V.faiscas; i++) {
+    const f = document.createElement('div'); f.className = 'fx-faisca'; f.style.background = cor;
+    const x = c.x + (Math.random() - 0.5) * r.width * 0.8, y = r.top + r.height * (0.55 + Math.random() * 0.35);
+    Object.assign(f.style, { left: x + 'px', top: y + 'px' });
+    camada.appendChild(f);
+    const dx = (Math.random() - 0.5) * 30, dy = -V.faiscaAltura * (0.6 + Math.random() * 0.6), s = 0.6 + Math.random() * 0.8;
+    f.animate([{ transform: `translate(-50%, -50%) scale(${s})`, opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.2)`, opacity: 0 }],
+      { duration: Math.max(1, V.faiscaMs * k * (0.7 + Math.random() * 0.5)), delay: Math.random() * 160 * k, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'backwards' }).onfinish = () => f.remove();
+  }
 }
 function morte(g, ms, mov) {
   if (!g) return;
@@ -2425,6 +2503,14 @@ function linha(st, evs, cap) {
         }
         break;
       }
+      case 'evolve': {
+        fechar();
+        const t0 = t, txt = `+${ev.a}/+${ev.h}`;
+        tocar(ev, t0);
+        agendar(t0, () => { const el = elOuCopia({ t: 'e', uid: ev.u }); if (!el) return; const r = el.getBoundingClientRect(); evoluir(el, k, mov); numero(r, true, txt, FEEL.evoluir.cor, 0, k, mov); });
+        t += FEEL.evoluir.pausaDepois * k;
+        break;
+      }
       case 'summon':
         if (!entradas.has(ev.u)) entradas.set(ev.u, { t });
         break;
@@ -2481,13 +2567,14 @@ function flush(st, cap) {
   if (!st.fxq) { st.fxq = []; return; }
   const evs = st.fxq.splice(0);
   if (!evs.length) return;
-  if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap);
+  seguro(() => { if (!FEEL.tempo.escala[cfg.anim]) soSom(evs); else linha(st, evs, cap); });
 }
 function pendente(st) { return !!(st && st.fxq && st.fxq.length); }
 
 /* ---------- Mão: inclinação seguindo o cursor ---------- */
 (function ligarMao() {
   const M = FEEL.mao, raiz = document.documentElement.style;
+  raiz.setProperty('--fx-contorno', FEEL.numeros.contornoPx + 'px'); raiz.setProperty('--fx-contorno-cor', FEEL.numeros.contornoCor);
   raiz.setProperty('--mao-subir', -M.subirPx + 'px'); raiz.setProperty('--mao-escala', M.escala); raiz.setProperty('--mao-brilho', M.brilho);
   const base = new WeakMap();   // retângulo da carta antes de inclinar (inclinada, ela muda de tamanho e a conta tremeria)
   const cartaDe = ev => (ev.target && ev.target.closest ? ev.target.closest('.mao .carta') : null);

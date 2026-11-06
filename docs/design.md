@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.62 · rascunho para editar*
+*Documento de design preliminar · v0.63 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -635,4 +635,8 @@ Depois de um playtest, a tela não deixava claro quando dava para construir ou a
 - **Custo e efeito separados do botão:** chips de ouro e de dia de obra (vermelhos quando faltam), pontos de nível e a comparação “Agora → Próximo nível”.
 - **Topo com o ouro e a obra do dia** (disponível, já feita ou em andamento).
 - **Selo “!” no botão Instalações da guilda** quando alguma obra dá para fazer hoje.
+
+## Efeito da Evolução (P96)
+
+A Evolução é rara (3 por partida, uma por turno) e decide jogos, então ganha um efeito próprio, mais forte que um golpe comum e sem hit-stop (não é impacto). A peça se encolhe por um instante e cresce com sobra antes de assentar. Ela acende em dourado, dois anéis se abrem a partir dela, faíscas sobem, o ataque e a vida pulsam e o “+2/+2” flutua acima. Um som próprio (arpejo subindo com brilho) acompanha. Depois vem uma pausa curta antes dos efeitos Ao Evoluir, para a causa vir antes da consequência. Vale também para a Evolução dos chefes e para o Enfatizar da negociação. Sem movimento, a peça só acende e o texto aparece parado.
 

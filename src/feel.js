@@ -49,11 +49,32 @@ const FEEL = {
     raioPx: 10,
   },
   // Números flutuantes sobre o alvo, depois do hit-stop.
+  // Evolução: momento raro (3 por partida), então ganha mais camadas que um golpe comum, mas sem hit-stop:
+  // a peça se encolhe (antecipação), cresce com sobra e assenta; anéis dourados se abrem, faíscas sobem,
+  // os atributos pulsam e o “+2/+2” flutua. Depois, uma pausa curta antes dos efeitos Ao Evoluir.
+  evoluir: {
+    ms: 640,              // a peça encolhe, cresce e assenta
+    encolhe: 0.92,        // antecipação
+    escala: 1.16,         // pico, antes de assentar com sobra
+    subirPx: 8,
+    cor: '#f0bd48',       // dourado da Evolução (anéis, brilho, faíscas e o texto)
+    aneis: 2,             // anéis que se abrem a partir da peça
+    anelMs: 560,
+    anelIntervalo: 130,
+    anelEscala: 1.55,
+    faiscas: 12,          // faíscas que sobem da peça
+    faiscaMs: 760,
+    faiscaAltura: 70,     // px
+    statPop: 1.4,         // ataque e vida pulsam
+    pausaDepois: 280,     // respiro antes dos efeitos Ao Evoluir
+  },
   numeros: {
     ms: 900,
     subirPx: 44,
     pop: 1.3,             // escala no começo
     pilhaPx: 20,          // números seguidos no mesmo alvo sobem em degraus
+    contornoPx: 2.5,      // contorno em volta dos números, para ler sobre qualquer fundo
+    contornoCor: '#fff',
     cores: { dano: '#e5483c', cura: '#3fcf62' },   // Escudo e Blindagem saem como os selos das cartas
     rotulos: { escudo: 'Escudo', escudoSocial: 'Álibi', bloq: 'Blindagem' },
   },
@@ -99,5 +120,6 @@ const FEEL = {
     bloqueio:      { arqs: 1, vol: 0.7,  etapa: 1 },   // Escudo ou Blindagem segurou o dano
     cura:          { arqs: 1, vol: 0.6,  etapa: 1 },   // líder recuperou vida
     morte:         { arqs: 2, vol: 0.8,  etapa: 2 },   // unidade morreu ou estrutura caiu
+    evoluir:       { arqs: 2, vol: 0.8,  etapa: 0 },   // Evolução (Enfatizar na negociação)
   },
 };
