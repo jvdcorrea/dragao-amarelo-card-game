@@ -1221,7 +1221,7 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-banca-neg') { if (socialProblems().length) { toast('Ajuste o deck social antes: ' + socialProblems()[0]); return true; } const run = camp.run; run.bancaTried = run.bancaTried || {}; run.bancaTried[ui.scene.nodeId] = true; saveCamp(); startSocial('kryoret', { banca: true, enc: 'kryoret', nodeId: ui.scene.nodeId }); return true; }
   if (act === 'g-banca-back') { ui.scene = { kind: 'banca', nodeId: ui.scene.nodeId }; ui.screen = 'scene'; render(); return true; }
-  if (act === 'g-pay') { if (payDebt()) { ui.scene = { kind: 'msg', title: 'Parcela paga', text: `O Barão Ostrander confere cada moeda, anota no livro-caixa e, por um instante, quase sorri. “Pontual. Que novidade.” Restam ${camp.gold} de ouro no cofre.` }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); } else toast('Ouro insuficiente para a parcela.'); return true; }
+  if (act === 'g-pay') { if (payDebt()) { ui.scene = { kind: 'msg', title: 'Parcela paga', text: `O Barão Ostrander confere cada moeda, anota no livro-caixa e, por um instante, quase sorri. “Pontual. Que novidade.” Restam ${camp.gold} de ouro no cofre.`, back: camp.cityTrip ? 'cidade' : null }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); } else toast('Ouro insuficiente para a parcela.'); return true; }
   if (act === 'g-defend-social') { if (camp.defense && camp.defense.social) startSocial(camp.defense.enc, { defesa: true, enc: camp.defense.enc }); return true; }
   if (act === 'g-end-day') {
     if (camp.run) return true;
@@ -1865,7 +1865,9 @@ function renderScene() {
     const back = sc.back === 'npc' ? `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">Voltar ao mestre</button>` : '<button class="botao principal" data-act="home">Voltar à guilda</button>';
     body = `${intro}<div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : 'Nova')).join('')}</div><p class="destaque">As cartas já estão na sua coleção.</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">Editar deck</button></div>`;
   } else if (sc.kind === 'msg') {
-    body = `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${camp && camp.run ? 'scene-ok' : 'home'}">${camp && camp.run ? 'Continuar' : 'Voltar à guilda'}</button></div>`;
+    // Pago no banco, o jogador volta para a cidade: a ida ainda pode ter outras visitas.
+    const [act, label] = camp && camp.run ? ['scene-ok', 'Continuar'] : sc.back === 'cidade' && camp.cityTrip ? ['g-cidade', 'Voltar à cidade'] : ['home', 'Voltar à guilda'];
+    body = `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${act}">${label}</button></div>`;
   } else if (sc.kind === 'notes') {
     body = `<h2>Notas de Ergos</h2>${camp.notes.length ? camp.notes.slice().sort().map(f => `<p class="linha">Andar ${f}</p><blockquote class="nota">${esc(R.NOTES[f])}</blockquote>`).join('') : '<p>Nenhuma nota ainda.</p>'}<div class="opcoes"><button class="botao principal" data-act="home">Voltar</button></div>`;
   }

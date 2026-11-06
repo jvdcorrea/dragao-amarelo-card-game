@@ -71,6 +71,10 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
 
+## Ajustes de fluxo
+
+- [x] Pagar a parcela no Banco da Coroa volta para a cidade (a ida continua aberta); pagar na cena do Barão, na guilda, continua voltando para a guilda.
+
 ## Tela de Instalações (P95)
 
 - [x] Estados claros por instalação, custo em chips, efeito de agora e do próximo nível, topo com ouro e obra do dia, selo “!” na guilda.
