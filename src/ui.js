@@ -1820,13 +1820,13 @@ function renderMap() {
   const cur = run.pos == null ? null : m.nodes[run.pos];
   const avail = run.inBattle ? [] : (cur ? cur.next : m.nodes.filter(n => n.row === 0).map(n => n.id));
   const pathEdges = new Set(); for (let i = 0; i + 1 < run.visited.length; i++) pathEdges.add(run.visited[i] + '-' + run.visited[i + 1]);
-  const lines = m.nodes.flatMap(n => n.next.map(j => { const a = pos(n), b = pos(m.nodes[j]); return `<line x1="${a.x}%" y1="${a.y}" x2="${b.x}%" y2="${b.y}" class="${pathEdges.has(n.id + '-' + j) ? 'feita' : ''}"/>`; })).join('');
+  const lines = m.nodes.flatMap(n => n.next.map(j => { const a = pos(n), b = pos(m.nodes[j]); return `<line x1="${a.x}%" y1="${a.y}" x2="${b.x}%" y2="${b.y}" data-de="${n.id}" data-para="${j}" class="${pathEdges.has(n.id + '-' + j) ? 'feita' : ''}"/>`; })).join('');
   const encName = id => id ? E.ENC[id].name : '';
   const nodes = m.nodes.map(n => {
     const p = pos(n); const info = R.NODE[n.type];
     const st8 = run.visited.includes(n.id) ? 'visto' : avail.includes(n.id) ? 'livre' : 'bloq';
     const title = info.label + ((n.type === 'elite' || n.type === 'chefe') && n.enc ? ': ' + encName(n.enc) : '');
-    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} title="${esc(title)}" aria-label="${esc(title)}">${iconSvg(typeof ART !== 'undefined' ? ART.node[n.type] : null) || `<span>${info.icon}</span>`}</button>`;
+    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} aria-label="${esc(title)}">${iconSvg(typeof ART !== 'undefined' ? ART.node[n.type] : null) || `<span>${info.icon}</span>`}</button>`;
   }).join('');
   const bonus = []; if (run.bonus.hand) bonus.push(`+${run.bonus.hand} carta na próxima luta`); if (run.bonus.mana) bonus.push(`+${run.bonus.mana} de mana máxima na próxima luta`);
   const resume = run.inBattle ? `<div class="faixa"><span>Uma luta ficou pela metade.</span><button class="botao principal" data-act="run-resume">Retomar a luta</button></div>` : '';
@@ -1840,7 +1840,7 @@ function renderMap() {
     </section>
     ${resume}
     <p class="intro centro">Escolha o próximo passo. O caminho sobe; o topo fecha o andar.</p>
-    <div class="mapa" style="height:${(m.rows + 1) * H}px"><svg class="mapa-linhas" width="100%" height="${(m.rows + 1) * H}" aria-hidden="true">${lines}</svg>${nodes}</div>
+    <div class="mapa" data-pos="${run.pos == null ? '' : run.pos}" style="height:${(m.rows + 1) * H}px"><svg class="mapa-linhas" width="100%" height="${(m.rows + 1) * H}" aria-hidden="true">${lines}</svg>${nodes}</div>
     <p class="legenda">${Object.entries(R.NODE).map(([k, n]) => `<span>${iconSvg(typeof ART !== 'undefined' ? ART.node[k] : null, 'ico-leg') || n.icon} ${n.label}</span>`).join('')}</p>`;
 }
 function renderScene() {
@@ -2183,6 +2183,17 @@ document.addEventListener('input', ev => {
   if (ev.target && ev.target.id === 'apelido') { ui.nick = ev.target.value.slice(0, 40); lsSet(LS_NICK, ui.nick); }
   if (ev.target && (ev.target.id === 'vol-efeitos' || ev.target.id === 'vol-musica')) { prefs[ev.target.id === 'vol-efeitos' ? 'efeitos' : 'musica'] = +ev.target.value / 100; savePrefs(); }
 });
+// Mapa (P97): apontar um nó livre (mouse ou teclado) acende a trilha que leva até ele.
+function miraCaminho(ev, liga) {
+  const n = ev.target && ev.target.closest ? ev.target.closest('.mapa .no.livre') : null; if (!n) return;
+  const de = n.closest('.mapa').dataset.pos;
+  if (de === '') return;
+  document.querySelectorAll(`.mapa-linhas line[data-de="${de}"][data-para="${n.dataset.node}"]`).forEach(l => l.classList.toggle('mira', liga));
+}
+document.addEventListener('pointerover', ev => miraCaminho(ev, true));
+document.addEventListener('pointerout', ev => miraCaminho(ev, false));
+document.addEventListener('focusin', ev => miraCaminho(ev, true));
+document.addEventListener('focusout', ev => miraCaminho(ev, false));
 document.addEventListener('mouseover', ev => {
   if (!st) return;
   const t = ev.target.closest('[data-info]');

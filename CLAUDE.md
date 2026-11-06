@@ -115,7 +115,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P97**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P98**).
 3. `docs/todo.md` atualizado.
 4. Commit em português, com título curto e itens no corpo.
 
@@ -123,7 +123,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P96; a P de cada mudança vai no texto e no commit. | v0.63 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P97; a P de cada mudança vai no texto e no commit. | v0.64 |
 | `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.19 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
 | `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.2 |

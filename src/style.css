@@ -241,7 +241,18 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .no.visto { background: var(--surface); border-color: var(--ouro); opacity: .9; }
 .no.aqui { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ouro-vivo) 45%, transparent); }
 .no.livre { cursor: pointer; border-color: var(--glow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow) 35%, transparent); }
-.no.livre:hover { transform: translate(-50%, -50%) scale(1.08); }
+/* Mapa (P97): o nó livre cresce com sobra, acende e o ícone dá um pulinho; todos mostram o nome ao apontar */
+.no { transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s ease-out, background-color .18s ease-out; }
+.no.livre:hover, .no.livre:focus-visible { transform: translate(-50%, -50%) scale(1.18); z-index: 2; background: color-mix(in srgb, var(--glow) 14%, var(--card));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--glow) 55%, transparent), 0 6px 16px var(--sombra); }
+.no.livre:active { transform: translate(-50%, -50%) scale(1.06); transition-duration: .06s; }
+.no.livre:hover svg, .no.livre:focus-visible svg { animation: no-pulo .45s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes no-pulo { 40% { transform: translateY(-3px) rotate(-8deg); } }
+.no::after { content: attr(aria-label); position: absolute; top: calc(100% + 6px); left: 50%; transform: translate(-50%, -4px); white-space: nowrap; pointer-events: none; z-index: 3;
+  font-size: .78rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--ink); color: var(--card); opacity: 0; transition: opacity .14s ease-out, transform .14s ease-out; }
+.no:hover::after, .no:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.mapa-linhas line { transition: stroke .15s; }
+.mapa-linhas line.mira { stroke: var(--glow); stroke-dasharray: none; stroke-width: 4; }
 .no-elite, .no-chefe { color: var(--vida); } .no-evento { color: var(--d-space); } .no-acampamento { color: var(--d-draconic); } .no-tesouro { color: var(--ouro); } .no-nota { color: var(--d-necro); }
 .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; color: var(--muted); font-size: .9rem; }
 .cena { max-width: 760px; margin: 24px auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
@@ -281,7 +292,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .barra { width: 80px; }
 }
 /* Sem animação (P94): o modo vem das Configurações e, sem escolha, do prefers-reduced-motion */
-:root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; }
+:root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; animation: none !important; }
 
 /* Arte provisória: ícones game-icons.net (CC BY 3.0) sobre fundos gerados */
 .arte { display: block; position: relative; height: 46px; border-radius: 6px; margin: 1px 0 2px; overflow: hidden; flex-shrink: 0;

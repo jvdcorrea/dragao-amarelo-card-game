@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.63 · rascunho para editar*
+*Documento de design preliminar · v0.64 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -639,4 +639,8 @@ Depois de um playtest, a tela não deixava claro quando dava para construir ou a
 ## Efeito da Evolução (P96)
 
 A Evolução é rara (3 por partida, uma por turno) e decide jogos, então ganha um efeito próprio, mais forte que um golpe comum e sem hit-stop (não é impacto). A peça se encolhe por um instante e cresce com sobra antes de assentar. Ela acende em dourado, dois anéis se abrem a partir dela, faíscas sobem, o ataque e a vida pulsam e o “+2/+2” flutua acima. Um som próprio (arpejo subindo com brilho) acompanha. Depois vem uma pausa curta antes dos efeitos Ao Evoluir, para a causa vir antes da consequência. Vale também para a Evolução dos chefes e para o Enfatizar da negociação. Sem movimento, a peça só acende e o texto aparece parado.
+
+## Mapa que responde ao mouse (P97)
+
+No mapa da dungeon, o nó para onde dá para ir cresce com sobra, acende e o ícone dá um pulinho quando o mouse passa ou quando o teclado foca nele; ao clicar, ele afunda um pouco. A trilha da posição atual até esse nó acende. Todos os nós, inclusive os já visitados e os trancados, mostram o nome (Batalha, Elite, Evento...) num rótulo logo abaixo, para planejar o caminho sem esperar a dica do navegador. Sem animação, o rótulo e a trilha continuam; o crescimento e o pulinho somem.
 

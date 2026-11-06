@@ -252,7 +252,18 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .no.visto { background: var(--surface); border-color: var(--ouro); opacity: .9; }
 .no.aqui { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ouro-vivo) 45%, transparent); }
 .no.livre { cursor: pointer; border-color: var(--glow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow) 35%, transparent); }
-.no.livre:hover { transform: translate(-50%, -50%) scale(1.08); }
+/* Mapa (P97): o nó livre cresce com sobra, acende e o ícone dá um pulinho; todos mostram o nome ao apontar */
+.no { transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s ease-out, background-color .18s ease-out; }
+.no.livre:hover, .no.livre:focus-visible { transform: translate(-50%, -50%) scale(1.18); z-index: 2; background: color-mix(in srgb, var(--glow) 14%, var(--card));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--glow) 55%, transparent), 0 6px 16px var(--sombra); }
+.no.livre:active { transform: translate(-50%, -50%) scale(1.06); transition-duration: .06s; }
+.no.livre:hover svg, .no.livre:focus-visible svg { animation: no-pulo .45s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes no-pulo { 40% { transform: translateY(-3px) rotate(-8deg); } }
+.no::after { content: attr(aria-label); position: absolute; top: calc(100% + 6px); left: 50%; transform: translate(-50%, -4px); white-space: nowrap; pointer-events: none; z-index: 3;
+  font-size: .78rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--ink); color: var(--card); opacity: 0; transition: opacity .14s ease-out, transform .14s ease-out; }
+.no:hover::after, .no:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.mapa-linhas line { transition: stroke .15s; }
+.mapa-linhas line.mira { stroke: var(--glow); stroke-dasharray: none; stroke-width: 4; }
 .no-elite, .no-chefe { color: var(--vida); } .no-evento { color: var(--d-space); } .no-acampamento { color: var(--d-draconic); } .no-tesouro { color: var(--ouro); } .no-nota { color: var(--d-necro); }
 .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; color: var(--muted); font-size: .9rem; }
 .cena { max-width: 760px; margin: 24px auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
@@ -292,7 +303,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .barra { width: 80px; }
 }
 /* Sem animação (P94): o modo vem das Configurações e, sem escolha, do prefers-reduced-motion */
-:root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; }
+:root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; animation: none !important; }
 
 /* Arte provisória: ícones game-icons.net (CC BY 3.0) sobre fundos gerados */
 .arte { display: block; position: relative; height: 46px; border-radius: 6px; margin: 1px 0 2px; overflow: hidden; flex-shrink: 0;
@@ -4419,13 +4430,13 @@ function renderMap() {
   const cur = run.pos == null ? null : m.nodes[run.pos];
   const avail = run.inBattle ? [] : (cur ? cur.next : m.nodes.filter(n => n.row === 0).map(n => n.id));
   const pathEdges = new Set(); for (let i = 0; i + 1 < run.visited.length; i++) pathEdges.add(run.visited[i] + '-' + run.visited[i + 1]);
-  const lines = m.nodes.flatMap(n => n.next.map(j => { const a = pos(n), b = pos(m.nodes[j]); return `<line x1="${a.x}%" y1="${a.y}" x2="${b.x}%" y2="${b.y}" class="${pathEdges.has(n.id + '-' + j) ? 'feita' : ''}"/>`; })).join('');
+  const lines = m.nodes.flatMap(n => n.next.map(j => { const a = pos(n), b = pos(m.nodes[j]); return `<line x1="${a.x}%" y1="${a.y}" x2="${b.x}%" y2="${b.y}" data-de="${n.id}" data-para="${j}" class="${pathEdges.has(n.id + '-' + j) ? 'feita' : ''}"/>`; })).join('');
   const encName = id => id ? E.ENC[id].name : '';
   const nodes = m.nodes.map(n => {
     const p = pos(n); const info = R.NODE[n.type];
     const st8 = run.visited.includes(n.id) ? 'visto' : avail.includes(n.id) ? 'livre' : 'bloq';
     const title = info.label + ((n.type === 'elite' || n.type === 'chefe') && n.enc ? ': ' + encName(n.enc) : '');
-    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} title="${esc(title)}" aria-label="${esc(title)}">${iconSvg(typeof ART !== 'undefined' ? ART.node[n.type] : null) || `<span>${info.icon}</span>`}</button>`;
+    return `<button class="no no-${n.type} ${st8} ${n.id === run.pos ? 'aqui' : ''} ${n.final ? 'final' : ''}" style="left:${p.x}%;top:${p.y}px" ${st8 === 'livre' ? `data-node="${n.id}"` : 'tabindex="-1"'} aria-label="${esc(title)}">${iconSvg(typeof ART !== 'undefined' ? ART.node[n.type] : null) || `<span>${info.icon}</span>`}</button>`;
   }).join('');
   const bonus = []; if (run.bonus.hand) bonus.push(`+${run.bonus.hand} carta na próxima luta`); if (run.bonus.mana) bonus.push(`+${run.bonus.mana} de mana máxima na próxima luta`);
   const resume = run.inBattle ? `<div class="faixa"><span>Uma luta ficou pela metade.</span><button class="botao principal" data-act="run-resume">Retomar a luta</button></div>` : '';
@@ -4439,7 +4450,7 @@ function renderMap() {
     </section>
     ${resume}
     <p class="intro centro">Escolha o próximo passo. O caminho sobe; o topo fecha o andar.</p>
-    <div class="mapa" style="height:${(m.rows + 1) * H}px"><svg class="mapa-linhas" width="100%" height="${(m.rows + 1) * H}" aria-hidden="true">${lines}</svg>${nodes}</div>
+    <div class="mapa" data-pos="${run.pos == null ? '' : run.pos}" style="height:${(m.rows + 1) * H}px"><svg class="mapa-linhas" width="100%" height="${(m.rows + 1) * H}" aria-hidden="true">${lines}</svg>${nodes}</div>
     <p class="legenda">${Object.entries(R.NODE).map(([k, n]) => `<span>${iconSvg(typeof ART !== 'undefined' ? ART.node[k] : null, 'ico-leg') || n.icon} ${n.label}</span>`).join('')}</p>`;
 }
 function renderScene() {
@@ -4782,6 +4793,17 @@ document.addEventListener('input', ev => {
   if (ev.target && ev.target.id === 'apelido') { ui.nick = ev.target.value.slice(0, 40); lsSet(LS_NICK, ui.nick); }
   if (ev.target && (ev.target.id === 'vol-efeitos' || ev.target.id === 'vol-musica')) { prefs[ev.target.id === 'vol-efeitos' ? 'efeitos' : 'musica'] = +ev.target.value / 100; savePrefs(); }
 });
+// Mapa (P97): apontar um nó livre (mouse ou teclado) acende a trilha que leva até ele.
+function miraCaminho(ev, liga) {
+  const n = ev.target && ev.target.closest ? ev.target.closest('.mapa .no.livre') : null; if (!n) return;
+  const de = n.closest('.mapa').dataset.pos;
+  if (de === '') return;
+  document.querySelectorAll(`.mapa-linhas line[data-de="${de}"][data-para="${n.dataset.node}"]`).forEach(l => l.classList.toggle('mira', liga));
+}
+document.addEventListener('pointerover', ev => miraCaminho(ev, true));
+document.addEventListener('pointerout', ev => miraCaminho(ev, false));
+document.addEventListener('focusin', ev => miraCaminho(ev, true));
+document.addEventListener('focusout', ev => miraCaminho(ev, false));
 document.addEventListener('mouseover', ev => {
   if (!st) return;
   const t = ev.target.closest('[data-info]');

@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 06/11/2026 · acompanha o design v0.63*
+*Atualizada em 06/11/2026 · acompanha o design v0.64*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -70,6 +70,11 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
+
+## Mapa (P97)
+
+- [x] Nós livres crescem, acendem e dão um pulinho ao apontar (mouse ou teclado); a trilha até eles acende; todos os nós mostram o nome num rótulo.
+- *Decisões minhas para revisar:* sem som ao passar o mouse (pode cansar; dá para pôr um clique suave); o rótulo aparece também nos nós trancados; a dica nativa do navegador saiu, para não aparecer duas vezes.
 
 ## Efeito da Evolução (P96)
 
