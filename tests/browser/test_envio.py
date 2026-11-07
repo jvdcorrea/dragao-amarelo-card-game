@@ -70,8 +70,9 @@ async def main():
         ligado = await page.evaluate("JSON.parse(localStorage.getItem('dragao-amarelo-prefs-v1')).envioAuto")
         print('   preferência salva:', ligado)
         await ctx.close()
-        # 6. Sem URL configurada, não há botão de envio nem opção nas Configurações.
-        ctx = await b.new_context(viewport={'width': 1280, 'height': 900}); page = await ctx.new_page(); page.on('pageerror', lambda e: errs.append(str(e)))
+        # 6. Sem URL (window.DA_LOG_URL = '' desliga), não há botão de envio nem opção nas Configurações.
+        ctx = await b.new_context(viewport={'width': 1280, 'height': 900}); await ctx.add_init_script("window.DA_LOG_URL = '';")
+        page = await ctx.new_page(); page.on('pageerror', lambda e: errs.append(str(e)))
         await newcamp(page); await page.click('[data-act=avulsa]')
         sem = not await page.query_selector('[data-act=envio]')
         await page.click('[data-act=home]'); await page.click('[data-act=settings]')

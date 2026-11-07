@@ -97,7 +97,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 - **Diálogos:** `MESTRE_INFO` (Mestres) e `NPC_INFO` (Lerael, Banco, Felix). Cada opção pode ter condições (`requires, after + laterDay, met, reqOther, needBoss, needFlag, notFlag, once`) e efeitos (`rot` para texto em rodízio, `dyn` para resposta calculada, `quest`, `questDone`, `gold`, `always`). Linhas que começam com `>` viram narração. O selo “!” de falas novas vem de `hasNewTalk()`.
 - **Outros sistemas:** `ATIV` (passeios na cidade), `BANCA` (vantagens do Kryoret por Sucata), `FAC` (instalações), `FELIX_TIPS` (dicas por encontro), `CODES` e `CHEATS` (menu de testes).
 - **Menu de testes:** em Configurações, o código `SanerionTestMode1337` (sem diferença de maiúsculas) libera o menu. Campanhas que usam o menu ficam marcadas com `cheatUsed` no log.
-- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. O Chrome dos testes abre sem saída de áudio (`--disable-audio-output` em `helpers.launch`), porque o áudio do Chrome headless travava a aba em sessões longas. Sem o Chromium do Playwright instalado, use `CHROME_PATH` com o Chrome do sistema e `PYTHONUTF8=1` no Windows.
+- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. O envio de logs vai para o Drive de verdade: teste que clica em “Enviar log” precisa trocar a URL com `window.DA_LOG_URL` (veja `test_envio.py`; `''` desliga). O Chrome dos testes abre sem saída de áudio (`--disable-audio-output` em `helpers.launch`), porque o áudio do Chrome headless travava a aba em sessões longas. Sem o Chromium do Playwright instalado, use `CHROME_PATH` com o Chrome do sistema e `PYTHONUTF8=1` no Windows.
 
 ## Checklists
 
@@ -147,7 +147,7 @@ O `index.html` montado e commitado na `main` é servido pelo GitHub Pages em `ht
 
 Pendências principais (detalhes em `docs/todo.md`):
 - Calibrar a economia com uma campanha sem o menu de testes.
-- Publicar o receptor de logs (`tools/logs/README.md`) e colar a URL em `LOG_ENVIO_URL`; até lá, o envio fica escondido.
+- Envio de logs no ar (P99): acompanhar os primeiros envios reais na planilha de resumo.
 - Recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
 - Playtests humanos do grupo 2.
 - Grupo 3: o frio e o resgate de Ergos.

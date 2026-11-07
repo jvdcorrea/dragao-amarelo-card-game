@@ -125,8 +125,9 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 ## Pendências da leva P92
 
 - [x] Envio de logs (P99): botão “Enviar log”, envio automático opcional, código do jogador e receptor em Apps Script (`tools/logs/`). Teste em `tests/browser/test_envio.py`.
-- [ ] Publicar o receptor (passo a passo em `tools/logs/README.md`) e colar a URL em `LOG_ENVIO_URL`, no `src/ui.js`.
-- [ ] Conferir com o receptor real que o jogo consegue ler a resposta do Apps Script (o teste usa um servidor simulado).
+- [x] Receptor publicado (07/11) e URL em `LOG_ENVIO_URL`, no `src/ui.js`.
+- [x] Conferido com o receptor real: o navegador lê a resposta do Apps Script, inclusive abrindo a página por `file://`. Ficou um envio de teste (“TESTE (pode apagar)”, código `j-teste000`) na pasta e na planilha.
+- [ ] Primeiro envio de um playtester de verdade, pelo GitHub Pages.
 - *Decisões minhas para revisar (P99):* intervalo mínimo de 10 minutos entre envios automáticos; o automático também roda ao abrir o jogo; o botão fica na área de logs e na janela de resultado; o texto diz “o autor do jogo”; limite de 14 MB por envio e 30 envios por hora por código; os botões somem na cópia do claude.ai.
 - [x] Retrato do Odie, nas cenas da chegada e da Ferraria acesa.
 

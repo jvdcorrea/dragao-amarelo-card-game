@@ -2780,13 +2780,14 @@ async function exportLogs(scope) {
 // Envio de logs (P99): um clique manda as partidas novas para uma pasta no Google Drive do autor, por um
 // Google Apps Script (tools/logs/). Sem URL configurada, ou dentro do claude.ai, os botões não aparecem.
 // O envio tem marca própria, separada do download: baixar o arquivo não esconde partidas do envio.
-const LOG_ENVIO_URL = '';   // URL do App da Web do Apps Script (termina em /exec); veja tools/logs/README.md
+// URL do App da Web do Apps Script; veja tools/logs/README.md. Os testes trocam por window.DA_LOG_URL ('' desliga).
+const LOG_ENVIO_URL = 'https://script.google.com/macros/s/AKfycbw1DjO9nFATpY-mbkfHZi1MTjbwDL6Wt8RDJhXvQFncvzAMF0oyVdmruqfzSNa20QpaPg/exec';
 const LS_ENVIO = 'dragao-amarelo-ultimo-envio-v1', LS_JOGADOR = 'dragao-amarelo-jogador-id';
 const ENVIO_AUTO_MIN = 10;              // [provisório] no máximo um envio automático a cada 10 minutos
 const ENVIO_MAX = 14 * 1024 * 1024;     // tamanho máximo do arquivo em base64; o script recusa acima disso
 const envio = { ocupado: false, tentativa: 0, erro: null };
 let jogadorIdCache = null;
-function envioUrl() { return window.DA_LOG_URL || LOG_ENVIO_URL; }
+function envioUrl() { return typeof window.DA_LOG_URL === 'string' ? window.DA_LOG_URL : LOG_ENVIO_URL; }
 function envioDisponivel() { return !!envioUrl() && !(window.claude && typeof window.claude.use === 'function'); }
 // Código aleatório do jogador, guardado no navegador: identifica os envios de quem não pôs apelido.
 // Some se a pessoa limpar os dados do site ou trocar de navegador.
