@@ -2,6 +2,13 @@
 
 Mudanças do protótipo desde a chegada dos Mestres como personagens (design v0.44, 26/10/2026). A versão de cada bloco é a do documento de design (`docs/design.md`); os números entre parênteses (Pn) apontam a decisão de design correspondente. Datas no formato dia/mês de 2026.
 
+## v0.66 · 06/11 · Envio de logs com um clique
+
+- **Enviar log (P99).** Um botão na área de logs e na janela de resultado manda as partidas novas para o autor do jogo, sem baixar arquivo. Elas chegam numa pasta do Google Drive, com uma linha de resumo numa planilha.
+- **Código do jogador.** Cada navegador ganha um código aleatório, mostrado na área de logs; o apelido continua opcional.
+- **Envio automático,** opcional e desligado por padrão, nas Configurações: no máximo a cada 10 minutos, ao fim das partidas e ao abrir o jogo.
+- O envio só aparece depois que o receptor for publicado (`tools/logs/`).
+
 ## v0.65 · 06/11 · Ataque total, modos de animação e o retrato do Odie
 
 - **Ataque total (P98).** Um botão ao lado de “Encerrar turno” faz todas as unidades prontas atacarem de uma vez, da esquerda para a direita. O alvo é o Guarda visível mais à esquerda; sem Guarda, a vida do oponente. Unidades com Avanço recém-jogadas só atacam se houver Guarda. A arma do protagonista não entra. Na negociação, o botão se chama “Pressão total”.

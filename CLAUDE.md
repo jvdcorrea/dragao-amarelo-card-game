@@ -62,6 +62,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 | `tools/build.py` | Junta `src/` num `index.html` único (imagens viram variáveis CSS `--img-<nome>`). |
 | `tools/arte/` | `map.py` (carta ou inimigo para ícone) e `gen.py` (gera `src/art.js` a partir do repositório game-icons). |
 | `tools/balance/`, `tools/economia/` | Simuladores de balanceamento. |
+| `tools/logs/` | Receptor dos logs enviados pelo jogo (Google Apps Script, P99) e o passo a passo para publicar. |
 | `tests/` | Testes do motor em Node e testes de navegador com Playwright (`tests/browser/`). |
 | `docs/` | Documentos de design. Veja a seção Documentos. |
 
@@ -115,7 +116,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P99**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P100**).
 3. `docs/todo.md` atualizado.
 4. Commit em português, com título curto e itens no corpo.
 
@@ -123,7 +124,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P98; a P de cada mudança vai no texto e no commit. | v0.65 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P99; a P de cada mudança vai no texto e no commit. | v0.66 |
 | `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.19 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
 | `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.2 |
@@ -131,8 +132,8 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 ## Logs de playtest
 
-Os jogadores exportam um `.zip` na área de Playtest da guilda. Dentro, um JSON com:
-- **Identificação:** `player` (apelido) e `scope` (todas as partidas ou só as novas).
+Os jogadores exportam um `.zip` na área de Playtest da guilda ou, com a URL do receptor configurada (`LOG_ENVIO_URL` no `ui.js`), enviam com “Enviar log” para a pasta “Dragão Amarelo · logs” no Google Drive do João, com uma linha na planilha de resumo (P99, `tools/logs/`). Dentro, um JSON com:
+- **Identificação:** `player` (apelido, opcional), `playerId` (código aleatório do navegador, `j-` e 8 caracteres) e `scope` (todas as partidas ou só as novas).
 - **`games`:** cada partida, com `enc, disc, result, rules, turns, hp, events, ctx`. `ctx.mode` vale `run`, `defesa`, `social` ou `avulsa`.
 - **`campaign`:** o save inteiro, com `history`, `debt`, `quests` e `cheatUsed`.
 
@@ -146,7 +147,7 @@ O `index.html` montado e commitado na `main` é servido pelo GitHub Pages em `ht
 
 Pendências principais (detalhes em `docs/todo.md`):
 - Calibrar a economia com uma campanha sem o menu de testes.
-- Envio automático de logs. Opções estudadas: banco de dados do artefato no claude.ai, Google Apps Script para o GitHub Pages, Firebase.
+- Publicar o receptor de logs (`tools/logs/README.md`) e colar a URL em `LOG_ENVIO_URL`; até lá, o envio fica escondido.
 - Recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
 - Playtests humanos do grupo 2.
 - Grupo 3: o frio e o resgate de Ergos.

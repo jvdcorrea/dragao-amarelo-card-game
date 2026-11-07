@@ -35,6 +35,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `tools/build.py` | Gera o `index.html` a partir de `src/` |
 | `tests/` | Testes em Node (partidas simuladas, pool de cartas, bot guloso) e testes de navegador em `tests/browser/` |
 | `tools/balance/`, `tools/economia/` | Simuladores de encontros e da economia da dívida |
+| `tools/logs/` | Receptor dos logs enviados pelo jogo (Google Apps Script) |
 | `CLAUDE.md` | Guia do projeto para o Claude Code |
 | `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e o grupo 2 (`grupo2.md`) |
 
@@ -52,7 +53,7 @@ python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 
 ## Versões dos documentos
 
-Design v0.65, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`. Histórico de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
+Design v0.66, cartas v0.19, inimigos v0.13. Lista de tarefas em `docs/todo.md`. Histórico de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Créditos
 

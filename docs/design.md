@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.65 · rascunho para editar*
+*Documento de design preliminar · v0.66 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -655,3 +655,14 @@ Um botão ao lado de “Encerrar turno” faz todas as unidades prontas atacarem
 - **A arma do protagonista não entra** [provisório]; o ataque com arma continua manual.
 - **Ritmo:** um ataque por vez, cada um esperando as animações do anterior, no mesmo passo do turno inimigo e respeitando o modo de animação.
 - **Negociação:** o botão vira “Pressão total” [provisório], com a mesma regra.
+
+## Envio de logs (P99)
+
+Os playtesters mandam os logs com um clique, sem baixar arquivo nem anexar em lugar nenhum.
+
+- **Botão “Enviar log”** na área de logs (Playtest da guilda e batalha avulsa) e na janela de resultado de cada partida. Manda as partidas terminadas depois do último envio daquele navegador, no mesmo formato do “Exportar log”, compactado em .zip.
+- **Destino:** um Google Apps Script na conta do autor guarda o arquivo numa pasta do Google Drive e escreve uma linha de resumo numa planilha (apelido, código, partidas, vitórias, versões das regras, menu de testes, dia, andar, ouro). Código e passo a passo em `tools/logs/`.
+- **Identificação:** o apelido é opcional. Todo navegador ganha um código aleatório (`j-` e 8 letras e números), guardado até a pessoa limpar os dados do site; ele vai em todo envio, com ou sem apelido, e aparece na área de logs para o jogador poder dizer qual é o dele.
+- **Envio automático, opcional** e desligado por padrão, nas Configurações. Ligado, ele manda as partidas novas ao fim de cada partida e ao abrir o jogo, no máximo uma vez a cada 10 minutos [provisório]; o que ficar para trás vai no próximo. Falhas não interrompem o jogo e aparecem nas Configurações.
+- **Marca própria:** baixar o arquivo e enviar têm marcas separadas, então exportar não esconde partidas do envio.
+- **Sem URL configurada,** ou na cópia do claude.ai (que bloqueia conexões para fora), os botões e a opção não aparecem.

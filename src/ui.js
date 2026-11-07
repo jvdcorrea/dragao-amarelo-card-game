@@ -48,7 +48,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.19/design-v0.65/inimigos-v0.13/proto-2026-11-06';
+const RULES = 'cartas-v0.19/design-v0.66/inimigos-v0.13/proto-2026-11-06';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -85,6 +85,7 @@ function finalizeGame(result) {
   if (!st || st.saved) return;
   pushGame(gameRecord(result || (st.over === 'P' ? 'win' : 'loss')));
   st.saved = true; lsDel(LS_CUR);
+  envioAuto();
 }
 function persist() { if (!st || st.saved) return; if (st.over) finalizeGame(); else lsSet(LS_CUR, gameRecord('in_progress')); }
 (function recoverUnfinished() { const cur = lsGet(LS_CUR, null); if (cur) { cur.result = 'abandoned'; pushGame(cur); lsDel(LS_CUR); } ui.nick = lsGet(LS_NICK, ''); })();
@@ -118,15 +119,24 @@ async function deliver(blob, filename) {
   }
   return 'fail';
 }
-async function exportLogs(scope) {
-  const since = lsGet(LS_LASTEXP, null);
+// Conteúdo do log, igual para o download e para o envio. since: só as partidas terminadas depois dessa data.
+// comAtual: inclui a partida em curso (o envio automático não inclui, porque ela ainda vai terminar).
+function logPayload(scope, since, comAtual) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
-  const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, debt: camp.debt || null, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
-  const json = JSON.stringify(payload);
+  const extra = comAtual && st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
+  return { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', playerId: jogadorId(), userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, debt: camp.debt || null, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+}
+// Nome do arquivo: apelido do jogador ou, sem apelido, o código dele.
+function logBase(sufixo) {
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
+  return `dragao-amarelo-log-${slug || jogadorId()}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${sufixo ? '-' + sufixo : ''}`;
+}
+async function exportLogs(scope) {
+  const since = lsGet(LS_LASTEXP, null);
+  const payload = logPayload(scope, since, true);
+  const json = JSON.stringify(payload);
+  const base = logBase(scope === 'novas' ? 'novas' : '');
   const n = payload.games.length;
   ui.modal = null; toast('Preparando o arquivo...');
   const zip = await makeZip(base + '.json', json);
@@ -136,6 +146,86 @@ async function exportLogs(scope) {
   if (res === 'busy') { toast('Já existe uma confirmação de download aberta.'); return; }
   ui.modal = { kind: 'export', json, name: base + '.json', count: n, exportedAt: payload.exportedAt };
   render();
+}
+
+// Envio de logs (P99): um clique manda as partidas novas para uma pasta no Google Drive do autor, por um
+// Google Apps Script (tools/logs/). Sem URL configurada, ou dentro do claude.ai, os botões não aparecem.
+// O envio tem marca própria, separada do download: baixar o arquivo não esconde partidas do envio.
+const LOG_ENVIO_URL = '';   // URL do App da Web do Apps Script (termina em /exec); veja tools/logs/README.md
+const LS_ENVIO = 'dragao-amarelo-ultimo-envio-v1', LS_JOGADOR = 'dragao-amarelo-jogador-id';
+const ENVIO_AUTO_MIN = 10;              // [provisório] no máximo um envio automático a cada 10 minutos
+const ENVIO_MAX = 14 * 1024 * 1024;     // tamanho máximo do arquivo em base64; o script recusa acima disso
+const envio = { ocupado: false, tentativa: 0, erro: null };
+let jogadorIdCache = null;
+function envioUrl() { return window.DA_LOG_URL || LOG_ENVIO_URL; }
+function envioDisponivel() { return !!envioUrl() && !(window.claude && typeof window.claude.use === 'function'); }
+// Código aleatório do jogador, guardado no navegador: identifica os envios de quem não pôs apelido.
+// Some se a pessoa limpar os dados do site ou trocar de navegador.
+function jogadorId() {
+  if (jogadorIdCache) return jogadorIdCache;
+  let id = lsGet(LS_JOGADOR, null);
+  if (!id) {
+    const b = new Uint8Array(4);
+    try { crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < b.length; i++) b[i] = Math.floor(Math.random() * 256); }
+    id = 'j-' + Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    lsSet(LS_JOGADOR, id);
+  }
+  return (jogadorIdCache = id);
+}
+function envioMarca() { return lsGet(LS_ENVIO, null) || {}; }
+function novasParaEnvio() { const since = envioMarca().since; return lsGet(LS_GAMES, []).filter(g => !since || g.endedAt > since).length; }
+function blobB64(blob) {
+  return new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = () => falha(r.error); r.readAsDataURL(blob); });
+}
+// Linha da planilha de resumo: calculada aqui para o script só copiar.
+function resumoEnvio(p) {
+  const g = p.games, c = p.campaign, uniq = a => [...new Set(a)].join(' ');
+  return { partidas: g.length, vitorias: g.filter(x => x.result === 'win').length, derrotas: g.filter(x => x.result === 'loss').length,
+    rules: uniq(g.map(x => x.rules)), modos: uniq(g.map(x => (x.ctx && x.ctx.mode) || 'avulsa')),
+    cheatUsed: !!(c && c.cheatUsed), dia: c ? c.day : null, andar: c ? c.floor : null, ouro: c ? c.gold : null, disc: c ? c.startDisc : null };
+}
+async function enviarLogs(auto) {
+  if (!envioDisponivel() || envio.ocupado) return false;
+  const p = logPayload('novas', envioMarca().since || null, !auto);
+  const n = p.games.length;
+  if (!n) { if (!auto) toast('Nenhuma partida nova para enviar.'); return false; }
+  envio.ocupado = true;
+  if (auto) envio.tentativa = Date.now(); else { ui.modal = null; toast('Enviando o log...'); }
+  let ok = false, erro = '';
+  try {
+    const json = JSON.stringify(p), base = logBase(auto ? 'auto' : '');
+    const zip = await makeZip(base + '.json', json);
+    const b64 = zip ? await blobB64(zip) : btoa(unescape(encodeURIComponent(json)));
+    if (b64.length > ENVIO_MAX) throw new Error('grande');
+    const corpo = JSON.stringify({ format: 'dragao-amarelo-envio', version: 1, playerId: p.playerId, player: p.player, auto: !!auto, exportedAt: p.exportedAt,
+      resumo: resumoEnvio(p), file: { name: base + (zip ? '.zip' : '.json'), type: zip ? 'zip' : 'json', b64 } });
+    // text/plain evita a pré-consulta de CORS, que o Apps Script não responde.
+    const r = await fetch(envioUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: corpo });
+    const j = await r.json().catch(() => null);
+    ok = !!(j && j.ok); if (!ok) erro = (j && j.erro) || 'HTTP ' + r.status;
+  } catch (e) { erro = e && e.message === 'grande' ? 'grande' : 'rede'; }
+  envio.ocupado = false;
+  if (ok) { lsSet(LS_ENVIO, { since: p.exportedAt, at: new Date().toISOString(), n, auto: !!auto }); envio.erro = null; }
+  else { envio.erro = erro; console.warn('Envio de log falhou:', erro); }
+  if (!auto) toast(ok ? `Log enviado: ${n} partida${n === 1 ? '' : 's'}. Obrigado!` : erro === 'grande' ? 'O log ficou grande demais para enviar. Use “Exportar log”.' : 'Não deu para enviar agora. Tente de novo mais tarde ou use “Exportar log”.');
+  else if (ui.screen === 'settings') render();
+  return ok;
+}
+// Envio automático: opcional, nas Configurações. Roda ao fim de cada partida e ao abrir o jogo, no máximo
+// um a cada ENVIO_AUTO_MIN minutos; o que ficar para trás vai no próximo.
+function envioAuto() {
+  if (!prefs.envioAuto || !envioDisponivel() || envio.ocupado) return;
+  if (envio.tentativa && Date.now() - envio.tentativa < ENVIO_AUTO_MIN * 60000) return;
+  if (novasParaEnvio()) enviarLogs(true);
+}
+function envioBtn() { return envioDisponivel() ? `<button class="botao principal" data-act="envio">Enviar log</button>` : ''; }
+function quando(iso) { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+function envioConfig() {
+  if (!envioDisponivel()) return '';
+  const m = envioMarca(), on = !!prefs.envioAuto;
+  const ultimo = m.at ? ` Último envio: ${quando(m.at)}, ${m.n} partida${m.n === 1 ? '' : 's'}${m.auto ? ' (automático)' : ''}.` : '';
+  const falha = envio.erro ? ' O último envio automático falhou; o jogo tenta de novo depois.' : '';
+  return `<div class="config-item"><div><h2>Envio de logs</h2><p>${on ? 'Ligado' : 'Desligado'}. Com ele ligado, as partidas novas vão sozinhas para o autor do jogo, no máximo a cada ${ENVIO_AUTO_MIN} minutos. Vão o apelido (ou o código ${esc(jogadorId())}), o save e as partidas.${ultimo}${falha}</p></div><div class="som-controles"><button class="botao ${on ? '' : 'principal'}" data-act="envio-auto" aria-pressed="${on}">${on ? 'Desligar envio automático' : 'Ligar envio automático'}</button></div></div>`;
 }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -174,12 +264,7 @@ function renderSetup() {
     <section class="escolha"><h2>Disciplina</h2><div class="grade-disc">${discs}</div></section>
     <section class="escolha"><h2>Encontro</h2>${encs}</section>
     <div class="acoes-setup"><button class="botao principal" data-act="start" ${ui.disc && ui.enc ? '' : 'disabled'}>Descer</button></div>
-    <section class="escolha logs"><h2>Log de partidas</h2>
-      <p class="intro">Cada partida fica guardada neste navegador. Exporte o arquivo para analisar depois.</p>
-      <div class="linha-logs"><label for="apelido">Apelido no log</label><input id="apelido" type="text" maxlength="40" value="${esc(ui.nick)}" placeholder="ex.: Sanerion" autocomplete="off">
-      <button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
-      <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>Apagar logs</button></div>
-    </section>
+    ${logsHtml()}
     <details class="regras"><summary>Como jogar</summary><ul>
       <li>Você sempre começa. A mana sobe 1 por turno, até 10.</li>
       <li>Toque numa carta da mão para jogá-la. Se ela precisar de alvo, toque no alvo destacado.</li>
@@ -402,7 +487,7 @@ function overPanel() {
     <h2 id="res-t">${win ? (SOC() ? 'Acordo fechado' : 'Vitória') : (SOC() ? 'Negociação perdida' : 'Derrota')}</h2>
     <p>${SOC() ? (win ? `${esc(O().leader.name)} cedeu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Compostura.` : `Você perdeu a compostura no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Resistência.`) : (win ? `${esc(O().leader.name)} caiu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Vida.` : `Você caiu no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Vida.`)}</p>
     ${win && st.ctx && st.ctx.mode === 'run' && camp && camp.run && camp.run.inBattle ? `<p class="destaque">Recompensa: +${camp.run.inBattle.gold || 0} de ouro.</p>` : ''}
-    ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? `<div class="opcoes"><button class="botao principal" data-act="${{ defesa: 'def-continue', social: 'soc-continue', passeio: 'pas-continue' }[st.ctx.mode] || 'run-continue'}">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>` : ''}<div class="opcoes" ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button><button class="botao" data-act="export">Exportar log</button></div>
+    ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? `<div class="opcoes"><button class="botao principal" data-act="${{ defesa: 'def-continue', social: 'soc-continue', passeio: 'pas-continue' }[st.ctx.mode] || 'run-continue'}">Continuar</button><button class="botao" data-act="close-over">Ver a mesa</button>${envioBtn()}<button class="botao" data-act="export">Exportar log</button></div>` : ''}<div class="opcoes" ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? 'hidden' : ''}><button class="botao principal" data-act="again">Jogar de novo</button><button class="botao" data-act="setup">Mudar escolhas</button><button class="botao" data-act="close-over">Ver a mesa</button>${envioBtn()}<button class="botao" data-act="export">Exportar log</button></div>
   </div></div>`;
 }
 function modalHtml() {
@@ -586,9 +671,9 @@ function floorFailed(why) {
 
 function logsHtml(inner) {
   return `<section class="${inner ? 'logs-interno' : 'escolha logs'}"><h${inner ? 3 : 2}>Log de partidas</h${inner ? 3 : 2}>
-    <p class="intro">Cada partida fica guardada neste navegador. Exporte o arquivo para analisar depois.</p>
+    <p class="intro">Cada partida fica guardada neste navegador. ${envioDisponivel() ? `“Enviar log” manda as partidas novas para o autor do jogo com um clique. O apelido é opcional: sem ele, o log vai com o seu código, ${esc(jogadorId())}. ${prefs.envioAuto ? 'O envio automático está ligado.' : 'Nas Configurações dá para ligar o envio automático.'}` : 'Exporte o arquivo para analisar depois.'}</p>
     <div class="linha-logs"><label for="apelido">Apelido no log</label><input id="apelido" type="text" maxlength="40" value="${esc(ui.nick)}" placeholder="ex.: Sanerion" autocomplete="off">
-    <button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
+    ${envioBtn()}<button class="botao" data-act="export">Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})</button>
     <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>Apagar logs</button></div></section>`;
 }
 function gearBtn() { return `${somBtn('alto-falante')}<button class="engrenagem" data-act="settings" aria-label="Configurações" title="Configurações">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
@@ -1789,6 +1874,7 @@ function renderSettings() {
     <div class="config-item"><div><h2>Créditos</h2><p>Autores dos ícones, fontes e bibliotecas.</p></div><button class="botao" data-act="credits">Ver créditos</button></div>
     <div class="config-item"><div><h2>Som</h2><p>${Som.ativo() ? 'Volumes separados para efeitos e música. A tecla M liga e desliga o som em qualquer tela.' : 'O áudio não carregou neste navegador.'}</p></div><div class="som-controles"><label>Efeitos <input id="vol-efeitos" type="range" min="0" max="100" step="5" value="${Math.round(prefs.efeitos * 100)}"></label><label>Música <input id="vol-musica" type="range" min="0" max="100" step="5" value="${Math.round(prefs.musica * 100)}"></label><button class="botao" data-act="som-mudo" aria-pressed="${!!prefs.mudo}">${prefs.mudo ? 'Ligar o som' : 'Desligar o som'}</button></div></div>
     ${animConfig()}
+    ${envioConfig()}
     <div class="config-item"><div><h2>Códigos secretos</h2><p>${cheats.unlocked ? 'Modo de testes liberado.' : 'Tem um código? Digite aqui.'}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">Código</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código"><button class="botao" data-act="code">Usar</button>${cheats.unlocked ? '<button class="botao" data-act="cheats">Menu de testes</button>' : ''}</div></div>
     <div class="config-item perigo"><div><h2>Apagar save</h2><p>${camp ? 'Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.' : 'Não há jogo salvo.'}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>Apagar save</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">Voltar</button></div>
@@ -2131,6 +2217,8 @@ document.addEventListener('click', async ev => {
   if (ds.act === 'export') { openExport(); return; }
   if (ds.act === 'export-novas') { exportLogs('novas'); return; }
   if (ds.act === 'export-tudo') { exportLogs('tudo'); return; }
+  if (ds.act === 'envio') { enviarLogs(false); return; }
+  if (ds.act === 'envio-auto') { prefs.envioAuto = !prefs.envioAuto; savePrefs(); render(); if (prefs.envioAuto) envioAuto(); return; }
   if (ds.act === 'close-modal') { ui.modal = null; render(); return; }
   if (ds.act === 'copy-log') {
     const ta = $('.export-txt'); if (ta) { ta.focus(); ta.select(); }
@@ -2242,4 +2330,5 @@ document.addEventListener('keydown', ev => {
 if (camp) { ensureGuild(); saveCamp(); }
 if (typeof IMG !== 'undefined') for (const [k, v] of Object.entries(IMG)) document.documentElement.style.setProperty('--img-' + k, `url("${v}")`);
 render();
+setTimeout(envioAuto, 5000);   // envia o que ficou da sessão anterior, se o envio automático estiver ligado
 })();
