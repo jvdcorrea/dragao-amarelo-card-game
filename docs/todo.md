@@ -90,7 +90,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Números de dano, cura e Evolução com contorno branco (`numeros.contornoPx` e `contornoCor` no `feel.js`).
 - [x] A camada de apresentação e o áudio rodam protegidos: um erro neles vira aviso no console e a partida segue (antes, um erro de áudio durante o desenho parava o turno inimigo).
 - [x] `test_grupo2` também desliga as regras dos encontros enfraquecidos (Blindagem do líder, ganchos de turno), que derrubavam o bot no andar 7.
-- [x] Testes de navegador que travavam e derrubavam a aba: a causa era o Chrome do sistema (via `CHROME_PATH`) rodando sem janela, que parava os temporizadores em sessões longas; com o Chromium do Playwright, 4 de 4 rodadas limpas com som. A suspeita inicial no áudio estava errada.
+- [ ] **Aberto:** em sessões longas abertas por `file://`, a aba do navegador cai (`test_grupo2` passa de 15 min e cai). Bisseção: começa na Fase 5 (música); sem som nenhum (`TESTE_SEM_SOM=1`), 3 de 3 rodadas passam em ~110 s; só sem música, ainda caiu 1 de 3. Suspeita: elementos `<audio>` do HTML5 (usados em `file://`) se acumulando no Howler. Próximo passo: contar os `<audio>` criados numa partida longa e limitar (opção `pool` do Howl, menos variações carregadas em `file://`). No GitHub Pages (Web Audio) não deve acontecer, mas não foi verificado. Enquanto isso, rode a suíte com `TESTE_SEM_SOM=1`.
 - [x] A tela não pula mais para o lado quando a barra de rolagem aparece (`scrollbar-gutter: stable`).
 - [x] `test_grupo2` dá a engrenagem quando o mapa sorteado não passa pelo Cofre de Ergos.
 - Nota: abrindo por `file://`, o Howler avisa “HTML5 Audio pool exhausted” no console; é inofensivo no computador e não acontece no GitHub Pages (Web Audio).
