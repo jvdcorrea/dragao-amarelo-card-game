@@ -2,7 +2,7 @@
 
 *v0.20 · complementa o documento de design (v0.65) e o arquivo de inimigos · todos os números são provisórios*
 
-> v0.20 (P98): o Veterano da Bigorna (grupo 2) não tinha Acelerar de fato, porque a palavra-chave estava com o nome errado no código; agora tem. O Ensaio de Batalha passou a contar qualquer unidade com Acelerar, inclusive as Adiantadas.
+> v0.20 (P100): o Veterano da Bigorna (grupo 2) não tinha Acelerar de fato, porque a palavra-chave estava com o nome errado no código; agora tem. O Ensaio de Batalha passou a contar qualquer unidade com Acelerar, inclusive as Adiantadas.
 
 **Como ler**
 - Colunas: Carta | Custo | Tipo | Stats | Texto.

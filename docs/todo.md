@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 06/11/2026 · acompanha o design v0.65*
+*Atualizada em 10/11/2026 · acompanha o design v0.67*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -71,7 +71,17 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
 
-## Palavras-chave na mesa (P98)
+## Idiomas (P101)
+
+- [x] Português e inglês, com troca nas Configurações. Detalhes, glossário e dúvidas em `docs/traducao.md`.
+- [x] Dúvidas da tradução respondidas em 10/11 (`docs/traducao.md`): Plating, Tempo, jobs para os aventureiros, português por padrão; o resto aprovado como estava.
+- [x] Disciplinas com nome em português no jogo em português (P102).
+- [ ] Trocar os nomes das Disciplinas nos documentos (`cartas.md`, `design.md`, `inimigos.md`, `grupo2.md`), que ainda usam os nomes em inglês.
+- [ ] Revisão do inglês por alguém que fala a língua.
+- [ ] Teste de navegador em inglês para as telas raras (credor, defesas, Banca Azer, eventos do grupo 2).
+- [ ] Cenas guardadas em `camp.pending` com texto pronto ficam no idioma de quando foram criadas. Se incomodar, guardar a chave em vez do texto.
+
+## Palavras-chave na mesa (P100)
 
 - [x] Primeira leva: Guarda (moldura de escudo), Escudo (bolha que estoura), Emboscada (hachura e olho riscado), Letal (gota), Blindagem (peitoral com número), Imóvel (correntes) e Ao Morrer (caveira; Repercussão na negociação). Opção “Palavras-chave por extenso” nas Configurações.
 - [x] Corrigido: Veterano da Bigorna não tinha Acelerar (palavra-chave com o nome interno errado); o Ensaio de Batalha agora conta qualquer unidade com Acelerar.

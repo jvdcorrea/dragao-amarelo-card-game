@@ -115,7 +115,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .stats .hp { background: var(--vida); color: #fff; margin-left: auto; }
 .stats .dur { background: var(--muted); color: var(--card); margin-left: auto; }
 .stats .hp.ferido { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--vida); }
-/* Guarda (P98): moldura de escudo por fora da peça (não corta o conteúdo nem os contornos de interação) e o selo do escudo no alto */
+/* Guarda (P100): moldura de escudo por fora da peça (não corta o conteúdo nem os contornos de interação) e o selo do escudo no alto */
 .peca.guarda { border-color: var(--metal); border-width: 2px; border-top-width: 5px; }
 .peca.guarda::before { content: ""; position: absolute; inset: -6px -6px -10px; border: 3px solid var(--metal); border-radius: 14px 14px 50% 50% / 14px 14px 30px 30px; pointer-events: none; }
 .kw-guarda-selo { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 2px solid var(--metal); display: inline-flex; align-items: center; justify-content: center; z-index: 1; }
@@ -558,7 +558,7 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
 .fx-anel { position: fixed; z-index: 3; border: 3px solid; box-sizing: border-box; pointer-events: none; }
 .fx-faisca { position: fixed; z-index: 3; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px 2px rgba(255, 220, 140, .8); opacity: 0; }
 
-/* Palavras-chave na peça (P98) */
+/* Palavras-chave na peça (P100) */
 .peca .bolha { position: absolute; inset: -3px; border-radius: 13px; pointer-events: none; z-index: 1; border: 1.5px solid rgba(240, 189, 72, .85);
   background: radial-gradient(ellipse at 30% 18%, rgba(255, 255, 255, .55), rgba(255, 220, 140, .14) 38%, rgba(255, 205, 90, .08) 70%, rgba(255, 195, 70, .26));
   box-shadow: 0 0 10px 2px rgba(240, 189, 72, .45), inset 0 0 12px rgba(255, 220, 140, .45); animation: bolha 2.6s ease-in-out infinite; }

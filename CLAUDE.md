@@ -4,17 +4,18 @@ Guia para o Claude Code trabalhar neste repositório. Leia inteiro antes da prim
 
 ## O projeto
 
-Card game single-player no estilo Hearthstone/Shadowverse, em português do Brasil. O protagonista herda do tio Ergos a guilda de aventureiros **Dragão Amarelo**, uma dívida com o Banco da Coroa e uma dungeon embaixo da guilda que só a família pode terminar. Felix, o gato alado familiar de Ergos, guia o jogador. Tom: fantasia medieval, comédia leve com momentos sérios.
+Card game single-player no estilo Hearthstone/Shadowverse, em português do Brasil e em inglês (P101). O protagonista herda do tio Ergos a guilda de aventureiros **Dragão Amarelo**, uma dívida com o Banco da Coroa e uma dungeon embaixo da guilda que só a família pode terminar. Felix, o gato alado familiar de Ergos, guia o jogador. Tom: fantasia medieval, comédia leve com momentos sérios.
 
 O protótipo é uma página HTML única, montada a partir de `src/`. Hoje ele tem:
 
-- **Batalha:** 6 Disciplinas (Temporal Warfare, Draconic Primalism, Necrodance, Holy Shadowmancy, Magitech, Space Wizardry) mais cartas básicas (os Felinos da Guilda), mulligan, Evolução e as mecânicas de cada Disciplina.
+- **Batalha:** 6 Disciplinas (Arte da Guerra Temporal, Primalismo Dracônico, Necrodança, Tenebromancia Sagrada, Magitech, Magia Espacial; no inglês, Temporal Warfare, Draconic Primalism, Necrodance, Holy Shadowmancy, Magitech, Space Wizardry, P102) mais cartas básicas (os Felinos da Guilda), mulligan, Evolução e as mecânicas de cada Disciplina.
 - **Dungeon:** grupo 1, As Grutas Vivas (andares 1 a 5, chefe Basilisco), e grupo 2, A Forja Esquecida (andares 6 a 10, chefe Ignar). Mapa em grafo, eventos, Tesouros, Notas de Ergos, boosters com raridade.
 - **Guilda:** dia com ações (descer, ida à cidade, despacho, obra), aventureiros e missões, instalações (Quadro, Taverna, Alojamento, Recursos Humanos, Ferraria, Área de treinamento), defesas noturnas físicas e sociais, quests.
 - **Cidade:** os seis Mestres (vendem boosters e conversam), o Banco da Coroa, a arquivista Lerael Vane e os passeios, que dão cartas sociais.
 - **Social:** negociações no mesmo motor da batalha, com vocabulário e paleta próprios (Compostura, Resistência, Lábia, Argumentos, Táticas, Perfil).
 - **Dívida:** parcelas cobradas pelo Barão Ostrander, com prazo negociado e juros (P93).
 - **Playtest:** batalha avulsa, negociação avulsa, log exportável em .zip e um menu de testes.
+- **Idiomas:** português e inglês, com troca nas Configurações (P101).
 
 ## Como o João gosta de trabalhar
 
@@ -32,6 +33,7 @@ O protótipo é uma página HTML única, montada a partir de `src/`. Hoje ele te
 python3 tools/build.py                 # monta index.html a partir de src/ (rode depois de qualquer mudança em src/)
 node tests/test.js                     # milhares de partidas simuladas, procura erros de motor
 node tests/test_pool.js                # decks aleatórios cobrindo as cartas do pool
+node tests/test_i18n.js                # dicionário inglês contra o código, e partidas simuladas em inglês
 node tests/greedy.js                   # taxas de vitória de um bot guloso (sinal de balanceamento)
 node tools/balance/encontros.js "oficina,ignar" '[["limiar",true,0]]' 12   # bot simples contra encontros escolhidos
 python3 tools/economia/simula.py       # simulador da economia de um grupo (dívida, tesouro, prazo, juros)
@@ -42,13 +44,14 @@ python3 tests/browser/run_all.py       # testes de navegador (precisa do index.h
 
 Os mesmos atalhos existem como scripts em `package.json` (`npm run build`, `npm test`, `npm run test:browser`).
 
-Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/browser/run_all.py`**. Para mudanças em cartas, rode também `node tests/test_pool.js`.
+Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/test_i18n.js` e `tests/browser/run_all.py`**. Para mudanças em cartas, rode também `node tests/test_pool.js`.
 
 ## Estrutura
 
 | Caminho | O que é |
 |---|---|
 | `index.html` | Página montada. **Gerada pelo build; nunca edite à mão.** Fica no repositório porque o GitHub Pages serve ela. |
+| `src/i18n.js`, `src/lang/` | Idiomas (P101). `T` traduz; `en.js` é o dicionário inglês (chave: o texto em português), `en_tabelas.js` as palavras traduzidas pelo valor, `en_regras.js` as palavras-chave em destaque, as trocas do social e o acerto do “You”. O build põe tudo antes do motor. |
 | `src/engine.js` | Motor de regras puro, sem DOM: cartas, encontros, combate, IA inimiga, registro de eventos. No navegador vira o global `Engine`; no Node, `require`. |
 | `src/run.js` | Campanha: raridades, boosters, grupos e andares, mapa, eventos, Notas de Ergos. Global `RunLib`. |
 | `src/ui.js` | Toda a interface e o estado da campanha: batalha, guilda, cidade, diálogos, cenas, editor de deck, logs, menu de testes. |
@@ -59,6 +62,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 | `assets/audio/sfx/`, `assets/audio/music/` | Sons e músicas `<nome>_<n>.ogg` ou `.wav`. Placeholders: `python3 tools/audio/placeholders.py`. Autoria no `CREDITS.md`. A música de cada tela sai de `estadoMusica()` no `ui.js`. |
 | `src/art.js` | Ícones das cartas, inimigos e mapa. **Gerado** por `tools/arte/gen.py`. |
 | `src/img/*.webp` | Ilustrações (guilda, Felix, sala de guerra, Mestres, Lerael, Kryoret). O build embute em base64. |
+| `tools/i18n/lexer.js` | Lexer de JavaScript usado pelo `tests/test_i18n.js` para achar os `T(...)` do código. |
 | `tools/build.py` | Junta `src/` num `index.html` único (imagens viram variáveis CSS `--img-<nome>`). |
 | `tools/arte/` | `map.py` (carta ou inimigo para ícone) e `gen.py` (gera `src/art.js` a partir do repositório game-icons). |
 | `tools/balance/`, `tools/economia/` | Simuladores de balanceamento. |
@@ -66,6 +70,15 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 | `docs/` | Documentos de design. Veja a seção Documentos. |
 
 ## Arquitetura e convenções do código
+
+### Idiomas (P101)
+
+- **Todo texto que o jogador vê passa por `T`:** `T('Voltar à guilda')`, ou `` T`Dia ${camp.day} · ${camp.gold} de ouro` `` com valores. A chave é o texto em português, com `{0}`, `{1}` no lugar dos valores; o dicionário inglês pode trocar a ordem dos marcadores. Sem tradução, sai o português.
+- **Texto novo:** escreva em português dentro de `T` e acrescente o par em `src/lang/en.js`. `node tests/test_i18n.js` aponta o que falta, o que sobrou e marcadores que não batem.
+- **Lógica nunca compara texto traduzido.** Tags, tipos de encontro, Perfis e ids ficam em português, sem `T`; traduza só na exibição, com `T(valor)` (essas palavras ficam em `en_tabelas.js`). Foi assim que `perfil(st, T('Vaidade'))` quebraria o Perfil no inglês.
+- **Não declare variável local chamada `T`:** ela esconde a função. Foi a causa do erro no credor durante a tradução.
+- **Plural e gênero:** prefira frases inteiras por caso (`n === 1 ? T`...carta...` : T`...cartas...``) a pedaços como `carta${n === 1 ? '' : 's'}`, que não servem para todo idioma.
+- **Glossário e decisões da tradução:** `docs/traducao.md`. Use os mesmos termos em texto novo (Plating, Tempo, jobs para os trabalhos dos aventureiros, quests para as da história).
 
 ### Motor (`src/engine.js`)
 
@@ -115,18 +128,20 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js` e `tests/brow
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P99**).
-3. `docs/todo.md` atualizado.
-4. Commit em português, com título curto e itens no corpo.
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P103**).
+3. Texto novo com tradução em `src/lang/en.js`.
+4. `docs/todo.md` atualizado.
+5. Commit em português, com título curto e itens no corpo.
 
 ## Documentos (`docs/`)
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P98; a P de cada mudança vai no texto e no commit. | v0.65 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P102; a P de cada mudança vai no texto e no commit. | v0.67 |
 | `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.20 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
 | `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.3 |
+| `traducao.md` | Tradução para o inglês: como funciona, glossário e decisões. | v0.3 |
 | `todo.md` | Pendências e decisões a revisar. | acompanha o design |
 
 ## Logs de playtest
@@ -152,3 +167,4 @@ Pendências principais (detalhes em `docs/todo.md`):
 - Grupo 3: o frio e o resgate de Ergos.
 - Draconic segue mais forte que as outras Disciplinas nos testes.
 - Problema terminal do mundo (P36) e aprender Disciplinas com os Mestres (P29).
+- Revisão do inglês por alguém que fala a língua.

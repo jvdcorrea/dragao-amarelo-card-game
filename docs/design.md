@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.65 · rascunho para editar*
+*Documento de design preliminar · v0.67 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -306,7 +306,7 @@ Não existe poder heroico. No lugar, a **Evolução** (antes chamada Ressonânci
 - **Deck inicial (P53):** 20 neutras fixas (Felinos e equipamentos mundanos) + seleção introdutória de 10 cartas da Disciplina escolhida. Listas no arquivo de cartas.
 - Começa com 1, escolhida no tutorial. Novas vêm de mestres na cidade, via batalha social.
 - Cada Disciplina também dá cartas sociais (P12).
-- [A DEFINIR: os nomes em inglês ficam no jogo final ou são provisórios?] Magitech passou a se chamar só **Magitech** (P75).
+- Magitech passou a se chamar só **Magitech** (P75). No jogo em português, as Disciplinas têm nome em português (P102).
 
 **Decks (P47):** batalha com 30 cartas e até 2 cópias; social menor, com 20 cartas e também até 2 cópias.
 
@@ -644,7 +644,7 @@ A Evolução é rara (3 por partida, uma por turno) e decide jogos, então ganha
 
 No mapa da dungeon, o nó para onde dá para ir cresce com sobra, acende e o ícone dá um pulinho quando o mouse passa ou quando o teclado foca nele; ao clicar, ele afunda um pouco. A trilha da posição atual até esse nó acende. Todos os nós, inclusive os já visitados e os trancados, mostram o nome (Batalha, Elite, Evento...) num rótulo logo abaixo, para planejar o caminho sem esperar a dica do navegador. Sem animação, o rótulo e a trilha continuam; o crescimento e o pulinho somem.
 
-## Palavras-chave visíveis na mesa (P98)
+## Palavras-chave visíveis na mesa (P100)
 
 Para ler o combate de relance, as palavras-chave que mudam a decisão deixam de ser só texto e viram forma ou ícone, sempre no mesmo lugar da peça. Contorno e brilho continuam reservados para a interação (pode atacar, alvo, selecionada), e cor nunca vem sozinha.
 
@@ -657,3 +657,26 @@ Para ler o combate de relance, as palavras-chave que mudam a decisão deixam de 
 - Nas Configurações, “Palavras-chave por extenso” volta a escrever os nomes nas peças, para quem está aprendendo.
 - O detalhe de cada uma segue no painel ao passar o mouse.
 
+## Dois idiomas: português e inglês (P101)
+
+O jogo pode ser jogado em português do Brasil ou em inglês. O padrão é o português; o inglês se escolhe em Configurações, no item “Idioma · Language”; a troca recarrega a página e a campanha continua salva.
+
+- O português segue no código e é a chave da tradução; o inglês fica em `src/lang/`. Sem tradução, aparece o português.
+- Os nomes também foram traduzidos: Yellow Dragon, Baron Ostrander, Crown Bank, The Living Grottoes, The Forgotten Forge e as cartas. Personagens com nome próprio ficam como estão.
+- A lógica nunca depende do idioma: tags, tipos de encontro e Perfis continuam em português por dentro.
+- O glossário e as decisões da tradução estão em `docs/traducao.md`.
+
+## Nomes das Disciplinas em português (P102)
+
+No jogo em português, as Disciplinas passam a ter nome em português; no inglês, ficam com os nomes originais.
+
+| Português | Inglês |
+|---|---|
+| Arte da Guerra Temporal | Temporal Warfare |
+| Primalismo Dracônico | Draconic Primalism |
+| Necrodança | Necrodance |
+| Tenebromancia Sagrada | Holy Shadowmancy |
+| Magitech | Magitech |
+| Magia Espacial | Space Wizardry |
+
+Os ids internos (`temporal`, `draconic`, `necro`, `holy`, `tech`, `space`) não mudam. Os outros documentos ainda citam as Disciplinas pelos nomes em inglês.

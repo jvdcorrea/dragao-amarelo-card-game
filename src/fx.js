@@ -244,7 +244,7 @@ function soSom(evs) {
 function linha(st, evs, cap) {
   const k = FEEL.tempo.escala[cfg.anim] === undefined ? 1 : FEEL.tempo.escala[cfg.anim];
   const mov = cfg.anim === 'normal' || cfg.anim === 'rapida';
-  const A = FEEL.ataque, I = FEEL.impacto, T = FEEL.tempo, N = FEEL.numeros;
+  const A = FEEL.ataque, I = FEEL.impacto, TP = FEEL.tempo, N = FEEL.numeros;
   const tocar = sons();
   // Cópias por chave: mortos desta leva (no lugar antigo) e atacantes vivos durante o avanço.
   const copias = new Map(), mortos = [], somem = new Set();
@@ -355,7 +355,7 @@ function linha(st, evs, cap) {
       somem.add(f);
       agendar(ev.u === atacanteMorto && mov ? tm + A.voltaMs * k : tm, () => morte(f, I.morteMs * k, mov));
     });
-    t = tm + T.entreGolpes * k;
+    t = tm + TP.entreGolpes * k;
   };
   const abrir = () => { g = { t, hits: [], dano: 0, mortes: [] }; };
 
@@ -373,7 +373,7 @@ function linha(st, evs, cap) {
         } else {
           tocar(ev, t);
           if (ev.e) entradas.set(ev.e, { t });
-          t += T.depoisJogar * k;
+          t += TP.depoisJogar * k;
         }
         break;
       }

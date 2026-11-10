@@ -2,7 +2,7 @@
 
 *v0.3 · implementado no protótipo · andares 6 a 10 · complementa o design (v0.65), as cartas (v0.20) e os inimigos (v0.13) · números provisórios*
 
-> v0.3 (P98): Veterano da Bigorna passa a ter Acelerar de verdade (antes o código usava um nome de palavra-chave que o motor não conhecia).
+> v0.3 (P100): Veterano da Bigorna passa a ter Acelerar de verdade (antes o código usava um nome de palavra-chave que o motor não conhecia).
 
 ---
 

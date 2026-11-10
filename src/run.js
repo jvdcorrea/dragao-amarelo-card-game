@@ -1,9 +1,10 @@
 /* Dragão Amarelo: campanha (raridade, boosters, mapa, eventos). Lógica pura. */
 (function (root) {
 'use strict';
+const T = (root.I18N || (typeof require !== 'undefined' ? require('./i18n.js') : null)).T;
 const E = root.Engine || (typeof require !== 'undefined' ? require('./engine.js') : null);
 
-const RAR = { C: 'Comum', I: 'Incomum', R: 'Rara' };
+const RAR = { C: T('Comum'), I: T('Incomum'), R: T('Rara') };
 const RARITY = {
   // Temporal
   recruta: 'C', batedor_amanha: 'C', escudeiro: 'C', golpe_previsto: 'C', arqueira: 'C', veterano: 'C', duelista: 'C',
@@ -92,12 +93,12 @@ function deckSize(deck) { return Object.values(deck.cards).reduce((a, b) => a + 
 function deckProblems(deck, collection) {
   const p = [];
   const n = deckSize(deck);
-  if (n !== 30) p.push(`O deck tem ${n} carta${n === 1 ? '' : 's'}; precisa de 30.`);
+  if (n !== 30) p.push(T`O deck tem ${n} carta${n === 1 ? '' : 's'}; precisa de 30.`);
   Object.entries(deck.cards).forEach(([id, k]) => {
     const d = E.DEF[id];
-    if (k > 2) p.push(`${d.name}: no máximo 2 cópias.`);
-    if ((collection[id] || 0) < k) p.push(`${d.name}: você só tem ${collection[id] || 0}.`);
-    if (d.disc && d.disc !== 'neutra' && d.disc !== deck.disc) p.push(`${d.name} é de outra Disciplina.`);
+    if (k > 2) p.push(T`${d.name}: no máximo 2 cópias.`);
+    if ((collection[id] || 0) < k) p.push(T`${d.name}: você só tem ${collection[id] || 0}.`);
+    if (d.disc && d.disc !== 'neutra' && d.disc !== deck.disc) p.push(T`${d.name} é de outra Disciplina.`);
   });
   return p;
 }
@@ -115,13 +116,13 @@ const FLOORS = {
   9: { commons: ['oficina', 'bocas', 'fundicao', 'patrulha_azer'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'elite' },
   10: { commons: ['oficina', 'bocas', 'fundicao', 'patrulha_azer'], elites: ['colosso_ferro', 'matriarca_azer'], final: 'ignar' },
 };
-const GRUPOS = { 1: { nome: 'As Grutas Vivas', andares: [1, 2, 3, 4, 5] }, 2: { nome: 'A Forja Esquecida', andares: [6, 7, 8, 9, 10] } };
+const GRUPOS = { 1: { nome: T('As Grutas Vivas'), andares: [1, 2, 3, 4, 5] }, 2: { nome: T('A Forja Esquecida'), andares: [6, 7, 8, 9, 10] } };
 const grupoDo = floor => (floor >= 6 ? 2 : 1);
 const MAX_FLOOR = 10;
 const NODE = {
-  batalha: { label: 'Batalha', icon: '⚔' }, elite: { label: 'Elite', icon: '✦' }, evento: { label: 'Evento', icon: '?' },
-  acampamento: { label: 'Acampamento', icon: '♨' }, tesouro: { label: 'Tesouro', icon: '◆' }, nota: { label: 'Nota de Ergos', icon: '✎' },
-  chefe: { label: 'Chefe', icon: '☠' }, banca: { label: 'Banca Azer', icon: '⚒' },
+  batalha: { label: T('Batalha'), icon: '⚔' }, elite: { label: T('Elite'), icon: '✦' }, evento: { label: T('Evento'), icon: '?' },
+  acampamento: { label: T('Acampamento'), icon: '♨' }, tesouro: { label: T('Tesouro'), icon: '◆' }, nota: { label: T('Nota de Ergos'), icon: '✎' },
+  chefe: { label: T('Chefe'), icon: '☠' }, banca: { label: T('Banca Azer'), icon: '⚒' },
 };
 function genMap(rng, floor, withNote) {
   const ROWS = 6, COLS = 4;
@@ -178,49 +179,49 @@ function genMap(rng, floor, withNote) {
 /* ---------------- Eventos e notas ---------------- */
 const EVENTS = [
   // Grupo 1: As Grutas Vivas
-  { id: 'cogumelos', title: 'Cogumelos Luminosos', text: 'Um tapete de cogumelos brilha num tom convidativo demais.',
-    choices: [{ id: 'comer', label: 'Comer um (50%: recupere 10 de Vida; 50%: perca 4)' }, { id: 'colher', label: 'Colher para a viagem (ganhe uma Ração de Viagem)' }, { id: 'sair', label: 'Seguir em frente' }] },
-  { id: 'teia', title: 'Gato na Teia', text: 'Um Felino da Guilda pende de uma teia grossa, miando ofendido.',
-    choices: [{ id: 'cortar', label: 'Cortar a teia (perca 4 de Vida; ganhe uma carta Felino)' }, { id: 'sair', label: 'Deixar para outra ocasião' }] },
-  { id: 'altar', title: 'Altar Coberto de Musgo', text: 'Alguém deixou velas acesas aqui. Recentemente.',
-    choices: [{ id: 'sangue', label: 'Oferecer sangue (perca 6 de Vida; ganhe uma carta Rara da sua Disciplina)' }, { id: 'rezar', label: 'Rezar (recupere 5 de Vida)' }, { id: 'sair', label: 'Ignorar' }] },
-  { id: 'ponte', title: 'Ponte de Raízes', text: 'Raízes trançadas cruzam um abismo. Elas rangem.',
-    choices: [{ id: 'correr', label: 'Atravessar correndo (perca 5 de Vida; na próxima luta, comece com +1 de mana máxima)' }, { id: 'sair', label: 'Dar a volta' }] },
-  { id: 'ninho', title: 'Ninho Abandonado', text: 'Um ninho enorme, vazio. Quase vazio.',
-    choices: [{ id: 'vasculhar', label: 'Vasculhar (60%: ganhe uma carta Incomum; 40%: os donos voltam e você luta)' }, { id: 'sair', label: 'Deixar quieto' }] },
-  { id: 'eco', title: 'Eco de Passos', text: 'Passos ecoam à frente, no ritmo exato dos seus. Você para. Eles param.',
-    choices: [{ id: 'seguir', label: 'Seguir o eco (na próxima luta, comece com 1 carta a mais)' }, { id: 'sair', label: 'Voltar pelo caminho conhecido' }] },
+  { id: 'cogumelos', title: T('Cogumelos Luminosos'), text: T('Um tapete de cogumelos brilha num tom convidativo demais.'),
+    choices: [{ id: 'comer', label: T('Comer um (50%: recupere 10 de Vida; 50%: perca 4)') }, { id: 'colher', label: T('Colher para a viagem (ganhe uma Ração de Viagem)') }, { id: 'sair', label: T('Seguir em frente') }] },
+  { id: 'teia', title: T('Gato na Teia'), text: T('Um Felino da Guilda pende de uma teia grossa, miando ofendido.'),
+    choices: [{ id: 'cortar', label: T('Cortar a teia (perca 4 de Vida; ganhe uma carta Felino)') }, { id: 'sair', label: T('Deixar para outra ocasião') }] },
+  { id: 'altar', title: T('Altar Coberto de Musgo'), text: T('Alguém deixou velas acesas aqui. Recentemente.'),
+    choices: [{ id: 'sangue', label: T('Oferecer sangue (perca 6 de Vida; ganhe uma carta Rara da sua Disciplina)') }, { id: 'rezar', label: T('Rezar (recupere 5 de Vida)') }, { id: 'sair', label: T('Ignorar') }] },
+  { id: 'ponte', title: T('Ponte de Raízes'), text: T('Raízes trançadas cruzam um abismo. Elas rangem.'),
+    choices: [{ id: 'correr', label: T('Atravessar correndo (perca 5 de Vida; na próxima luta, comece com +1 de mana máxima)') }, { id: 'sair', label: T('Dar a volta') }] },
+  { id: 'ninho', title: T('Ninho Abandonado'), text: T('Um ninho enorme, vazio. Quase vazio.'),
+    choices: [{ id: 'vasculhar', label: T('Vasculhar (60%: ganhe uma carta Incomum; 40%: os donos voltam e você luta)') }, { id: 'sair', label: T('Deixar quieto') }] },
+  { id: 'eco', title: T('Eco de Passos'), text: T('Passos ecoam à frente, no ritmo exato dos seus. Você para. Eles param.'),
+    choices: [{ id: 'seguir', label: T('Seguir o eco (na próxima luta, comece com 1 carta a mais)') }, { id: 'sair', label: T('Voltar pelo caminho conhecido') }] },
 ];
 EVENTS.forEach(e => { e.grupo = 1; });
 /* Grupo 2: A Forja Esquecida. Cada evento tem uma escolha segura e uma arriscada. */
 const EVENTS2 = [
-  { id: 'bigorna', grupo: 2, title: 'Bigorna Abandonada', text: 'Uma bigorna ainda quente, com um martelo pendurado num prego. Alguém saiu no meio do serviço.',
-    choices: [{ id: 'cuidado', label: 'Bater com cuidado (+1 de Sucata)' }, { id: 'tudo', label: 'Forjar com tudo (50%: uma arma ou Módulo Raro; 50%: perca 8 de Vida)' }, { id: 'sair', label: 'Deixar o martelo onde está' }] },
-  { id: 'rio', grupo: 2, title: 'Rio de Metal Derretido', text: 'Um rio de ferro líquido corta o salão. Há uma ponte, se dá para chamar aquilo de ponte.',
-    choices: [{ id: 'contornar', label: 'Contornar pelas beiradas (perca 2 de Vida)' }, { id: 'ponte', label: 'Atravessar a ponte instável (60%: +4 de Sucata; 40%: perca 10 de Vida)' }] },
-  { id: 'golem', grupo: 2, title: 'Golem Adormecido', text: 'Um golem enorme dorme encostado na parede. As placas dele valem uma fortuna em sucata.',
-    choices: [{ id: 'desmontar', label: 'Desmontar para Sucata (+5 de Sucata; 50%: ele acorda e você luta)' }, { id: 'sair', label: 'Passar na ponta dos pés' }] },
-  { id: 'altar_fogo', grupo: 2, title: 'Altar do Fogo Eterno', text: 'Uma chama que não consome nada arde sobre uma pedra gravada com runas Azer.',
-    choices: [{ id: 'ouro', label: 'Oferecer 20 de ouro (recupere 10 de Vida)' }, { id: 'vida', label: 'Oferecer 6 de Vida (na próxima luta, comece com +1 de mana máxima)' }, { id: 'sair', label: 'Não mexer com fogo' }] },
-  { id: 'prisioneiro', grupo: 2, title: 'Prisioneiro Azer', text: 'Um Azer acorrentado a uma fornalha fria pede ajuda. O guarda dele, outro Azer, cruza os braços.',
-    choices: [{ id: 'negociar', label: 'Negociar com o guarda (luta social: +4 de Sucata e desconto nas Bancas desta descida)' }, { id: 'sair', label: 'Não se meter' }] },
-  { id: 'vapor', grupo: 2, title: 'Respiro de Vapor', text: 'Uma rachadura no chão solta vapor quente em intervalos regulares. O outro lado parece promissor.',
-    choices: [{ id: 'esperar', label: 'Esperar o intervalo certo (recupere 3 de Vida no calor seco)' }, { id: 'correr', label: 'Correr no meio do vapor (perca 5 de Vida; na próxima luta, comece com 2 cartas a mais)' }] },
+  { id: 'bigorna', grupo: 2, title: T('Bigorna Abandonada'), text: T('Uma bigorna ainda quente, com um martelo pendurado num prego. Alguém saiu no meio do serviço.'),
+    choices: [{ id: 'cuidado', label: T('Bater com cuidado (+1 de Sucata)') }, { id: 'tudo', label: T('Forjar com tudo (50%: uma arma ou Módulo Raro; 50%: perca 8 de Vida)') }, { id: 'sair', label: T('Deixar o martelo onde está') }] },
+  { id: 'rio', grupo: 2, title: T('Rio de Metal Derretido'), text: T('Um rio de ferro líquido corta o salão. Há uma ponte, se dá para chamar aquilo de ponte.'),
+    choices: [{ id: 'contornar', label: T('Contornar pelas beiradas (perca 2 de Vida)') }, { id: 'ponte', label: T('Atravessar a ponte instável (60%: +4 de Sucata; 40%: perca 10 de Vida)') }] },
+  { id: 'golem', grupo: 2, title: T('Golem Adormecido'), text: T('Um golem enorme dorme encostado na parede. As placas dele valem uma fortuna em sucata.'),
+    choices: [{ id: 'desmontar', label: T('Desmontar para Sucata (+5 de Sucata; 50%: ele acorda e você luta)') }, { id: 'sair', label: T('Passar na ponta dos pés') }] },
+  { id: 'altar_fogo', grupo: 2, title: T('Altar do Fogo Eterno'), text: T('Uma chama que não consome nada arde sobre uma pedra gravada com runas Azer.'),
+    choices: [{ id: 'ouro', label: T('Oferecer 20 de ouro (recupere 10 de Vida)') }, { id: 'vida', label: T('Oferecer 6 de Vida (na próxima luta, comece com +1 de mana máxima)') }, { id: 'sair', label: T('Não mexer com fogo') }] },
+  { id: 'prisioneiro', grupo: 2, title: T('Prisioneiro Azer'), text: T('Um Azer acorrentado a uma fornalha fria pede ajuda. O guarda dele, outro Azer, cruza os braços.'),
+    choices: [{ id: 'negociar', label: T('Negociar com o guarda (luta social: +4 de Sucata e desconto nas Bancas desta descida)') }, { id: 'sair', label: T('Não se meter') }] },
+  { id: 'vapor', grupo: 2, title: T('Respiro de Vapor'), text: T('Uma rachadura no chão solta vapor quente em intervalos regulares. O outro lado parece promissor.'),
+    choices: [{ id: 'esperar', label: T('Esperar o intervalo certo (recupere 3 de Vida no calor seco)') }, { id: 'correr', label: T('Correr no meio do vapor (perca 5 de Vida; na próxima luta, comece com 2 cartas a mais)') }] },
 ];
 /* Evento garantido nos andares 7 ou 8: o cofre de Ergos com a engrenagem da Chrome. */
-const COFRE = { id: 'cofre', grupo: 2, title: 'O Cofre de Ergos', text: 'Entre duas bigornas, um cofre pequeno com o brasão do Dragão Amarelo. A fechadura reconhece o seu sangue com um estalo.',
-  choices: [{ id: 'abrir', label: 'Abrir o cofre' }] };
+const COFRE = { id: 'cofre', grupo: 2, title: T('O Cofre de Ergos'), text: T('Entre duas bigornas, um cofre pequeno com o brasão do Dragão Amarelo. A fechadura reconhece o seu sangue com um estalo.'),
+  choices: [{ id: 'abrir', label: T('Abrir o cofre') }] };
 const NOTES = {
-  1: 'Dia 1. O buraco respondeu ao meu sangue como uma porta que reconhece a chave. Felix acha que é má ideia. Felix acha tudo que é interessante má ideia.',
-  2: 'Os cogumelos daqui crescem rápido demais. Se o broto não for cortado na hora, vira problema. Anotei para não esquecer. De novo.',
-  3: 'Achei uma estrutura que solta morcegos sem parar. Quebre o ninho antes de brigar com a revoada. Sim, isso vale para a vida também.',
-  4: 'Algo grande passou por aqui deixando estátuas. Estátuas com cara de surpresa. Não gosto de estátuas com cara de surpresa.',
-  5: 'O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.',
-  6: 'Os golens daqui têm placas. Aço não sente arranhão: só magia passa direto, ou um golpe forte de verdade. Anotei duas vezes, porque esqueci da primeira.',
-  7: 'Os elementais de fogo se consomem sozinhos. Se eu aguentar uns turnos, eles se apagam. Se eu não aguentar, quem se apaga sou eu. Escondi a engrenagem da Chrome num cofre perto das bigornas; devolvo quando voltar. Ela vai cobrar juros.',
-  8: 'Achei um Azer que não tenta me matar. Troca qualquer coisa por sucata e cobra caro de quem chega sem educação. Cheguei sem educação.',
-  9: 'As forjas no meio dos salões alimentam tudo em volta. Quebrar a forja primeiro. Sempre a forja primeiro. Esqueci na hora, claro.',
-  10: 'Lá embaixo o calor some. O que vem depois da forja me assusta de um jeito que nada aqui assustou. Se eu não voltar, Felix, a culpa é do frio, não sua.',
+  1: T('Dia 1. O buraco respondeu ao meu sangue como uma porta que reconhece a chave. Felix acha que é má ideia. Felix acha tudo que é interessante má ideia.'),
+  2: T('Os cogumelos daqui crescem rápido demais. Se o broto não for cortado na hora, vira problema. Anotei para não esquecer. De novo.'),
+  3: T('Achei uma estrutura que solta morcegos sem parar. Quebre o ninho antes de brigar com a revoada. Sim, isso vale para a vida também.'),
+  4: T('Algo grande passou por aqui deixando estátuas. Estátuas com cara de surpresa. Não gosto de estátuas com cara de surpresa.'),
+  5: T('O lagarto olha para o mais forte e o transforma em pedra. Então não seja o mais forte: seja muitos. Se alguém da família estiver lendo isto, já falhei em ser muitos.'),
+  6: T('Os golens daqui têm placas. Aço não sente arranhão: só magia passa direto, ou um golpe forte de verdade. Anotei duas vezes, porque esqueci da primeira.'),
+  7: T('Os elementais de fogo se consomem sozinhos. Se eu aguentar uns turnos, eles se apagam. Se eu não aguentar, quem se apaga sou eu. Escondi a engrenagem da Chrome num cofre perto das bigornas; devolvo quando voltar. Ela vai cobrar juros.'),
+  8: T('Achei um Azer que não tenta me matar. Troca qualquer coisa por sucata e cobra caro de quem chega sem educação. Cheguei sem educação.'),
+  9: T('As forjas no meio dos salões alimentam tudo em volta. Quebrar a forja primeiro. Sempre a forja primeiro. Esqueci na hora, claro.'),
+  10: T('Lá embaixo o calor some. O que vem depois da forja me assusta de um jeito que nada aqui assustou. Se eu não voltar, Felix, a culpa é do frio, não sua.'),
 };
 
 const RunLib = { setGrupo, GRUPOS, grupoDo, MAX_FLOOR, EVENTS2, COFRE, RAR, RARITY, DISCS, poolOf, openPack, openFloorPack, openDiscPack, weightedFrom, eliteChoices, treasureCard, cardFrom, starterCollection, deckList, deckSize, deckProblems, FLOORS, NODE, genMap, EVENTS, NOTES };

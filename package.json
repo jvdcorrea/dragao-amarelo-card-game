@@ -4,7 +4,7 @@
   "description": "Protótipo do card game Dragão Amarelo. Sem dependências de runtime.",
   "scripts": {
     "build": "python3 tools/build.py",
-    "test": "node tests/test.js && node tests/test_pool.js",
+    "test": "node tests/test.js && node tests/test_pool.js && node tests/test_i18n.js",
     "test:greedy": "node tests/greedy.js",
     "test:browser": "python3 tools/build.py && python3 tests/browser/run_all.py",
     "balance": "node tools/balance/encontros.js",

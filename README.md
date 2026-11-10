@@ -15,7 +15,8 @@ O protótipo tem:
 - gestão da guilda: aventureiros e missões, instalações, defesas noturnas, quests e a dívida com o Banco da Coroa;
 - cidade com os seis Mestres, o banco, a Sociedade Mágica e passeios;
 - negociações sociais no mesmo motor da batalha, com deck social próprio;
-- área de playtest: batalha avulsa, negociação avulsa e exportação de log em .zip.
+- área de playtest: batalha avulsa, negociação avulsa e exportação de log em .zip;
+- dois idiomas, português e inglês (P101), com troca nas Configurações.
 
 Campanha e logs ficam no `localStorage` do navegador.
 
@@ -24,6 +25,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | Caminho | Conteúdo |
 |---|---|
 | `index.html` | Protótipo montado (gerado; não editar à mão) |
+| `src/i18n.js`, `src/lang/` | Idiomas (P101): a função `T` e os dicionários; o português fica no código e é a chave |
 | `src/engine.js` | Motor de regras puro: cartas como dados, combate, IA inimiga, registro de eventos |
 | `src/run.js` | Campanha: raridades, boosters, geração do mapa, eventos e notas |
 | `src/ui.js` | Interface: batalha, guilda, mapa, cenas, editor de deck, logs |
@@ -36,7 +38,7 @@ Campanha e logs ficam no `localStorage` do navegador.
 | `tests/` | Testes em Node (partidas simuladas, pool de cartas, bot guloso) e testes de navegador em `tests/browser/` |
 | `tools/balance/`, `tools/economia/` | Simuladores de encontros e da economia da dívida |
 | `CLAUDE.md` | Guia do projeto para o Claude Code |
-| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`) e o grupo 2 (`grupo2.md`) |
+| `docs/` | Design (`design.md`), cartas (`cartas.md`), inimigos (`inimigos.md`), lista de tarefas (`todo.md`), o grupo 2 (`grupo2.md`) e a tradução (`traducao.md`) |
 
 ## Desenvolvimento
 
@@ -46,13 +48,14 @@ Guia completo para desenvolvimento, inclusive com o Claude Code, em [`CLAUDE.md`
 python3 tools/build.py                 # gera index.html
 node tests/test.js                     # partidas simuladas com os decks iniciais, procura erros
 node tests/test_pool.js                # decks aleatórios cobrindo as cartas do pool
+node tests/test_i18n.js                # dicionário inglês contra o código e partidas em inglês
 node tests/greedy.js                   # taxas de vitória de um bot guloso por Disciplina e encontro
 python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 ```
 
 ## Versões dos documentos
 
-Design v0.65, cartas v0.20, inimigos v0.13. Lista de tarefas em `docs/todo.md`.
+Design v0.67, cartas v0.20, inimigos v0.13, tradução v0.3. Lista de tarefas em `docs/todo.md`.
 
 ## Créditos
 

@@ -77,7 +77,7 @@ const FEEL = {
     contornoPx: 2.5,      // contorno em volta dos números, para ler sobre qualquer fundo
     contornoCor: '#fff',
     cores: { dano: '#e5483c', cura: '#3fcf62' },   // Escudo e Blindagem saem como os selos das cartas
-    rotulos: { escudo: 'Escudo', escudoSocial: 'Álibi', bloq: 'Blindagem' },
+    rotulos: { escudo: T('Escudo'), escudoSocial: T('Álibi'), bloq: T('Blindagem') },
   },
   // Mão e cartas em movimento.
   mao: {
