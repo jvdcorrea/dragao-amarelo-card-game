@@ -85,6 +85,7 @@ function finalizeGame(result) {
   if (!st || st.saved) return;
   pushGame(gameRecord(result || (st.over === 'P' ? 'win' : 'loss')));
   st.saved = true; lsDel(LS_CUR);
+  envioAuto();
 }
 function persist() { if (!st || st.saved) return; if (st.over) finalizeGame(); else lsSet(LS_CUR, gameRecord('in_progress')); }
 (function recoverUnfinished() { const cur = lsGet(LS_CUR, null); if (cur) { cur.result = 'abandoned'; pushGame(cur); lsDel(LS_CUR); } ui.nick = lsGet(LS_NICK, ''); })();
@@ -118,15 +119,24 @@ async function deliver(blob, filename) {
   }
   return 'fail';
 }
-async function exportLogs(scope) {
-  const since = lsGet(LS_LASTEXP, null);
+// Conteúdo do log, igual para o download e para o envio. since: só as partidas terminadas depois dessa data.
+// comAtual: inclui a partida em curso (o envio automático não inclui, porque ela ainda vai terminar).
+function logPayload(scope, since, comAtual) {
   let games = lsGet(LS_GAMES, []);
   if (scope === 'novas' && since) games = games.filter(g => g.endedAt > since);
-  const extra = st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
-  const payload = { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', lang: I18N.lang, userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, debt: camp.debt || null, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
-  const json = JSON.stringify(payload);
+  const extra = comAtual && st && !st.saved ? [gameRecord(st.over ? (st.over === 'P' ? 'win' : 'loss') : 'in_progress')] : [];
+  return { format: 'dragao-amarelo-log', version: 1, rules: RULES, exportedAt: new Date().toISOString(), scope: scope || 'tudo', since: scope === 'novas' ? since : null, player: ui.nick || '', playerId: jogadorId(), lang: I18N.lang, userAgent: navigator.userAgent, legend: LEGEND, campaign: camp ? { id: camp.id, name: camp.name || '', cheatUsed: !!camp.cheatUsed, social: camp.social, socialColl: camp.socialColl, quests: camp.quests, debt: camp.debt || null, gold: camp.gold, advs: camp.advs, fac: camp.fac, flags: camp.flags, created: camp.created, startDisc: camp.startDisc, day: camp.day, floor: camp.floor, cleared: camp.cleared, deck: camp.deck, collection: camp.collection, notes: camp.notes, history: camp.history, run: camp.run ? { floor: camp.run.floor, hp: camp.run.hp, visited: camp.run.visited, mochila: camp.run.mochila } : null } : null, oldCampaigns: lsGet(LS_OLD, []), rarity: R.RARITY, cards: Object.fromEntries(Object.entries(E.DEF).map(([id, d]) => [id, { name: d.name, cost: d.cost, type: d.type, atk: d.atk, hp: d.hp, disc: d.disc || 'inimigo', text: d.text }])), games: games.concat(extra) };
+}
+// Nome do arquivo: apelido do jogador ou, sem apelido, o código dele.
+function logBase(sufixo) {
   const slug = (ui.nick || '').normalize('NFD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  const base = `dragao-amarelo-log${slug ? '-' + slug : ''}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${scope === 'novas' ? '-novas' : ''}`;
+  return `dragao-amarelo-log-${slug || jogadorId()}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}${sufixo ? '-' + sufixo : ''}`;
+}
+async function exportLogs(scope) {
+  const since = lsGet(LS_LASTEXP, null);
+  const payload = logPayload(scope, since, true);
+  const json = JSON.stringify(payload);
+  const base = logBase(scope === 'novas' ? 'novas' : '');
   const n = payload.games.length;
   ui.modal = null; toast(T('Preparando o arquivo...'));
   const zip = await makeZip(base + '.json', json);
@@ -136,6 +146,87 @@ async function exportLogs(scope) {
   if (res === 'busy') { toast(T('Já existe uma confirmação de download aberta.')); return; }
   ui.modal = { kind: 'export', json, name: base + '.json', count: n, exportedAt: payload.exportedAt };
   render();
+}
+
+// Envio de logs (P99): um clique manda as partidas novas para uma pasta no Google Drive do autor, por um
+// Google Apps Script (tools/logs/). Sem URL configurada, ou dentro do claude.ai, os botões não aparecem.
+// O envio tem marca própria, separada do download: baixar o arquivo não esconde partidas do envio.
+// URL do App da Web do Apps Script; veja tools/logs/README.md. Os testes trocam por window.DA_LOG_URL ('' desliga).
+const LOG_ENVIO_URL = 'https://script.google.com/macros/s/AKfycbw1DjO9nFATpY-mbkfHZi1MTjbwDL6Wt8RDJhXvQFncvzAMF0oyVdmruqfzSNa20QpaPg/exec';
+const LS_ENVIO = 'dragao-amarelo-ultimo-envio-v1', LS_JOGADOR = 'dragao-amarelo-jogador-id';
+const ENVIO_AUTO_MIN = 10;              // [provisório] no máximo um envio automático a cada 10 minutos
+const ENVIO_MAX = 14 * 1024 * 1024;     // tamanho máximo do arquivo em base64; o script recusa acima disso
+const envio = { ocupado: false, tentativa: 0, erro: null };
+let jogadorIdCache = null;
+function envioUrl() { return typeof window.DA_LOG_URL === 'string' ? window.DA_LOG_URL : LOG_ENVIO_URL; }
+function envioDisponivel() { return !!envioUrl() && !(window.claude && typeof window.claude.use === 'function'); }
+// Código aleatório do jogador, guardado no navegador: identifica os envios de quem não pôs apelido.
+// Some se a pessoa limpar os dados do site ou trocar de navegador.
+function jogadorId() {
+  if (jogadorIdCache) return jogadorIdCache;
+  let id = lsGet(LS_JOGADOR, null);
+  if (!id) {
+    const b = new Uint8Array(4);
+    try { crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < b.length; i++) b[i] = Math.floor(Math.random() * 256); }
+    id = 'j-' + Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    lsSet(LS_JOGADOR, id);
+  }
+  return (jogadorIdCache = id);
+}
+function envioMarca() { return lsGet(LS_ENVIO, null) || {}; }
+function novasParaEnvio() { const since = envioMarca().since; return lsGet(LS_GAMES, []).filter(g => !since || g.endedAt > since).length; }
+function blobB64(blob) {
+  return new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = () => falha(r.error); r.readAsDataURL(blob); });
+}
+// Linha da planilha de resumo: calculada aqui para o script só copiar.
+function resumoEnvio(p) {
+  const g = p.games, c = p.campaign, uniq = a => [...new Set(a)].join(' ');
+  return { partidas: g.length, vitorias: g.filter(x => x.result === 'win').length, derrotas: g.filter(x => x.result === 'loss').length,
+    rules: uniq(g.map(x => x.rules)), modos: uniq(g.map(x => (x.ctx && x.ctx.mode) || 'avulsa')),
+    cheatUsed: !!(c && c.cheatUsed), dia: c ? c.day : null, andar: c ? c.floor : null, ouro: c ? c.gold : null, disc: c ? c.startDisc : null };
+}
+async function enviarLogs(auto) {
+  if (!envioDisponivel() || envio.ocupado) return false;
+  const p = logPayload('novas', envioMarca().since || null, !auto);
+  const n = p.games.length;
+  if (!n) { if (!auto) toast(T('Nenhuma partida nova para enviar.')); return false; }
+  envio.ocupado = true;
+  if (auto) envio.tentativa = Date.now(); else { ui.modal = null; toast(T('Enviando o log...')); }
+  let ok = false, erro = '';
+  try {
+    const json = JSON.stringify(p), base = logBase(auto ? 'auto' : '');
+    const zip = await makeZip(base + '.json', json);
+    const b64 = zip ? await blobB64(zip) : btoa(unescape(encodeURIComponent(json)));
+    if (b64.length > ENVIO_MAX) throw new Error('grande');
+    const corpo = JSON.stringify({ format: 'dragao-amarelo-envio', version: 1, playerId: p.playerId, player: p.player, auto: !!auto, exportedAt: p.exportedAt,
+      resumo: resumoEnvio(p), file: { name: base + (zip ? '.zip' : '.json'), type: zip ? 'zip' : 'json', b64 } });
+    // text/plain evita a pré-consulta de CORS, que o Apps Script não responde.
+    const r = await fetch(envioUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: corpo });
+    const j = await r.json().catch(() => null);
+    ok = !!(j && j.ok); if (!ok) erro = (j && j.erro) || 'HTTP ' + r.status;
+  } catch (e) { erro = e && e.message === 'grande' ? 'grande' : 'rede'; }
+  envio.ocupado = false;
+  if (ok) { lsSet(LS_ENVIO, { since: p.exportedAt, at: new Date().toISOString(), n, auto: !!auto }); envio.erro = null; }
+  else { envio.erro = erro; console.warn('Envio de log falhou:', erro); }
+  if (!auto) toast(ok ? T`Log enviado: ${n} partida${n === 1 ? '' : 's'}. Obrigado!` : erro === 'grande' ? T('O log ficou grande demais para enviar. Use “Exportar log”.') : T('Não deu para enviar agora. Tente de novo mais tarde ou use “Exportar log”.'));
+  else if (ui.screen === 'settings') render();
+  return ok;
+}
+// Envio automático: opcional, nas Configurações. Roda ao fim de cada partida e ao abrir o jogo, no máximo
+// um a cada ENVIO_AUTO_MIN minutos; o que ficar para trás vai no próximo.
+function envioAuto() {
+  if (!prefs.envioAuto || !envioDisponivel() || envio.ocupado) return;
+  if (envio.tentativa && Date.now() - envio.tentativa < ENVIO_AUTO_MIN * 60000) return;
+  if (novasParaEnvio()) enviarLogs(true);
+}
+function envioBtn() { return envioDisponivel() ? `<button class="botao principal" data-act="envio">${T`Enviar log`}</button>` : ''; }
+function quando(iso) { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+function envioConfig() {
+  if (!envioDisponivel()) return '';
+  const m = envioMarca(), on = !!prefs.envioAuto;
+  const ultimo = m.at ? ` ${T`Último envio: ${quando(m.at)}, ${m.n} partida${m.n === 1 ? '' : 's'}${m.auto ? T(' (automático)') : ''}.`}` : '';
+  const falha = envio.erro ? T(' O último envio automático falhou; o jogo tenta de novo depois.') : '';
+  return `<div class="config-item"><div><h2>${T`Envio de logs`}</h2><p>${T`${on ? T('Ligado') : T('Desligado')}. Com ele ligado, as partidas novas vão sozinhas para o autor do jogo, no máximo a cada ${ENVIO_AUTO_MIN} minutos. Vão o apelido (ou o código ${esc(jogadorId())}), o save e as partidas.${ultimo}${falha}`}</p></div><div class="som-controles"><button class="botao ${on ? '' : 'principal'}" data-act="envio-auto" aria-pressed="${on}">${on ? T('Desligar envio automático') : T('Ligar envio automático')}</button></div></div>`;
 }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -174,12 +265,7 @@ function renderSetup() {
     <section class="escolha"><h2>${T`Disciplina`}</h2><div class="grade-disc">${discs}</div></section>
     <section class="escolha"><h2>${T`Encontro`}</h2>${encs}</section>
     <div class="acoes-setup"><button class="botao principal" data-act="start" ${ui.disc && ui.enc ? '' : 'disabled'}>${T`Descer`}</button></div>
-    <section class="escolha logs"><h2>${T`Log de partidas`}</h2>
-      <p class="intro">${T`Cada partida fica guardada neste navegador. Exporte o arquivo para analisar depois.`}</p>
-      <div class="linha-logs"><label for="apelido">${T`Apelido no log`}</label><input id="apelido" type="text" maxlength="40" value="${esc(ui.nick)}" placeholder="${T`ex.: Sanerion`}" autocomplete="off">
-      <button class="botao" data-act="export">${T`Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})`}</button>
-      <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>${T`Apagar logs`}</button></div>
-    </section>
+    ${logsHtml()}
     <details class="regras"><summary>${T`Como jogar`}</summary><ul>
       <li>${T`Você sempre começa. A mana sobe 1 por turno, até 10.`}</li>
       <li>${T`Toque numa carta da mão para jogá-la. Se ela precisar de alvo, toque no alvo destacado.`}</li>
@@ -278,6 +364,7 @@ function centerBar() {
   let msg, cancel = false, cls = '';
   if (st.over) msg = st.over === 'P' ? (SOC() ? T('Acordo fechado.') : T('Vitória.')) : (SOC() ? T('Negociação perdida.') : T('Derrota.'));
   else if (st.pending && st.pending.kind === 'mulligan') msg = T('Escolha sua mão inicial.');
+  else if (ui.auto && ui.busy) msg = SOC() ? T('Pressão total.') : T('Ataque total.');
   else if (ui.busy || st.turnSide === 'E') { msg = T`Vez de ${O().leader.name}.`; cls = 'inimigo-vez'; }
   else if (ui.mode) {
     cancel = true;
@@ -318,7 +405,7 @@ function panelP() {
     ${weapon}${traps}
     <span class="conta">${T`Deck ${p.deck.length}`}</span>
     ${pend.length ? `<p class="pendente">${esc(pend.join('; '))}.</p>` : ''}
-    </div><button class="selo-turno" data-act="end" ${endOk ? '' : 'disabled'}>${T`Encerrar turno`}</button>
+    </div><div class="turno-botoes"><button class="botao ataque-total" data-act="total" ${endOk && E.totalAttackNext(st, 'P') ? '' : 'disabled'} title="${SOC() ? T('Seus Argumentos prontos pressionam a Compostura do oponente, ou o primeiro com Guarda, da esquerda para a direita') : T('Suas unidades prontas atacam a vida do oponente, ou o primeiro com Guarda, da esquerda para a direita')}">${SOC() ? T('Pressão total') : T('Ataque total')}</button><button class="selo-turno" data-act="end" ${endOk ? '' : 'disabled'}>${T`Encerrar turno`}</button></div>
   </section>`;
 }
 
@@ -422,7 +509,7 @@ function overPanel() {
     <h2 id="res-t">${win ? (SOC() ? T('Acordo fechado') : T('Vitória')) : (SOC() ? T('Negociação perdida') : T('Derrota'))}</h2>
     <p>${SOC() ? (win ? T`${esc(O().leader.name)} cedeu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Compostura.` : T`Você perdeu a compostura no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Resistência.`) : (win ? T`${esc(O().leader.name)} caiu no seu turno ${P().turnCount}, com você a ${P().leader.hp} de Vida.` : T`Você caiu no turno ${P().turnCount}. ${esc(O().leader.name)} ficou com ${Math.max(0, O().leader.hp)} de Vida.`)}</p>
     ${win && st.ctx && st.ctx.mode === 'run' && camp && camp.run && camp.run.inBattle ? `<p class="destaque">${T`Recompensa: +${camp.run.inBattle.gold || 0} de ouro.`}</p>` : ''}
-    ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? `<div class="opcoes"><button class="botao principal" data-act="${{ defesa: 'def-continue', social: 'soc-continue', passeio: 'pas-continue' }[st.ctx.mode] || 'run-continue'}">${T`Continuar`}</button><button class="botao" data-act="close-over">${T`Ver a mesa`}</button><button class="botao" data-act="export">${T`Exportar log`}</button></div>` : ''}<div class="opcoes" ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? 'hidden' : ''}><button class="botao principal" data-act="again">${T`Jogar de novo`}</button><button class="botao" data-act="setup">${T`Mudar escolhas`}</button><button class="botao" data-act="close-over">${T`Ver a mesa`}</button><button class="botao" data-act="export">${T`Exportar log`}</button></div>
+    ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? `<div class="opcoes"><button class="botao principal" data-act="${{ defesa: 'def-continue', social: 'soc-continue', passeio: 'pas-continue' }[st.ctx.mode] || 'run-continue'}">${T`Continuar`}</button><button class="botao" data-act="close-over">${T`Ver a mesa`}</button>${envioBtn()}<button class="botao" data-act="export">${T`Exportar log`}</button></div>` : ''}<div class="opcoes" ${st.ctx && ['run', 'defesa', 'social', 'passeio'].includes(st.ctx.mode) ? 'hidden' : ''}><button class="botao principal" data-act="again">${T`Jogar de novo`}</button><button class="botao" data-act="setup">${T`Mudar escolhas`}</button><button class="botao" data-act="close-over">${T`Ver a mesa`}</button>${envioBtn()}<button class="botao" data-act="export">${T`Exportar log`}</button></div>
   </div></div>`;
 }
 function modalHtml() {
@@ -606,9 +693,9 @@ function floorFailed(why) {
 
 function logsHtml(inner) {
   return `<section class="${inner ? 'logs-interno' : 'escolha logs'}"><h${inner ? 3 : 2}>${T`Log de partidas`}</h${inner ? 3 : 2}>
-    <p class="intro">${T`Cada partida fica guardada neste navegador. Exporte o arquivo para analisar depois.`}</p>
+    <p class="intro">${T`Cada partida fica guardada neste navegador. ${envioDisponivel() ? T`“Enviar log” manda as partidas novas para o autor do jogo com um clique. O apelido é opcional: sem ele, o log vai com o seu código, ${esc(jogadorId())}. ${prefs.envioAuto ? T('O envio automático está ligado.') : T('Nas Configurações dá para ligar o envio automático.')}` : T('Exporte o arquivo para analisar depois.')}`}</p>
     <div class="linha-logs"><label for="apelido">${T`Apelido no log`}</label><input id="apelido" type="text" maxlength="40" value="${esc(ui.nick)}" placeholder="${T`ex.: Sanerion`}" autocomplete="off">
-    <button class="botao" data-act="export">${T`Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})`}</button>
+    ${envioBtn()}<button class="botao" data-act="export">${T`Exportar log (${logCount()} partida${logCount() === 1 ? '' : 's'})`}</button>
     <button class="botao" data-act="clear-logs" ${logCount() ? '' : 'disabled'}>${T`Apagar logs`}</button></div></section>`;
 }
 function gearBtn() { return `${somBtn('alto-falante')}<button class="engrenagem" data-act="settings" aria-label="${T`Configurações`}" title="${T`Configurações`}">${iconSvg(typeof ART !== 'undefined' ? ART.ui.engrenagem : null) || '⚙'}</button>`; }
@@ -828,8 +915,8 @@ function guildScene(sc) {
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
   if (sc.kind === 'banca') return bancaScene(sc);
-  if (sc.kind === 'odie-chega') return `<h2>${T`Recado da Chrome`}</h2><p>${T`Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?`}</p></div><p class="intro-dica">${T`A Ferraria pode ser reconstruída nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Bem-vindo, Odie`}</button></div>`;
-  if (sc.kind === 'odie-ferraria') return `<h2>${T`A Ferraria acesa`}</h2><p>${T`A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.`}</p><p>${T`Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.`}</p></div><p class="intro-dica">${T`Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Ao trabalho`}</button></div>`;
+  if (sc.kind === 'odie-chega') return `${HAS_IMG('odie') ? ('<div class="npc-arte" role="img" aria-label="' + T('Odie, o Gato Artífice, na Ferraria') + '" style="background-image: var(--img-odie)"></div>') : ''}<h2>${T`Recado da Chrome`}</h2><p>${T`Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?`}</p></div><p class="intro-dica">${T`A Ferraria pode ser reconstruída nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Bem-vindo, Odie`}</button></div>`;
+  if (sc.kind === 'odie-ferraria') return `${HAS_IMG('odie') ? ('<div class="npc-arte" role="img" aria-label="' + T('Odie, o Gato Artífice, na Ferraria') + '" style="background-image: var(--img-odie)"></div>') : ''}<h2>${T`A Ferraria acesa`}</h2><p>${T`A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.`}</p><p>${T`Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.`}</p></div><p class="intro-dica">${T`Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Ao trabalho`}</button></div>`;
   if (sc.kind === 'kryoret-treino') return `${HAS_IMG('kryoret') ? ('<div class="npc-arte" role="img" aria-label="' + T('Kryoret') + '" style="background-image: var(--img-kryoret)"></div>') : ''}<h2>${T`Uma visita da Forja`}</h2><p>${T`Kryoret aparece na porta da guilda com uma caixa de ferramentas nas costas e fuligem até as sobrancelhas.`}</p><div class="fala"><span class="quem">${T`Kryoret`}</span><p>${T`Ignar apagou, e a Forja ficou quieta demais. Lembrei de uma conversa com o seu tio: ele queria um pátio de treino aqui atrás. Nunca tivemos tempo.`}</p><p>${T`Eu construo. Cento e cinquenta de ouro, e é preço de amigo. Um dos seus vira instrutor, e todo o resto melhora.`}</p></div><div class="opcoes"><button class="botao principal" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>${T`Aceitar (150 de ouro)`}</button><button class="botao" data-act="g-ok-pend">${T`Depois (a oferta fica nas Instalações)`}</button></div>`;
   if (sc.kind === 'run-msg') return `<h2>${esc(sc.title)}</h2><p>${esc(sc.text)}</p><div class="opcoes"><button class="botao principal" data-act="${sc.back === 'banca' ? 'g-banca-back' : 'scene-ok'}">${T`Continuar`}</button></div>`;
   if (sc.kind === 'felix-divida') return felixDebtScene();
@@ -1655,7 +1742,7 @@ function renderCredits() {
     <p>${T`Os ${total} ícones das cartas, dos inimigos e do mapa vêm do`} <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>${T`, sob a licença`} <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">${T`Creative Commons Atribuição 3.0 (CC BY 3.0)`}</a>${T`. Alterações: os ícones foram recoloridos, simplificados e combinados com fundos gerados pelo jogo.`}</p>
     <ul>${lista}</ul>
     <h2>${T`Ilustrações`}</h2>
-    <p>${T`A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade) e de Kryoret, o Azer da banca (Forja Esquecida) são ilustrações do projeto, enviadas pelo autor do jogo.`}</p>
+    <p>${T`A fachada da guilda (tela inicial), Felix no balcão (introdução), a sala de guerra (guilda) e os retratos dos Mestres Chrome, Gun'Liao, Charles Goodwich, Mikeus, Yaven e Ko, além da arquivista Lerael Vane (cidade), de Kryoret, o Azer da banca (Forja Esquecida), e de Odie, o Gato Artífice (Ferraria), são ilustrações do projeto, enviadas pelo autor do jogo.`}</p>
     <h2>${T`Fontes e bibliotecas`}</h2>
     <p>${T`Fontes Alegreya e Alegreya Sans, de Juan Pablo del Peral (Huerta Tipográfica), sob a`} <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License</a>${T`, servidas pelo Google Fonts. Compactação dos logs com`} <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a>${T`, de Stuart Knightley e colaboradores, sob a licença MIT. Áudio com`} <a href="https://howlerjs.com" target="_blank" rel="noopener">howler.js</a>${T`, de James Simpson (GoldFire Studios), sob a licença MIT.`}</p>
     <h2>${T`Sons`}</h2>
@@ -1791,13 +1878,29 @@ async function cheatClick(act) {
   if (act === 'ch-adv-up') { camp.advs.forEach(a => { if (a.lvl < 5) { a.lvl += 1; a.xp = 0; } }); return done(T('Todos os aventureiros subiram um nível.'), 'nível aventureiros'); }
   return false;
 }
+// Animações (P94, fase 6): quatro modos; sem escolha salva, segue o prefers-reduced-motion do sistema.
+const ANIM_MODOS = [
+  ['normal', T('Normal'), T('Todas as animações, na velocidade normal.')],
+  ['rapida', T('Rápida'), T('As mesmas animações, no dobro da velocidade.')],
+  ['instantanea', T('Instantânea'), T('Sem animações: o resultado aparece na hora, com som.')],
+  ['desligada', T('Sem movimento'), T('Nada se move: os números aparecem no lugar e as unidades mortas só esmaecem.')],
+];
+function animConfig() {
+  const modo = animModo(), atual = ANIM_MODOS.find(m => m[0] === modo) || ANIM_MODOS[0];
+  const auto = !prefs.anim;
+  const botoes = ANIM_MODOS.map(([id, nome]) => `<button class="botao ${id === modo ? 'principal' : ''}" data-act="anim-${id}" aria-pressed="${id === modo}">${nome}</button>`).join('');
+  return `<div class="config-item"><div><h2>${T`Animações`}</h2><p>${esc(atual[2])}${auto ? ` ${T`Seguindo o sistema${reduced() ? T(', que pede menos movimento') : ''}.`}` : ''}</p></div><div class="som-controles" role="group" aria-label="${T`Modo de animação`}">${botoes}${auto ? '' : ('<button class="botao" data-act="anim-auto">' + T('Seguir o sistema') + '</button>')}</div></div>`;
+}
+function setAnim(m) { if (m === 'auto') delete prefs.anim; else prefs.anim = m; savePrefs(); render(); }
 function renderSettings() {
   $('#app').innerHTML = `<header class="abertura"><h1>${T`Configurações`}</h1></header>
   <section class="cena config">
     <div class="config-item"><div><h2>Idioma · Language</h2><p>${T`Trocar o idioma recarrega a página. A campanha continua salva.`}</p></div><div class="opcoes">${Object.entries(I18N.IDIOMAS).map(([l, nome]) => `<button class="botao" data-act="idioma-${l}" lang="${l === 'pt' ? 'pt-BR' : l}" aria-pressed="${I18N.lang === l}">${nome}</button>`).join('')}</div></div>
     <div class="config-item"><div><h2>${T`Créditos`}</h2><p>${T`Autores dos ícones, fontes e bibliotecas.`}</p></div><button class="botao" data-act="credits">${T`Ver créditos`}</button></div>
     <div class="config-item"><div><h2>${T`Som`}</h2><p>${Som.ativo() ? T('Volumes separados para efeitos e música. A tecla M liga e desliga o som em qualquer tela.') : T('O áudio não carregou neste navegador.')}</p></div><div class="som-controles"><label>${T`Efeitos`} <input id="vol-efeitos" type="range" min="0" max="100" step="5" value="${Math.round(prefs.efeitos * 100)}"></label><label>${T`Música`} <input id="vol-musica" type="range" min="0" max="100" step="5" value="${Math.round(prefs.musica * 100)}"></label><button class="botao" data-act="som-mudo" aria-pressed="${!!prefs.mudo}">${prefs.mudo ? T('Ligar o som') : T('Desligar o som')}</button></div></div>
+    ${animConfig()}
     <div class="config-item"><div><h2>${T`Palavras-chave na mesa`}</h2><p>${T`Molduras e ícones mostram Guarda, Escudo, Blindagem, Emboscada, Letal, Imóvel e Ao Morrer. Por extenso, as peças também escrevem o nome de cada uma, bom para quem está aprendendo.`}</p></div><button class="botao" data-act="kw-texto" aria-pressed="${!!prefs.kwTexto}">${prefs.kwTexto ? T('Por extenso: ligado') : T('Por extenso: desligado')}</button></div>
+    ${envioConfig()}
     <div class="config-item"><div><h2>${T`Códigos secretos`}</h2><p>${cheats.unlocked ? T('Modo de testes liberado.') : T('Tem um código? Digite aqui.')}</p></div><div class="cheat-codigo"><label class="sr" for="codigo">${T`Código`}</label><input id="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${T`Código`}"><button class="botao" data-act="code">${T`Usar`}</button>${cheats.unlocked ? ('<button class="botao" data-act="cheats">' + T('Menu de testes') + '</button>') : ''}</div></div>
     <div class="config-item perigo"><div><h2>${T`Apagar save`}</h2><p>${camp ? T('Apaga a campanha: nome, coleção, deck e progresso. Os logs de partidas continuam guardados para exportação.') : T('Não há jogo salvo.')}</p></div><button class="botao" data-act="save-delete" ${camp ? '' : 'disabled'}>${T`Apagar save`}</button></div>
     <div class="linha-logs"><button class="botao principal" data-act="settings-back">${T`Voltar`}</button></div>
@@ -1924,6 +2027,7 @@ async function runClick(ds) {
   if (act === 'som-mudo') { toggleMute(); render(); return true; }
   if (act === 'kw-texto') { prefs.kwTexto = !prefs.kwTexto; savePrefs(); render(); return true; }
   if (act && act.startsWith('idioma-')) { const l = act.slice(7); if (l !== I18N.lang && I18N.IDIOMAS[l]) { prefs.lang = l; savePrefs(); location.reload(); } return true; }
+  if (act && act.startsWith('anim-') && (act === 'anim-auto' || ANIM_MODOS.some(m => 'anim-' + m[0] === act))) { setAnim(act.slice(5)); return true; }
   if (act && act.startsWith('g-') && camp && await guildClick(act, ds)) return true;
   if (act === 'def-continue') { finalizeGame(); defenseDone(); return true; }
   if (act === 'soc-continue') { finalizeGame(); socialDone(); return true; }
@@ -2082,6 +2186,20 @@ function runTarget(ref) {
 }
 function inTargets(ref) { return ui.mode && ui.mode.targets && ui.mode.targets.some(r => E.sameRef(r, ref)); }
 
+// Ataque total: um ataque por vez, cada um esperando as animações do anterior, como no turno inimigo.
+function totalAttack() {
+  if (ui.busy || st.turnSide !== 'P' || st.over || st.pending || !E.totalAttackNext(st, 'P')) return;
+  ui.mode = null; ui.busy = true; ui.auto = true;
+  const delay = FEEL.tempo.passoInimigo[animModo()];
+  const fim = () => { ui.busy = false; ui.auto = false; afterAction(); };
+  const step = () => {
+    const n = st && E.totalAttackNext(st, 'P');
+    if (!n || !E.attack(st, 'P', n.uid, n.ref)) { fim(); return; }
+    render();
+    Fx.idle().then(() => setTimeout(step, delay));
+  };
+  step();
+}
 function endPlayerTurn() {
   if (ui.busy || st.turnSide !== 'P' || st.over || st.pending) return;
   ui.mode = null;
@@ -2127,6 +2245,8 @@ document.addEventListener('click', async ev => {
   if (ds.act === 'export') { openExport(); return; }
   if (ds.act === 'export-novas') { exportLogs('novas'); return; }
   if (ds.act === 'export-tudo') { exportLogs('tudo'); return; }
+  if (ds.act === 'envio') { enviarLogs(false); return; }
+  if (ds.act === 'envio-auto') { prefs.envioAuto = !prefs.envioAuto; savePrefs(); render(); if (prefs.envioAuto) envioAuto(); return; }
   if (ds.act === 'close-modal') { ui.modal = null; render(); return; }
   if (ds.act === 'copy-log') {
     const ta = $('.export-txt'); if (ta) { ta.focus(); ta.select(); }
@@ -2161,6 +2281,7 @@ document.addEventListener('click', async ev => {
   if (act === 'cancel') { ui.mode = null; render(); return; }
   if (act === 'confirm-play') { if (ui.mode && ui.mode.kind === 'confirm') { const i = ui.mode.idx; ui.mode = null; await startPlay(i); } return; }
   if (act === 'end') { endPlayerTurn(); return; }
+  if (act === 'total') { totalAttack(); return; }
   if (act === 'resonate') {
     if (ui.mode && ui.mode.kind === 'resonate') { ui.mode = null; render(); return; }
     if (E.canResonate(st, 'P')) { ui.mode = { kind: 'resonate' }; render(); }
@@ -2238,4 +2359,5 @@ if (camp) { ensureGuild(); saveCamp(); }
 document.documentElement.lang = I18N.lang === 'pt' ? 'pt-BR' : I18N.lang; document.title = T('Dragão Amarelo: protótipo de batalha');
 if (typeof IMG !== 'undefined') for (const [k, v] of Object.entries(IMG)) document.documentElement.style.setProperty('--img-' + k, `url("${v}")`);
 render();
+setTimeout(envioAuto, 5000);   // envia o que ficou da sessão anterior, se o envio automático estiver ligado
 })();

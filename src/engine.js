@@ -625,6 +625,20 @@ function attackTargets(st, side, attacker) {
   if (!guards.length && canHitFace(st, attacker)) refs.push({ t: 'l', side: o });
   return refs;
 }
+// Ataque total: o próximo ataque da fila, ou null. As unidades prontas atacam da esquerda para a direita; com Guarda
+// no campo inimigo, o alvo é o Guarda mais à esquerda; sem Guarda, a vida do líder. Quem não alcança a vida
+// (Avanço no turno em que entrou) e não tem Guarda para atacar fica parado.
+function totalAttackNext(st, side) {
+  if (st.over || st.pending || st.turnSide !== side) return null;
+  for (const a of S(st, side).board) {
+    if (!canAttack(st, a)) continue;
+    const ts = attackTargets(st, side, a);
+    const guarda = ts.find(r => { const e = r.t === 'e' ? ent(st, r) : null; return e && e.kind === 'unit' && hasKw(e, 'guarda'); });
+    const t = guarda || ts.find(r => r.t === 'l');
+    if (t) return { uid: a.uid, ref: t };
+  }
+  return null;
+}
 function canPlay(st, side, idx) {
   const sd = S(st, side); const inst = sd.hand[idx];
   if (!inst) return { ok: false, reason: T('Carta inválida.') };
@@ -1088,7 +1102,7 @@ const SOCIAL_POOL = {
 const Engine = {
   DEF, DISC, ENC, NEUTRAL_STARTER, BOARD_MAX, HAND_MAX, BLIND, setBlindRule, summon, dmg, SOCIAL_NEUTRAL_STARTER, SOCIAL_INTRO, SOCIAL_POOL,
   newGame, mulligan, keepHand, nextMulliganSize, canPlay, playCard, attack, heroAttack, canHeroAttack, resonate, canResonate, endTurn,
-  resolvePrever, enemyStep, validTargets, attackTargets, canAttack, getCost, getAtk, hasKw, isDead,
+  resolvePrever, enemyStep, validTargets, attackTargets, totalAttackNext, canAttack, getCost, getAtk, hasKw, isDead,
   compassoPos, ent, S, sameRef, despertar,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = Engine;

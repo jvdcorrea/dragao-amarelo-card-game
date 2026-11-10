@@ -124,7 +124,9 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - [x] Fase 3: números flutuantes sobre o alvo (dano em vermelho, cura em verde, Escudo e Blindagem em azul, por extenso). A vida mostrada volta ao valor de antes e muda no impacto; a barra do líder desce ou sobe junto. Cura dá um brilho verde em volta do número de vida.
 - [x] Fase 4: cartas na mão. A carta sob o mouse sobe, cresce e inclina seguindo o cursor, com um reflexo. A carta jogada voa num arco até a peça nova (que pousa com um aperto), até o alvo ou até a arma. Cartas compradas chegam à mão em sequência; cartas e peças que mudam de lugar deslizam, e as peças só deslizam quando o morto some. Peças do inimigo e criadas por efeito caem no lugar.
 - [x] Fase 5: música ambiente em loop por estado (menu, mapa da dungeon, combate, chefe, negociação), com troca suave de 1,4 s. A faixa que sai fica em pausa e continua de onde parou ao voltar. Placeholders em `assets/audio/music/`.
-- [ ] Fase 6: configurações de animação (1x, 2x, instantâneo, desligado).
+- [x] Fase 6: modos de animação nas Configurações (Normal, Rápida, Instantânea, Sem movimento), com a opção de seguir o sistema. Teste de navegador em `tests/browser/test_anim.py`.
+- [x] O bot dos testes (`helpers.END`) reconhece o fim da batalha avulsa (“Jogar de novo” visível); antes ele girava até 500 voltas e a aba caía. O `test_anim` usa a mesma página para o teste com menos movimento (uma página nova abria sem o save).
+- *Decisões minhas para revisar (fase 6):* o modo desligado aparece como “Sem movimento”; sem escolha salva, segue o `prefers-reduced-motion` e a tela diz isso; o botão “Seguir o sistema” só aparece depois de uma escolha; no modo Rápido, a carta sob o mouse também sobe no dobro da velocidade; não há atalho de teclado nem botão na batalha (só pelas Configurações).
 - [ ] A cópia no claude.ai não tem a pasta `assets/audio/` e fica sem som. Decidir se os sons vão embutidos nela.
 - *Decisões minhas para revisar (fase 5):* cinco estados de música; Elites e defesas usam a faixa de combate; Configurações, Créditos e menu de testes não trocam a faixa; ao voltar a um estado, a música continua de onde parou; a música só começa depois do primeiro clique (regra dos navegadores).
 - [ ] Ideias de áudio para depois: vinheta curta de vitória e derrota, música que abaixa sob falas importantes (ducking), música que pausa com a aba escondida.
@@ -133,10 +135,19 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 - *Decisões minhas para revisar (fase 2):* Escudo e Blindagem dão um flash mais fraco; cura não pisca; a pausa entre ações do inimigo passou de 650 ms para 500 ms, mais o tempo das animações; com prefers-reduced-motion, nada se move e as unidades mortas só esmaecem.
 - *Decisões minhas para revisar (fase 1):* compras do inimigo não tocam som; até 2 cópias do mesmo som por ação; dano de 5 ou mais toca o impacto forte; a negociação social usa os mesmos sons; botão de som ao lado da engrenagem e na faixa da batalha.
 
+## Ataque total (P98)
+
+- [x] Botão “Ataque total” ao lado de “Encerrar turno”: as unidades prontas atacam a vida do oponente, ou o Guarda mais à esquerda até ele cair.
+- *Decisões minhas para revisar:* atacantes da esquerda para a direita; a arma do protagonista não entra; unidade com Avanço recém-jogada fica parada quando não há Guarda; na negociação o botão se chama “Pressão total”; não há confirmação antes de atacar nem atalho de teclado; no celular o botão fica em cima do selo de encerrar o turno.
+
 ## Pendências da leva P92
 
-- [ ] Envio automático de logs (estudo: banco do artefato, Google Apps Script ou Firebase).
-- [ ] Retrato do Odie.
+- [x] Envio de logs (P99): botão “Enviar log”, envio automático opcional, código do jogador e receptor em Apps Script (`tools/logs/`). Teste em `tests/browser/test_envio.py`.
+- [x] Receptor publicado (07/11) e URL em `LOG_ENVIO_URL`, no `src/ui.js`.
+- [x] Conferido com o receptor real: o navegador lê a resposta do Apps Script, inclusive abrindo a página por `file://`. Ficou um envio de teste (“TESTE (pode apagar)”, código `j-teste000`) na pasta e na planilha.
+- [ ] Primeiro envio de um playtester de verdade, pelo GitHub Pages.
+- *Decisões minhas para revisar (P99):* intervalo mínimo de 10 minutos entre envios automáticos; o automático também roda ao abrir o jogo; o botão fica na área de logs e na janela de resultado; o texto diz “o autor do jogo”; limite de 14 MB por envio e 30 envios por hora por código; os botões somem na cópia do claude.ai.
+- [x] Retrato do Odie, nas cenas da chegada e da Ferraria acesa.
 
 ## Decisões minhas que valem revisão
 

@@ -165,6 +165,8 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   border: 4px double color-mix(in srgb, var(--ouro-tinta) 45%, transparent); box-shadow: 0 3px 8px var(--sombra);
 }
 .selo-turno:disabled { filter: grayscale(.9); opacity: .55; cursor: not-allowed; }
+.turno-botoes { display: flex; gap: 10px; align-items: center; }
+.ataque-total { white-space: nowrap; }
 
 .mao { display: flex; gap: 8px; overflow-x: auto; padding: 10px 4px 6px; }
 .carta {
@@ -294,10 +296,13 @@ h1, h2, h3, .nome, .lider-nome, .opcao-nome, .selo-turno { font-family: "Alegrey
   .carta .texto { font-size: .76rem; }
   .peca { width: 86px; min-width: 86px; height: 108px; }
   .selo-turno { width: 82px; height: 82px; font-size: .92rem; }
+  .turno-botoes { flex-direction: column; gap: 6px; }
   .barra { width: 80px; }
 }
 /* Sem animação (P94): o modo vem das Configurações e, sem escolha, do prefers-reduced-motion */
 :root[data-anim="desligada"] *, :root[data-anim="instantanea"] * { transition: none !important; animation: none !important; }
+/* Rápida: a carta sob o mouse também sobe no dobro da velocidade */
+:root[data-anim="rapida"] .carta, :root[data-anim="rapida"] .carta::after { transition-duration: .07s !important; }
 
 /* Arte provisória: ícones game-icons.net (CC BY 3.0) sobre fundos gerados */
 .arte { display: block; position: relative; height: 46px; border-radius: 6px; margin: 1px 0 2px; overflow: hidden; flex-shrink: 0;

@@ -61,11 +61,12 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/
 | `src/vendor/howler.core.min.js` | Howler 2.2.4 (MIT), embutido pelo build. |
 | `assets/audio/sfx/`, `assets/audio/music/` | Sons e músicas `<nome>_<n>.ogg` ou `.wav`. Placeholders: `python3 tools/audio/placeholders.py`. Autoria no `CREDITS.md`. A música de cada tela sai de `estadoMusica()` no `ui.js`. |
 | `src/art.js` | Ícones das cartas, inimigos e mapa. **Gerado** por `tools/arte/gen.py`. |
-| `src/img/*.webp` | Ilustrações (guilda, Felix, sala de guerra, Mestres, Lerael, Kryoret). O build embute em base64. |
 | `tools/i18n/lexer.js` | Lexer de JavaScript usado pelo `tests/test_i18n.js` para achar os `T(...)` do código. |
+| `src/img/*.webp` | Ilustrações (guilda, Felix, sala de guerra, Mestres, Lerael, Kryoret, Odie). O build embute em base64. |
 | `tools/build.py` | Junta `src/` num `index.html` único (imagens viram variáveis CSS `--img-<nome>`). |
 | `tools/arte/` | `map.py` (carta ou inimigo para ícone) e `gen.py` (gera `src/art.js` a partir do repositório game-icons). |
 | `tools/balance/`, `tools/economia/` | Simuladores de balanceamento. |
+| `tools/logs/` | Receptor dos logs enviados pelo jogo (Google Apps Script, P99) e o passo a passo para publicar. |
 | `tests/` | Testes do motor em Node e testes de navegador com Playwright (`tests/browser/`). |
 | `docs/` | Documentos de design. Veja a seção Documentos. |
 
@@ -109,7 +110,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/
 - **Diálogos:** `MESTRE_INFO` (Mestres) e `NPC_INFO` (Lerael, Banco, Felix). Cada opção pode ter condições (`requires, after + laterDay, met, reqOther, needBoss, needFlag, notFlag, once`) e efeitos (`rot` para texto em rodízio, `dyn` para resposta calculada, `quest`, `questDone`, `gold`, `always`). Linhas que começam com `>` viram narração. O selo “!” de falas novas vem de `hasNewTalk()`.
 - **Outros sistemas:** `ATIV` (passeios na cidade), `BANCA` (vantagens do Kryoret por Sucata), `FAC` (instalações), `FELIX_TIPS` (dicas por encontro), `CODES` e `CHEATS` (menu de testes).
 - **Menu de testes:** em Configurações, o código `SanerionTestMode1337` (sem diferença de maiúsculas) libera o menu. Campanhas que usam o menu ficam marcadas com `cheatUsed` no log.
-- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. Use o Chromium do Playwright (`python -m playwright install chromium`), não o Chrome do sistema via `CHROME_PATH`: com ele, em sessões longas a aba parava de rodar os temporizadores e caía. O navegador dos testes abre sem saída de áudio; `TESTE_SEM_SOM=1` esconde o Howler para testar o jogo sem som. No Windows, rode com `PYTHONUTF8=1`.
+- **Testes de navegador** usam `Engine.ENC[...]` mutável para enfraquecer inimigos e atravessar andares rápido; isso só vale dentro do teste. O envio de logs vai para o Drive de verdade: teste que clica em “Enviar log” precisa trocar a URL com `window.DA_LOG_URL` (veja `test_envio.py`; `''` desliga). Use o Chromium do Playwright (`python -m playwright install chromium`), não o Chrome do sistema via `CHROME_PATH`: com ele, em sessões longas a aba parava de rodar os temporizadores e caía. O navegador dos testes abre sem saída de áudio (`--disable-audio-output` em `helpers.launch`); `TESTE_SEM_SOM=1` esconde o Howler para testar o jogo sem som. No Windows, rode com `PYTHONUTF8=1`. O jogo abre em português; `test_ingles.py` grava `lang: en` nas preferências antes de abrir.
 
 ## Checklists
 
@@ -146,8 +147,8 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/
 
 ## Logs de playtest
 
-Os jogadores exportam um `.zip` na área de Playtest da guilda. Dentro, um JSON com:
-- **Identificação:** `player` (apelido) e `scope` (todas as partidas ou só as novas).
+Os jogadores exportam um `.zip` na área de Playtest da guilda ou, com a URL do receptor configurada (`LOG_ENVIO_URL` no `ui.js`), enviam com “Enviar log” para a pasta “Dragão Amarelo · logs” no Google Drive do João, com uma linha na planilha de resumo (P99, `tools/logs/`). Dentro, um JSON com:
+- **Identificação:** `player` (apelido, opcional), `playerId` (código aleatório do navegador, `j-` e 8 caracteres) e `scope` (todas as partidas ou só as novas).
 - **`games`:** cada partida, com `enc, disc, result, rules, turns, hp, events, ctx`. `ctx.mode` vale `run`, `defesa`, `social` ou `avulsa`.
 - **`campaign`:** o save inteiro, com `history`, `debt`, `quests` e `cheatUsed`.
 
@@ -161,8 +162,8 @@ O `index.html` montado e commitado na `main` é servido pelo GitHub Pages em `ht
 
 Pendências principais (detalhes em `docs/todo.md`):
 - Calibrar a economia com uma campanha sem o menu de testes.
-- Envio automático de logs. Opções estudadas: banco de dados do artefato no claude.ai, Google Apps Script para o GitHub Pages, Firebase.
-- Retrato do Odie e a recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
+- Envio de logs no ar (P99): acompanhar os primeiros envios reais na planilha de resumo.
+- Recompensa final da quest da Chrome (hoje 100 de ouro, provisória).
 - Playtests humanos do grupo 2.
 - Grupo 3: o frio e o resgate de Ergos.
 - Draconic segue mais forte que as outras Disciplinas nos testes.
