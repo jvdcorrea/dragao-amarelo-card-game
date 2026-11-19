@@ -170,6 +170,10 @@ g2('martelo_forja', { name: T('Martelo de Forja'), cost: 3, type: 'weapon', atk:
 g2('gato_ferreiro', { name: T('Gato Ferreiro'), cost: 3, type: 'unit', atk: 2, hp: 3, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar: dê Blindagem 2 a outro Felino aliado.'), onPlay(st, s, c) { const o = pick(st, aliveUnits(st, s).filter(x => x !== c.ent && x.tags.includes('Felino'))); if (o) { blindGive(o, 2); log(st, T`${o.name} ganha Blindagem 2.`); } } });
 g2('brasa_guardada', { name: T('Brasa Guardada'), cost: 2, type: 'spell', disc: 'neutra', target: () => 'enemyUnit', targetRequired: true, text: T('Cause 2 de dano a uma unidade inimiga. Se ela morrer, compre 1 carta.'), onPlay(st, s, c) { const e = ent(st, c.target); dmg(st, c.target, 2, src(s, { spell: true })); if (e && isDead(e)) draw(st, s, 1); } });
 g2('lingote', { name: T('Lingote Temperado'), cost: 1, type: 'spell', disc: 'neutra', target: () => 'friendlyUnit', targetRequired: true, text: T('Dê +0/+1 e Blindagem 2 a uma unidade aliada.'), onPlay(st, s, c) { const e = ent(st, c.target); if (e) { buff(e, 0, 1); blindGive(e, 2); } } });
+g2('gato_fole', { name: T('Gato do Fole'), cost: 2, type: 'unit', atk: 2, hp: 2, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar: sua arma ganha +1/+1.'), onPlay(st, s) { const w = S(st, s).weapon; if (w) { w.atk += 1; w.dur += 1; log(st, T`${w.name} ganha +1/+1.`); } } });
+g2('gata_temperada', { name: T('Gata Temperada'), cost: 3, type: 'unit', atk: 3, hp: 3, blind: 2, tags: ['Felino'], disc: 'neutra', text: T('Felino. Blindagem 2.') });
+g2('couraca_felina', { name: T('Couraça Felina'), cost: 2, type: 'spell', disc: 'neutra', text: T('Seus Felinos ganham +1/+1 e Blindagem 2.'), onPlay(st, s) { aliveUnits(st, s).filter(x => x.tags.includes('Felino')).forEach(x => { buff(x, 1, 1); blindGive(x, 2); }); } });
+g2('salamandra_forja', { name: T('Salamandra da Forja'), cost: 5, type: 'unit', atk: 5, hp: 4, blind: 3, disc: 'neutra', text: T('Blindagem 3. Ao Entrar: cause 2 de dano a todas as outras unidades.'), onPlay(st, s, c) { ['P', 'E'].forEach(x => aliveUnits(st, x).filter(u => u !== c.ent).forEach(u => dmg(st, { t: 'e', uid: u.uid }, 2, src(s, {})))); } });
 // Temporal
 g2('golpe_vem', { name: T('Golpe que Ainda Vem'), cost: 3, type: 'spell', disc: 'temporal', text: T('Atraso. No início do seu próximo turno, cause 5 de dano a um inimigo aleatório.'), onPlay(st, s) { const sd = S(st, s); sd.strikes = sd.strikes || []; sd.strikes.push(5); log(st, T('Um golpe parte para o futuro.')); } });
 g2('ferreiro_eras', { name: T('Ferreiro de Outras Eras'), cost: 3, type: 'unit', atk: 3, hp: 3, kw: ['eco'], disc: 'temporal', text: T('Eco. Ao Entrar: sua arma ganha +1/+0.'), onPlay(st, s) { const w = S(st, s).weapon; if (w) { w.atk += 1; log(st, T`${w.name} ganha +1 de Ataque.`); } } });
@@ -228,7 +232,24 @@ def('lamina_enc', { name: T('Lâmina Encomendada'), cost: 2, type: 'weapon', atk
 def('elixir', { name: T('Elixir do Boticário'), cost: 3, type: 'spell', disc: 'neutra', text: T('Recupere 4 de vida. Compre 1 carta.'), onPlay(st, s) { heal(st, s, 4); draw(st, s, 1); } });
 def('barril', { name: T('Barril de Pólvora'), cost: 3, type: 'structure', hp: 2, disc: 'neutra', text: T('Quando for destruída, cause 3 de dano a todas as unidades.'), onDestroyed(st, e) { ['P', 'E'].forEach(x => aliveUnits(st, x).forEach(u => dmg(st, { t: 'e', uid: u.uid }, 3, src(e.owner, {})))); } });
 def('mapa_ergos', { name: T('Mapa Rabiscado de Ergos'), cost: 0, type: 'spell', disc: 'neutra', text: T('Compre 1 carta. Se for de Disciplina, ela custa 1 a menos.'), onPlay(st, s) { const sd = S(st, s); const before = sd.hand.length; draw(st, s, 1); if (sd.hand.length > before) { const i = sd.hand[sd.hand.length - 1]; const dd = DEF[i.id].disc; if (dd && dd !== 'neutra') i.costMod = (i.costMod || 0) - 1; } } });
-def('gigante', { name: T('Gigante das Profundezas'), cost: 6, type: 'unit', atk: 6, hp: 7, disc: 'neutra', text: '' });
+def('gigante', { name: T('Gigante das Profundezas'), cost: 6, type: 'unit', atk: 6, hp: 7, disc: 'neutra', text: T('Custa 1 a menos para cada unidade aliada que morreu nesta batalha.'), costMod(st, s) { return -(S(st, s).deadUnits || []).length; } });
+// Neutras novas (P104): Felinos e achados da arqueologia da Sociedade Mágica
+def('gato_escavador', { name: T('Gato Escavador'), cost: 2, type: 'unit', atk: 2, hp: 1, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar: compre a carta do fundo do seu deck.'), onPlay(st, s) { drawBottom(st, s); } });
+def('gato_sentinela', { name: T('Gato Sentinela'), cost: 4, type: 'unit', atk: 2, hp: 5, kw: ['guarda'], tags: ['Felino'], disc: 'neutra', text: T('Felino. Guarda.') });
+def('gata_cartografa', { name: T('Gata Cartógrafa'), cost: 3, type: 'unit', atk: 2, hp: 3, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar: se você controlar outro Felino, compre 1 carta.'), onPlay(st, s, c) { if (aliveUnits(st, s).some(x => x !== c.ent && x.tags.includes('Felino'))) draw(st, s, 1); } });
+def('gato_mumificado', { name: T('Gato Mumificado'), cost: 2, type: 'unit', atk: 2, hp: 2, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Morrer: volta para a sua mão custando 1 a mais.'), onPlay(st, s, c) { if (c.ent) c.ent.mumia = c.inst.costMod || 0; }, onDeath(st, e) { if (addToHand(st, e.owner, 'gato_mumificado', (e.mumia || 0) + 1)) log(st, T('O Gato Mumificado volta para a mão.')); } });
+def('velho_bigode', { name: T('Velho Bigode, o Gato de Ergos'), cost: 5, type: 'unit', atk: 4, hp: 5, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar: seus outros Felinos ganham Escudo.'), onPlay(st, s, c) { aliveUnits(st, s).filter(x => x !== c.ent && x.tags.includes('Felino')).forEach(x => { x.kw.escudo = true; }); } });
+def('moeda_antiga', { name: T('Moeda Antiga'), cost: 0, type: 'spell', disc: 'neutra', text: T('Ganhe 1 de mana neste turno.'), onPlay(st, s) { S(st, s).mana += 1; } });
+def('pergaminho_selado', { name: T('Pergaminho Selado'), cost: 2, type: 'spell', disc: 'neutra', text: T('No início do seu próximo turno, compre 2 cartas.'), onPlay(st, s) { S(st, s).drawNext = (S(st, s).drawNext || 0) + 2; } });
+def('inseto_ambar', { name: T('Inseto no Âmbar'), cost: 1, type: 'spell', disc: 'neutra', target: () => 'enemyUnit', targetRequired: true, text: T('Uma unidade inimiga perde todo o texto, inclusive palavras-chave e Blindagem. Compre 1 carta.'), onPlay(st, s, c) { const e = ent(st, c.target); if (e) { silence(st, e); e.blind = 0; } draw(st, s, 1); } });
+def('pa_escavacao', { name: T('Pá de Escavação'), cost: 2, type: 'weapon', atk: 1, hp: 2, disc: 'neutra', text: T('Arma 1/2. Ao atacar com ela: compre a carta do fundo do seu deck.'), onWeaponAttack(st, s) { drawBottom(st, s); } });
+def('idolo_rachado', { name: T('Ídolo Rachado'), cost: 2, type: 'structure', hp: 3, disc: 'neutra', text: T('No fim do seu turno, cause 1 de dano a um inimigo aleatório.'), onEndTurn(st, e) { const t = randomEnemyRef(st, e.owner); if (t) dmg(st, t, 1, src(e.owner, {})); } });
+def('relicario', { name: T('Relicário Antigo'), cost: 3, type: 'structure', hp: 3, disc: 'neutra', text: T('No início do seu turno, compre 1 carta e esta Estrutura perde 1 de Vida.'), onStartTurn(st, e) { draw(st, e.owner, 1); loseLife(st, { t: 'e', uid: e.uid }, 1); } });
+def('esfinge', { name: T('Esfinge Adormecida'), cost: 6, type: 'unit', atk: 4, hp: 5, tags: ['Felino'], disc: 'neutra', text: T('Felino. Ao Entrar, a Esfinge propõe um enigma; escolha uma: compre 1 carta, cause 4 de dano a um inimigo aleatório ou recupere 6 de vida.'),
+  escolha: [{ v: 'cartas', label: T('Comprar 1 carta') }, { v: 'dano', label: T('Causar 4 de dano a um inimigo aleatório') }, { v: 'vida', label: T('Recuperar 6 de vida') }],
+  onPlay(st, s, c) { if (c.escolha === 'dano') { const t = randomEnemyRef(st, s); if (t) dmg(st, t, 4, src(s, {})); } else if (c.escolha === 'vida') heal(st, s, 6); else draw(st, s, 1); } });
+def('golem_argila', { name: T('Golem de Argila do Arquivo'), cost: 5, type: 'unit', atk: 2, hp: 5, kw: ['guarda'], disc: 'neutra', text: T('Guarda. Ao Morrer: invoque dois Cacos de Argila 1/1.'), onDeath(st, e) { summon(st, e.owner, 'caco_argila'); summon(st, e.owner, 'caco_argila'); } });
+def('caco_argila', { name: T('Caco de Argila'), cost: 1, type: 'unit', atk: 1, hp: 1, token: true, disc: 'neutra', text: '' });
 
 /* ---------------- Disciplinas e encontros ---------------- */
 const DISC = {
@@ -357,6 +378,12 @@ function draw(st, side, n) {
     sd.hand.push(inst);
     fx(st, { k: 'draw', s: side, u: inst.uid });
   }
+}
+function drawBottom(st, side) {
+  const sd = S(st, side); const inst = sd.deck.pop();
+  if (!inst) return draw(st, side, 1);
+  if (sd.hand.length >= HAND_MAX) { log(st, T`Mão cheia: ${DEF[inst.id].name} é queimada.`); fx(st, { k: 'burn', s: side, c: inst.id }); return; }
+  sd.hand.push(inst); log(st, T`Do fundo do deck: ${DEF[inst.id].name}.`); fx(st, { k: 'draw', s: side, u: inst.uid });
 }
 function addToHand(st, side, id, costMod) {
   const sd = S(st, side);
@@ -680,7 +707,7 @@ function playCard(st, side, idx, opts) {
   log(st, T`${sd.leader.short} joga ${d.name}${payLife ? ` ${T`pagando ${d.sangria} de vida`}` : ''}${adiantar ? T(', Adiantada') : ''}.`);
   rec(st, { k: 'play', s: side, c: inst.id, u: inst.uid, cost: payLife ? 0 : chk.cost + (adiantar ? d.adiantar : 0), life: payLife ? d.sangria : 0, adi: adiantar ? 1 : 0, pos, tgt: tgtOut, mana: sd.mana, car: inst.cargas || 0 });
   const fev = { k: 'play', s: side, c: inst.id, u: inst.uid, e: null, tgt: target ? refCopy(target) : null }; fx(st, fev);
-  const ctx = { target, pos, inst, ent: null };
+  const ctx = { target, pos, inst, ent: null, escolha: opts.escolha || (d.escolha ? d.escolha[0].v : null) };
   if (d.type === 'unit') {
     if (d.atraso) { sd.delayed.push(inst.id); log(st, T`${d.name} chega no próximo turno.`); }
     else {
@@ -818,6 +845,7 @@ function startTurn(st, side) {
   if (sd.boomerang) { const n = sd.boomerang; sd.boomerang = 0; if (aliveUnits(st, side).some(x => x.tags.includes('Felino'))) for (let i = 0; i < n; i++) { addToHand(st, side, 'bumerangue'); log(st, T('O Bumerangue volta.')); } }
   if (side === 'E' && st.enc.onStartTurn) st.enc.onStartTurn(st);
   draw(st, side, 1);
+  if (sd.drawNext) { const n = sd.drawNext; sd.drawNext = 0; draw(st, side, n); }
   resolveDeaths(st); checkOver(st);
   snap(st, side);
 }

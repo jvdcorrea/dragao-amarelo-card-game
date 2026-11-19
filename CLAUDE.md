@@ -11,7 +11,7 @@ O protótipo é uma página HTML única, montada a partir de `src/`. Hoje ele te
 - **Batalha:** 6 Disciplinas (Arte da Guerra Temporal, Primalismo Dracônico, Necrodança, Tenebromancia Sagrada, Magitech, Magia Espacial; no inglês, Temporal Warfare, Draconic Primalism, Necrodance, Holy Shadowmancy, Magitech, Space Wizardry, P102) mais cartas básicas (os Felinos da Guilda), mulligan, Evolução e as mecânicas de cada Disciplina.
 - **Dungeon:** grupo 1, As Grutas Vivas (andares 1 a 5, chefe Basilisco), e grupo 2, A Forja Esquecida (andares 6 a 10, chefe Ignar). Mapa em grafo, eventos, Tesouros, Notas de Ergos, boosters com raridade.
 - **Guilda:** dia com ações (descer, ida à cidade, despacho, obra), aventureiros e missões, instalações (Quadro, Taverna, Alojamento, Recursos Humanos, Ferraria, Área de treinamento), defesas noturnas físicas e sociais, quests.
-- **Cidade:** os seis Mestres (vendem boosters e conversam), o Banco da Coroa, a arquivista Lerael Vane e os passeios, que dão cartas sociais.
+- **Cidade:** os seis Mestres (vendem boosters e conversam), o Banco da Coroa, a arquivista Lerael Vane (mestra neutra: vende boosters de cartas básicas, P103) e os passeios, que dão cartas sociais. Cópias além de 2 são vendidas sozinhas à Sociedade Mágica (`addCards`).
 - **Social:** negociações no mesmo motor da batalha, com vocabulário e paleta próprios (Compostura, Resistência, Lábia, Argumentos, Táticas, Perfil).
 - **Dívida:** parcelas cobradas pelo Barão Ostrander, com prazo negociado e juros (P93).
 - **Playtest:** batalha avulsa, negociação avulsa, log exportável em .zip e um menu de testes.
@@ -129,7 +129,7 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/
 
 **Toda entrega**
 1. Build e testes.
-2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P103**).
+2. Documentos atualizados, com versão nova (cabeçalho do arquivo, `RULES` e a linha de versões do `README.md`) e o próximo número de decisão (**a próxima é a P105**).
 3. Texto novo com tradução em `src/lang/en.js`.
 4. `docs/todo.md` atualizado.
 5. Commit em português, com título curto e itens no corpo.
@@ -138,10 +138,10 @@ Antes de entregar qualquer mudança: **build, `node tests/test.js`, `node tests/
 
 | Arquivo | Conteúdo | Versão atual |
 |---|---|---|
-| `design.md` | Documento de design. Decisões numeradas de P1 a P102; a P de cada mudança vai no texto e no commit. | v0.67 |
-| `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.20 |
+| `design.md` | Documento de design. Decisões numeradas de P1 a P104; a P de cada mudança vai no texto e no commit. | v0.69 |
+| `cartas.md` | Cartas de batalha e sociais, glossário, raridades. | v0.21 |
 | `inimigos.md` | Encontros, regras e decks inimigos. | v0.13 |
-| `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.3 |
+| `grupo2.md` | Tudo do grupo 2 (A Forja Esquecida), com as simulações da Blindagem. | v0.4 |
 | `traducao.md` | Tradução para o inglês: como funciona, glossário e decisões. | v0.3 |
 | `todo.md` | Pendências e decisões a revisar. | acompanha o design |
 

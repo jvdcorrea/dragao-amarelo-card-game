@@ -48,7 +48,7 @@ const GLOSS = {
 
 let st = null;
 const ui = { screen: 'title', mode: null, busy: false, disc: null, enc: null, info: null, toast: null, modal: null, nick: '' };
-const RULES = 'cartas-v0.20/design-v0.67/inimigos-v0.13/proto-2026-11-10';
+const RULES = 'cartas-v0.21/design-v0.69/inimigos-v0.13/proto-2026-11-19';
 const LS_OLD = 'dragao-amarelo-campanhas-antigas-v1', LS_LASTEXP = 'dragao-amarelo-ultimo-export-v1';
 const LS_GAMES = 'dragao-amarelo-logs-v1', LS_CUR = 'dragao-amarelo-log-atual-v1', LS_NICK = 'dragao-amarelo-apelido';
 const LEGEND = {
@@ -539,7 +539,19 @@ const saveCamp = () => { if (!camp) return; if (typeof cheats !== 'undefined' &&
 function mkRng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const rnd = Math.random;
 function hist(ev) { if (!camp) return; ev.day = camp.day; ev.t = new Date().toISOString(); (camp.history = camp.history || []).push(ev); }
-function addCards(ids) { ids.forEach(id => { camp.collection[id] = (camp.collection[id] || 0) + 1; }); }
+/* Cópias além de 2 vão direto para a Sociedade Mágica, que paga o honorário na hora (P103; o deck só aceita 2). Devolve a marca de cada carta (nova, tem ou vendida) e o ouro. */
+function addCards(ids) {
+  let ouro = 0; const vendidas = [];
+  const marcas = ids.map(id => {
+    const n = camp.collection[id] || 0;
+    if (n >= 2) { vendidas.push(id); ouro += precoVenda(id); return 'vendida'; }
+    camp.collection[id] = n + 1; return n ? 'tem' : 'nova';
+  });
+  if (vendidas.length) { camp.gold += ouro; hist({ k: 'venda', auto: true, cards: vendidas, gold: ouro }); }
+  return { marcas, vendidas, ouro };
+}
+const precoVenda = id => VENDA[R.RARITY[id] || 'C'];
+const marcaCarta = (id, m) => m === 'vendida' ? [T`Repetida: +${precoVenda(id)} de ouro`, 'repetida'] : m === 'nova' ? [T('Nova'), 'nova'] : ['', ''];
 function collectionSize() { return Object.values(camp.collection).reduce((a, b) => a + b, 0); }
 function ownedDiscs() { return R.DISCS.filter(d => Object.keys(camp.collection).some(id => E.DEF[id].disc === d)); }
 const rarTag = id => { const r = R.RARITY[id] || 'C'; return `<span class="rar rar-${r}">${R.RAR[r]}</span>`; };
@@ -548,7 +560,7 @@ function cardById(id, extraCls, attrs, note, noteCls) {
 }
 function copiesNote(id) {
   const n = (camp.collection[id] || 0) + (camp.run ? camp.run.mochila.filter(x => x === id).length : 0);
-  return n >= 2 ? [T`Repetida: você já tem ${n}`, 'repetida'] : n === 1 ? [T('Você tem 1'), 'tem1'] : [T('Nova'), 'nova'];
+  return n >= 2 ? [T`Repetida: vira ${precoVenda(id)} de ouro`, 'repetida'] : n === 1 ? [T('Você tem 1'), 'tem1'] : [T('Nova'), 'nova'];
 }
 function newCampaign(disc, name) {
   const coll = R.starterCollection(disc);
@@ -664,7 +676,7 @@ function battleDone() {
 function floorCleared() {
   const run = camp.run;
   if (run.revisit) { hist({ k: 'andar', floor: run.floor, res: 'revisita' }); camp.run = null; afterRun(); saveCamp(); ui.scene = { kind: 'msg', title: T`Andar ${run.floor} revisitado`, text: T`Você volta à superfície com ${run.gold || 0} de ouro. Revisitas não dão cartas.` }; ui.screen = 'scene'; render(); return; }
-  addCards(run.mochila);
+  const daMochila = addCards(run.mochila);
   camp.cleared[run.floor] = true; camp.floor = Math.max(camp.floor, run.floor + 1);
   hist({ k: 'andar', floor: run.floor, res: 'concluido', mochila: run.mochila.slice() });
   if (run.floor === 3 && !camp.debt && !camp.pending.some(p => p.kind === 'credor')) camp.pending.push({ kind: 'credor' });
@@ -677,17 +689,17 @@ function floorCleared() {
   let treasure = 0;
   if (run.floor === 10 && !camp.flags.ignarTesouro) { treasure = ECON.tesouro[2]; camp.gold += treasure; camp.flags.ignarTesouro = true; hist({ k: 'tesouro', from: 'ignar', gold: treasure }); }
   if (run.floor === 5 && !camp.flags.basiliscoTesouro) { treasure = ECON.tesouro[1]; camp.gold += treasure; camp.flags.basiliscoTesouro = true; hist({ k: 'tesouro', from: 'basilisco', gold: treasure }); }
-  const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); addCards(pack);
+  const pack = R.openFloorPack(rnd, camp.deck.disc, camp.collection); const add = addCards(pack);
   hist({ k: 'booster', type: 'andar', disc: camp.deck.disc, cards: pack });
-  ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, gold: run.gold || 0, treasure };
+  ui.scene = { kind: 'booster', type: 'andar', floor: run.floor, mochila: run.mochila.slice(), cards: pack, marcas: add.marcas, ouro: add.ouro, mochilaVendidas: daMochila.vendidas, mochilaOuro: daMochila.ouro, gold: run.gold || 0, treasure };
   camp.run = null; afterRun(); saveCamp(); ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 function floorFailed(why) {
-  const run = camp.run; let kept = null;
-  if (!run.revisit && run.mochila.length) { kept = run.mochila[Math.floor(rnd() * run.mochila.length)]; addCards([kept]); }
+  const run = camp.run; let kept = null, vendida = false;
+  if (!run.revisit && run.mochila.length) { kept = run.mochila[Math.floor(rnd() * run.mochila.length)]; vendida = addCards([kept]).vendidas.length > 0; }
   hist({ k: 'andar', floor: run.floor, res: 'derrota', kept, lost: run.mochila.length - (kept ? 1 : 0) });
   camp.run = null; afterRun(); saveCamp();
-  ui.scene = { kind: 'msg', title: T('Você caiu'), text: T`${why} Felix te arrasta de volta à superfície. O andar ${run.floor} recomeça amanhã.${run.gold ? ` ${T`O ouro das lutas (${run.gold}) já está no cofre da guilda.`}` : ''}${kept ? ` ${T`Da mochila, só sobrou ${E.DEF[kept].name}.`}` : ''}` };
+  ui.scene = { kind: 'msg', title: T('Você caiu'), text: T`${why} Felix te arrasta de volta à superfície. O andar ${run.floor} recomeça amanhã.${run.gold ? ` ${T`O ouro das lutas (${run.gold}) já está no cofre da guilda.`}` : ''}${kept ? ` ${vendida ? T`Da mochila, só sobrou ${E.DEF[kept].name}, repetida: a Sociedade Mágica pagou ${precoVenda(kept)} de ouro.` : T`Da mochila, só sobrou ${E.DEF[kept].name}.`}` : ''}` };
   ui.screen = 'scene'; render(); window.scrollTo(0, 0);
 }
 
@@ -769,6 +781,11 @@ function ensureGuild() {
   if (camp.fac.treino === 'bloq') camp.fac.treino = null;
   if (camp.fac.alojamento === undefined) camp.fac.alojamento = 0;
   if (!camp.flags.firstAdv && !camp.pending.some(p => p.kind === 'primeiro-aventureiro') && (camp.history || []).some(h => h.k === 'andar')) camp.pending.push({ kind: 'primeiro-aventureiro' });
+  if (!camp.flags.vendaAuto) {
+    camp.flags.vendaAuto = true; /* P103: a venda de repetidas ficou automática; o que sobrava na coleção vai de uma vez */
+    const ex = Object.entries(camp.collection).filter(([, n]) => n > 2);
+    if (ex.length) { const cards = [].concat(...ex.map(([id, n]) => Array(n - 2).fill(id))); const gold = cards.reduce((s, id) => s + precoVenda(id), 0); ex.forEach(([id]) => { camp.collection[id] = 2; }); camp.gold += gold; hist({ k: 'venda', auto: true, migracao: true, cards, gold }); camp.pending.push({ kind: 'venda-auto', n: cards.length, gold }); }
+  }
   if (camp.defense) registerDefense(camp.defense);
   ensureSocial();
 }
@@ -864,7 +881,7 @@ function processAdvs(lines) {
         const ok = m && rnd() < successChance(a, m);
         if (m && ok) {
           camp.gold += m.gold; let extra = '';
-          if (m.card) { const c = R.treasureCard(rnd, camp.deck.disc); addCards([c]); extra = ` ${T`e trouxe a carta ${E.DEF[c].name}`}`; }
+          if (m.card) { const c = R.treasureCard(rnd, camp.deck.disc); extra = ` ${addCards([c]).ouro ? T`e trouxe a carta ${E.DEF[c].name} (repetida: +${precoVenda(c)} de ouro)` : T`e trouxe a carta ${E.DEF[c].name}`}`; }
           a.xp += 1 + (rhLvl() >= 3 ? 2 : rhLvl() >= 1 ? 1 : 0); let up = '';
           while (a.xp >= a.lvl * 2 && a.lvl < 5) { a.xp -= a.lvl * 2; a.lvl += 1; up = ` ${T`${a.name} subiu para o nível ${a.lvl}.`}`; }
           lines.push(T`${a.name} concluiu “${m.title}”: +${m.gold} de ouro${extra}.${up}`);
@@ -904,6 +921,7 @@ function pendingScene() {
   if (p.kind === 'cliente-tutorial') return { kind: 'cliente-tutorial' };
   if (p.kind === 'odie-ferraria') return { kind: 'odie-ferraria' };
   if (p.kind === 'odie-chega') return { kind: 'odie-chega' };
+  if (p.kind === 'venda-auto') return { kind: 'venda-auto', n: p.n, gold: p.gold };
   if (p.kind === 'kryoret-treino') return { kind: 'kryoret-treino' };
   if (p.kind === 'credor') return { kind: 'credor', volta: !!p.volta, segunda: !!p.segunda };
   if (p.kind === 'felix-divida' && debtOpen()) return { kind: 'felix-divida' };
@@ -915,6 +933,7 @@ function guildScene(sc) {
   if (sc.kind === 'credor') return credorScene(sc);
   if (sc.kind === 'credor-res') return credorResScene(sc);
   if (sc.kind === 'banca') return bancaScene(sc);
+  if (sc.kind === 'venda-auto') return `${npcArt(NPC_INFO.copias, 'npc-arte')}<h2>${T`Um envelope da Sociedade Mágica`}</h2><p>${T`Um envelope lacrado chega à guilda, com três formulários e uma bolsinha de moedas.`}</p><div class="fala"><span class="quem">Lerael Vane</span><p>${sc.n === 1 ? T`A partir de hoje, as cópias que passam de 2 vêm direto da sua guilda para o arquivo, e o honorário volta no mesmo dia. A que já estava aí foi catalogada: 1 carta, ${sc.gold} de ouro. Não precisa agradecer. Precisa assinar.` : T`A partir de hoje, as cópias que passam de 2 vêm direto da sua guilda para o arquivo, e o honorário volta no mesmo dia. As que já estavam aí foram catalogadas: ${sc.n} cartas, ${sc.gold} de ouro. Não precisa agradecer. Precisa assinar.`}</p></div><p class="intro-dica">${T`A Lerael agora vende boosters de cartas básicas na cidade.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Assinar os formulários`}</button></div>`;
   if (sc.kind === 'odie-chega') return `${HAS_IMG('odie') ? ('<div class="npc-arte" role="img" aria-label="' + T('Odie, o Gato Artífice, na Ferraria') + '" style="background-image: var(--img-odie)"></div>') : ''}<h2>${T`Recado da Chrome`}</h2><p>${T`Um bilhete perfumado chega pela porta da guilda, preso na coleira de um gato preto, gordinho, de patas brancas, que entra correndo e já está cheirando cada canto do salão.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Odie, Gato Artífice, às ordens! A Chrome disse que aqui tem uma ferraria precisando de patas. Onde fica? Posso ver? Posso começar hoje?`}</p></div><p class="intro-dica">${T`A Ferraria pode ser reconstruída nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Bem-vindo, Odie`}</button></div>`;
   if (sc.kind === 'odie-ferraria') return `${HAS_IMG('odie') ? ('<div class="npc-arte" role="img" aria-label="' + T('Odie, o Gato Artífice, na Ferraria') + '" style="background-image: var(--img-odie)"></div>') : ''}<h2>${T`A Ferraria acesa`}</h2><p>${T`A forja dos fundos ruge de novo. Odie sobe na bigorna, olha em volta e fica quieto pela primeira vez desde que chegou.`}</p><div class="fala"><span class="quem">${T`Odie`}</span><p>${T`Eu trabalhava aqui, sabia? Antes de o Ergos sumir. Ele me deixava fazer as fivelas e as lâminas pequenas. Disse que um dia eu ia fazer uma espada inteira sozinho.`}</p><p>${T`Depois que ele desceu e não voltou, apagaram a forja e eu fui embora. Mas agora ela está acesa de novo. Então eu também estou de volta.`}</p></div><p class="intro-dica">${T`Ferraria nível 1: +5% de sucesso para todos os aventureiros. Ela pode ser ampliada nas Instalações.`}</p><div class="opcoes"><button class="botao principal" data-act="g-ok-pend">${T`Ao trabalho`}</button></div>`;
   if (sc.kind === 'kryoret-treino') return `${HAS_IMG('kryoret') ? ('<div class="npc-arte" role="img" aria-label="' + T('Kryoret') + '" style="background-image: var(--img-kryoret)"></div>') : ''}<h2>${T`Uma visita da Forja`}</h2><p>${T`Kryoret aparece na porta da guilda com uma caixa de ferramentas nas costas e fuligem até as sobrancelhas.`}</p><div class="fala"><span class="quem">${T`Kryoret`}</span><p>${T`Ignar apagou, e a Forja ficou quieta demais. Lembrei de uma conversa com o seu tio: ele queria um pátio de treino aqui atrás. Nunca tivemos tempo.`}</p><p>${T`Eu construo. Cento e cinquenta de ouro, e é preço de amigo. Um dos seus vira instrutor, e todo o resto melhora.`}</p></div><div class="opcoes"><button class="botao principal" data-act="g-treino-build" ${camp.gold < 150 ? 'disabled' : ''}>${T`Aceitar (150 de ouro)`}</button><button class="botao" data-act="g-ok-pend">${T`Depois (a oferta fica nas Instalações)`}</button></div>`;
@@ -1150,9 +1169,11 @@ const MESTRE_INFO = {
 const NPC_INFO = {
   copias: { name: 'Lerael Vane', title: T('arquivista da Sociedade Mágica'), img: 'lerael', pos: '50% 50%', face: '60% 26%',
     place: T('No escritório do arquivo da Sociedade Mágica, entre prateleiras de frascos e livros rúnicos, uma elfa de óculos escreve com uma pena que brilha. O crachá diz Lerael Vane. Ela termina a frase antes de levantar os olhos, e as olheiras contam que esta não é a primeira noite em claro.'),
-    greet: T('Boa noite. Lerael Vane, arquivista da Sociedade Mágica. Se trouxe cartas repetidas, a Sociedade as recebe cordialmente para fins de pesquisa arcana. Há um formulário. Na verdade, há três.'),
-    greet2: T('Ah, você de novo. Que bom. Os formulários já estão preenchidos com o seu nome; só faltam as cartas.'),
+    greet: T('Boa noite. Lerael Vane, arquivista da Sociedade Mágica. O nosso time de arqueologia desenterra cartas o tempo todo, e as que não têm valor científico estão à venda, para custear as escavações. Há um formulário. Na verdade, há três.'),
+    greet2: T('Ah, você de novo. Que bom. Os formulários já estão preenchidos com o seu nome; só falta o pagamento.'),
     opts: [
+      { id: 'd', label: T('De onde vêm essas cartas?'), reply: [T('Das escavações da Sociedade. Ruínas, túmulos, porões de magos que esqueceram de deixar testamento. O que tem valor científico fica no arquivo.'), T('O resto são cartas básicas, sem Disciplina. Catalogadas, carimbadas e esquecidas numa prateleira. Melhor alguém usar do que ficarem mofando aqui. E as escavações não se pagam sozinhas.')] },
+      { id: 'e', label: T('E as minhas cartas repetidas?'), reply: [T('Não precisa mais trazer. As cópias que passam de 2 vêm direto da sua guilda para o arquivo, e o honorário volta no mesmo dia.'), T('Menos formulários para nós duas. Quer dizer, para mim. Você nunca preencheu nenhum.')] },
       { id: 'a', label: T('O que a Sociedade faz com as minhas cartas?'), reply: [T('Estudamos. Cada carta é um pequeno fenômeno mágico preso em papel, e as cópias permitem experimentos que um original não aguentaria.'), T('Algumas são desmontadas, outras comparadas, uma ou outra pega fogo. Tudo devidamente registrado.')] },
       { id: 'b', label: T('Você parece cansada.'), reply: [T('>Ela ajeita os óculos e toma um gole longo da caneca.'), T('Estou ótima. Este é o meu rosto de quem está ótima.'), T('A Sociedade recebe mais cartas do que tem arquivistas. É um bom problema. Para a Sociedade.')] },
       { id: 'c', label: T('O que é a Sociedade Mágica?'), reply: [T('Uma reunião de magos que concordam em discordar, formalmente e por escrito.'), T('Registramos Disciplinas, artefatos e fenômenos. Cartomantes também, quando aparecem. Faz tempo que não aparece nenhum.')] },
@@ -1230,7 +1251,6 @@ function renderFelix() {
 const npcInfo = id => id.startsWith('mestre-') ? MESTRE_INFO[id.slice(7)] : NPC_INFO[id];
 function npcArt(m, cls) { return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
 function mestreArt(d, cls) { const m = MESTRE_INFO[d]; return m && HAS_IMG(m.img) ? `<div class="${cls}" role="img" aria-label="${esc(m.name + ', ' + m.title)}" style="background-image: var(--img-${m.img}); background-position: ${cls === 'npc-thumb' ? m.face : m.pos}"></div>` : ''; }
-function excessCopies() { return Object.entries(camp.collection).filter(([, n]) => n > 2).map(([id, n]) => ({ id, extra: n - 2, value: VENDA[R.RARITY[id] || 'C'] })); }
 const INDICA_LABEL = T('Preciso de aventureiros pra me ajudar na guilda, pode me indicar alguém?');
 function startCityTrip() { if (!camp.cityTrip) { camp.cityTrip = { visited: [] }; ui.talkLogs = {}; saveCamp(); } }
 function finishCityTrip() {
@@ -1240,12 +1260,12 @@ function finishCityTrip() {
 }
 function renderCidade() {
   const vis = (camp.cityTrip && camp.cityTrip.visited) || [];
-  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b>${hasNewTalk(id) ? (' <span class="badge-novo" title="' + T('Falas novas disponíveis') + '" aria-label="' + T('Falas novas disponíveis') + '">!</span>') : ''}${id.startsWith('mestre-') && novasCartas(id.slice(7)) ? (' <span class="badge-cartas">' + T('Cartas novas') + '</span>') : ''}<p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? T('Voltar a falar') : T('Visitar')}</button></li>`;
+  const npc = (id, name, role, thumb) => `<li class="npc ${vis.includes(id) ? 'visitando' : ''}">${thumb || ''}<div><b>${esc(name)}</b>${hasNewTalk(id) ? (' <span class="badge-novo" title="' + T('Falas novas disponíveis') + '" aria-label="' + T('Falas novas disponíveis') + '">!</span>') : ''}${(id.startsWith('mestre-') ? novasCartas(id.slice(7)) : id === 'copias' && novasCartas('neutra')) ? (' <span class="badge-cartas">' + T('Cartas novas') + '</span>') : ''}<p class="linha">${esc(role)}</p></div><button class="botao" data-act="g-visit" data-npc="${id}">${vis.includes(id) ? T('Voltar a falar') : T('Visitar')}</button></li>`;
   const mestres = Object.entries(MESTRES).map(([d, n]) => { const mi = MESTRE_INFO[d]; return mi ? npc('mestre-' + d, `${mi.name}, ${mi.title}`, T`Ensina ${DISC_NAME[d]} e vende boosters da Disciplina (5 cartas).`, mestreArt(d, 'npc-thumb')) : npc('mestre-' + d, n, T`Vende boosters de ${DISC_NAME[d]} (5 cartas da Disciplina). Personagem a definir.`, '<div class="npc-thumb vazio" aria-hidden="true">?</div>'); }).join('');
   $('#app').innerHTML = `${gearBtn()}<header class="abertura"><h1>${T`Cidade`}</h1><p class="sub">${T`Dia ${camp.day} · ${camp.gold} de ouro · visite quantos Mestres quiser; a ida conta ao voltar para a guilda`}</p></header>
   <section class="cena larga guilda-tela"><h2>${T`Mestres das Disciplinas`}</h2><ul class="lista-npc">${mestres}</ul>
   ${camp.debt && camp.debt.due != null ? `<h2>${T`Banco da Coroa`}</h2><ul class="lista-npc">${npc('banco', T('Barão Ostrander, Banco da Coroa'), debtOpen() ? T`Recebe a parcela da dívida: ${camp.debt.amount} de ouro até o fim do dia ${camp.debt.due}.` : T('A parcela está paga. Por enquanto.'), '<div class="npc-thumb vazio" aria-hidden="true">B</div>')}</ul>` : ''}
-  <h2>${T`Sociedade Mágica`}</h2><ul class="lista-npc">${npc('copias', T('Lerael Vane, arquivista da Sociedade Mágica'), T('Recebe cordialmente as cópias que passam de 2 (o deck só aceita 2), em troca de um honorário, para avançar as pesquisas arcanas.'), npcArt(NPC_INFO.copias, 'npc-thumb'))}</ul>
+  <h2>${T`Sociedade Mágica`}</h2><ul class="lista-npc">${npc('copias', T('Lerael Vane, arquivista da Sociedade Mágica'), T('Vende boosters de cartas básicas (5 cartas), achadas pelo time de arqueologia e sem valor científico, para custear as escavações. A Sociedade também compra, sozinha, as cópias que passam de 2.'), npcArt(NPC_INFO.copias, 'npc-thumb'))}</ul>
   <div class="linha-logs"><button class="botao principal" data-act="home">${T`Voltar à guilda`}</button></div></section>`;
 }
 function optOk(o, id) {
@@ -1302,13 +1322,14 @@ function renderNpc() {
     const d = camp.debt;
     body = `${talkHtml(id, NPC_INFO.banco, null)}<h3>${T`Parcela`}</h3>${debtOpen() ? `<p>${T`Parcela da dívida de Ergos: <b>${d.amount} de ouro</b>, até o fim do dia ${d.due}. Você tem ${camp.gold}.`}</p><div class="opcoes"><button class="botao principal" data-act="g-pay" ${camp.gold >= d.amount ? '' : 'disabled'}>${T`Pagar a parcela (${d.amount} de ouro)`}</button></div>` : `<p>${T`A parcela de ${d.amount} de ouro está paga.`}</p>`}`;
   } else {
-    const ex = excessCopies(); const total = ex.reduce((s, x) => s + x.extra * x.value, 0);
-    body = `${talkHtml(id, NPC_INFO.copias, null)}<h3>${T`Arquivo`}</h3><p>${ex.length ? T('A Sociedade paga um honorário de pesquisa por cópia que passa de 2 na sua coleção (o deck só aceita 2):') : T('Você não tem cópias sobrando: nenhuma carta passa de 2 na coleção.')}</p>
-      ${ex.length ? `<ul class="lista-npc">${ex.map(x => `<li class="npc"><div><b>${esc(E.DEF[x.id].name)}</b> ${rarTag(x.id)}<p class="linha">${x.extra === 1 ? T`${x.extra} cópia extra · ${x.value} de ouro cada` : T`${x.extra} cópias extras · ${x.value} de ouro cada`}</p></div><button class="botao" data-act="g-sell" data-cid="${x.id}">${T`Entregar 1`}</button></li>`).join('')}</ul>
-      <div class="opcoes"><button class="botao principal" data-act="g-sell-all">${T`Entregar todas (+${total} de ouro)`}</button></div>` : ''}`;
+    body = `${talkHtml(id, NPC_INFO.copias, null)}<h3>${T`Achados da arqueologia`}</h3><p>${T`Um booster de cartas básicas: 5 cartas sem Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com mais chance de cartas que você ainda não tem.`}</p>
+      ${novasCartas('neutra') ? `<p class="destaque novas-cartas">${T`Cartas básicas novas da Forja Esquecida entraram no booster: ${R.poolOf('neutra').filter(id => E.DEF[id].grupo === 2).map(id => esc(E.DEF[id].name)).join(', ')}.`}</p>` : ''}
+      <div class="opcoes coluna dialogo"><button class="botao principal" data-act="g-buy" data-dd="neutra" ${camp.gold < BOOSTER_PRECO ? 'disabled' : ''}>${T`Comprar booster (${BOOSTER_PRECO} de ouro)`}</button></div>
+      <p class="intro-dica">${T`As cópias que passam de 2 vão sozinhas para o arquivo, e a Sociedade paga ${VENDA.C} de ouro por Comum, ${VENDA.I} por Incomum e ${VENDA.R} por Rara.`}</p>`;
   }
   $('#app').innerHTML = `${gearBtn()}<section class="cena larga guilda-tela"><p class="sub">${T`${camp.gold} de ouro`}</p>${body}${passeioHtml(id)}<div class="linha-logs"><button class="botao" data-act="g-cidade">${T`Voltar à cidade`}</button></div></section>`;
-  if (id.startsWith('mestre-') && novasCartas(id.slice(7))) { camp.flags.novasVistas = camp.flags.novasVistas || {}; camp.flags.novasVistas[id.slice(7)] = true; saveCamp(); }
+  const dn = id.startsWith('mestre-') ? id.slice(7) : id === 'copias' ? 'neutra' : null;
+  if (dn && novasCartas(dn)) { camp.flags.novasVistas = camp.flags.novasVistas || {}; camp.flags.novasVistas[dn] = true; saveCamp(); }
 }
 async function guildClick(act, ds) {
   if (act === 'g-ok-pend') { camp.pending.shift(); saveCamp(); ui.screen = 'home'; render(); return true; }
@@ -1409,17 +1430,12 @@ async function guildClick(act, ds) {
   }
   if (act === 'g-buy') {
     const d = ds.dd; const price = ds.polite && d === 'tech' && (((camp.flags.said || {})['mestre-tech']) || []).includes('c') ? BOOSTER_PRECO - 5 : BOOSTER_PRECO; if (camp.gold < price) return true;
-    camp.gold -= price; const cards = R.openDiscPack(rnd, d, camp.collection); addCards(cards);
-    hist({ k: 'booster', type: 'mestre-' + d, cards, price });
+    camp.gold -= price; const cards = R.openDiscPack(rnd, d, camp.collection); const add = addCards(cards);
+    hist({ k: 'booster', type: d === 'neutra' ? 'lerael' : 'mestre-' + d, cards, price });
     camp.flags.bought = camp.flags.bought || {}; camp.flags.bought[d] = true;
-    if (!MESTRE_INFO[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d] && camp.advs.length < advMax()) { const a = newAdv(); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true; hist({ k: 'aventureiro', name: a.name, from: 'mestre-' + d }); setTimeout(() => toast(T`O mestre indicou ${a.name} (${advClass(a)}) para a guilda.`), 50); }
+    if (d !== 'neutra' && !MESTRE_INFO[d] && camp.flags.firstAdv && !(camp.flags.indicou || {})[d] && camp.advs.length < advMax()) { const a = newAdv(); camp.advs.push(a); camp.flags.indicou = camp.flags.indicou || {}; camp.flags.indicou[d] = true; hist({ k: 'aventureiro', name: a.name, from: 'mestre-' + d }); setTimeout(() => toast(T`O mestre indicou ${a.name} (${advClass(a)}) para a guilda.`), 50); }
     saveCamp();
-    ui.scene = { kind: 'booster', type: d, cards, back: 'npc' }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return true;
-  }
-  if (act === 'g-sell' || act === 'g-sell-all') {
-    const ex = excessCopies().filter(x => act === 'g-sell-all' || x.id === ds.cid); let got = 0;
-    ex.forEach(x => { const n = act === 'g-sell-all' ? x.extra : 1; camp.collection[x.id] -= n; got += n * x.value; });
-    camp.gold += got; hist({ k: 'venda', cards: ex.map(x => x.id), gold: got }); saveCamp(); render(); toast(T`A Sociedade Mágica agradece: +${got} de ouro.`); return true;
+    ui.scene = { kind: 'booster', type: d, cards, marcas: add.marcas, ouro: add.ouro, back: 'npc' }; ui.screen = 'scene'; render(); window.scrollTo(0, 0); return true;
   }
   return false;
 }
@@ -1639,7 +1655,7 @@ function doPasseio(id) {
   if (a.cost) { if (camp.gold >= a.cost) { camp.gold -= a.cost; paras.push(a.text); extras.push(T`-${a.cost} de ouro`); } else paras.push(a.broke || a.text); }
   else paras.push(a.text);
   if (a.equip) {
-    if (rnd() < a.equip) { const ws = Object.keys(R.RARITY).filter(x => E.DEF[x].type === 'weapon'); equip = ws[Math.floor(rnd() * ws.length)]; addCards([equip]); paras.push(a.win); extras.push(T`Equipamento: ${E.DEF[equip].name}, para o deck de batalha`); }
+    if (rnd() < a.equip) { const ws = Object.keys(R.RARITY).filter(x => E.DEF[x].type === 'weapon'); equip = ws[Math.floor(rnd() * ws.length)]; const vendido = addCards([equip]).ouro > 0; paras.push(a.win); extras.push(vendido ? T`Equipamento: ${E.DEF[equip].name}, repetido: +${precoVenda(equip)} de ouro` : T`Equipamento: ${E.DEF[equip].name}, para o deck de batalha`); }
     else paras.push(a.lose);
   }
   let socialEnc = null;
@@ -1983,15 +1999,16 @@ function renderScene() {
   } else if (sc.kind === 'nota') {
     body = `<h2>${T`Nota de Ergos`}</h2><blockquote class="nota">${esc(R.NOTES[sc.floor])}</blockquote><p class="destaque">${sc.first ? T('Felix guarda a anotação. Na próxima luta, comece com 1 carta a mais.') : T('Você já leu esta nota.')}</p><div class="opcoes"><button class="botao principal" data-act="scene-ok">${T`Continuar`}</button></div>`;
   } else if (sc.kind === 'elite') {
-    body = `<h2>${T`Recompensa da Elite`}</h2><p>${T`Escolha uma carta para a mochila.`}</p><div class="prever-lista">${sc.cards.map(id => { const [t, c] = copiesNote(id); return cardById(id, '', `data-pick="${id}"`, t, c); }).join('')}</div><p class="intro-dica">${T`O deck aceita até 2 cópias de cada carta; a contagem inclui o que já está na mochila.`}</p><div class="opcoes"><button class="botao" data-act="pick-skip">${T`Pular`}</button></div>`;
+    body = `<h2>${T`Recompensa da Elite`}</h2><p>${T`Escolha uma carta para a mochila.`}</p><div class="prever-lista">${sc.cards.map(id => { const [t, c] = copiesNote(id); return cardById(id, '', `data-pick="${id}"`, t, c); }).join('')}</div><p class="intro-dica">${T`O deck aceita até 2 cópias de cada carta; a contagem inclui o que já está na mochila. Cópias além de 2 viram ouro na volta.`}</p><div class="opcoes"><button class="botao" data-act="pick-skip">${T`Pular`}</button></div>`;
   } else if (sc.kind === 'booster-choice') {
     body = `<h2>${T`Andar ${sc.floor} concluído`}</h2><p>${T`${sc.mochila.length ? T`Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : T('A mochila voltou vazia.')} Escolha o seu booster.`}</p>
       <div class="opcoes"><button class="botao principal disc-${camp.deck.disc}" data-pack="${camp.deck.disc}">${T`Booster de ${esc(DISC_NAME[camp.deck.disc])}`}</button><button class="botao" data-pack="geral">${T`Booster Geral`}</button></div>
       <p class="intro">${T`Cada booster tem 5 cartas: 3 Comuns, 1 Incomum e 1 Incomum ou Rara. O Geral pode trazer qualquer Disciplina ou neutra.`}</p>`;
   } else if (sc.kind === 'booster') {
-    const intro = sc.type === 'andar' ? `<h2>${T`Andar ${sc.floor} concluído`}</h2><p>${T`${sc.mochila.length ? T`Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : T('A mochila voltou vazia.')} Ouro das lutas: ${sc.gold}.`}</p>${sc.treasure ? `<p class="destaque">${T`${sc.floor === 10 ? T('No coração apagado da forja, entre lingotes que Ignar guardava há séculos, você encontra o tesouro dele') : T('No covil do Basilisco, entre ossos e escamas trocadas, você encontra o tesouro dele')}: +${sc.treasure} de ouro.`}</p>` : ''}<h3>${T`Booster do andar`}</h3><p class="intro-dica">${T`2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.`}</p>` : `<h2>${sc.type === 'geral' ? T('Booster Geral') : T('Booster de ') + esc(DISC_NAME[sc.type])}</h2>`;
-    const back = sc.back === 'npc' ? `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">${T`Voltar ao mestre`}</button>` : ('<button class="botao principal" data-act="home">' + T('Voltar à guilda') + '</button>');
-    body = `${intro}<div class="prever-lista">${sc.cards.map(id => cardById(id, '', '', camp.collection[id] > 1 ? '' : T('Nova'))).join('')}</div><p class="destaque">${T`As cartas já estão na sua coleção.`}</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">${T`Editar deck`}</button></div>`;
+    const intro = sc.type === 'andar' ? `<h2>${T`Andar ${sc.floor} concluído`}</h2><p>${T`${sc.mochila.length ? T`Da mochila para a coleção: ${esc(sc.mochila.map(id => E.DEF[id].name).join(', '))}.` : T('A mochila voltou vazia.')} Ouro das lutas: ${sc.gold}.`}</p>${sc.treasure ? `<p class="destaque">${T`${sc.floor === 10 ? T('No coração apagado da forja, entre lingotes que Ignar guardava há séculos, você encontra o tesouro dele') : T('No covil do Basilisco, entre ossos e escamas trocadas, você encontra o tesouro dele')}: +${sc.treasure} de ouro.`}</p>` : ''}<h3>${T`Booster do andar`}</h3><p class="intro-dica">${T`2 cartas garantidas de ${esc(DISC_NAME[camp.deck.disc])} e 3 de qualquer Disciplina ou básicas, com mais chance de cartas que você ainda não tem.`}</p>` : `<h2>${sc.type === 'geral' ? T('Booster Geral') : sc.type === 'neutra' ? T('Booster de cartas básicas') : T('Booster de ') + esc(DISC_NAME[sc.type])}</h2>`;
+    const back = sc.back === 'npc' ? (sc.type === 'neutra' ? `<button class="botao principal" data-act="g-visit" data-npc="copias">${T`Voltar à Lerael`}</button>` : `<button class="botao principal" data-act="g-visit" data-npc="mestre-${sc.type}">${T`Voltar ao mestre`}</button>`) : ('<button class="botao principal" data-act="home">' + T('Voltar à guilda') + '</button>');
+    const vendidasMochila = sc.mochilaOuro ? `<p>${T`Repetidas da mochila, entregues à Sociedade Mágica: ${esc(sc.mochilaVendidas.map(id => E.DEF[id].name).join(', '))} (+${sc.mochilaOuro} de ouro).`}</p>` : '';
+    body = `${intro}${vendidasMochila}<div class="prever-lista">${sc.cards.map((id, i) => { const [t, c] = sc.marcas ? marcaCarta(id, sc.marcas[i]) : [camp.collection[id] > 1 ? '' : T('Nova'), '']; return cardById(id, '', '', t, c); }).join('')}</div><p class="destaque">${sc.ouro ? T`As cartas novas já estão na sua coleção. As repetidas foram para a Sociedade Mágica: +${sc.ouro} de ouro.` : T`As cartas já estão na sua coleção.`}</p><div class="opcoes">${back}<button class="botao" data-act="deck-edit">${T`Editar deck`}</button></div>`;
   } else if (sc.kind === 'msg') {
     // Pago no banco, o jogador volta para a cidade: a ida ainda pode ter outras visitas.
     const [act, label] = camp && camp.run ? ['scene-ok', T('Continuar')] : sc.back === 'cidade' && camp.cityTrip ? ['g-cidade', T('Voltar à cidade')] : ['home', T('Voltar à guilda')];
@@ -2093,9 +2110,9 @@ async function runClick(ds) {
   if (ds.pick) { reward([ds.pick], 'elite'); saveCamp(); ui.screen = 'map'; ui.scene = null; render(); return true; }
   if (act === 'pick-skip') { ui.screen = 'map'; ui.scene = null; render(); return true; }
   if (ds.pack) {
-    const cards = R.openPack(rnd, ds.pack); addCards(cards);
+    const cards = R.openPack(rnd, ds.pack); const add = addCards(cards);
     hist({ k: 'booster', type: ds.pack, cards });
-    saveCamp(); ui.scene = { kind: 'booster', type: ds.pack, cards }; render(); return true;
+    saveCamp(); ui.scene = { kind: 'booster', type: ds.pack, cards, marcas: add.marcas, ouro: add.ouro }; render(); return true;
   }
   if (act === 'run-continue') { finalizeGame(); battleDone(); return true; }
   return false;
@@ -2171,6 +2188,11 @@ async function startPlay(idx) {
     const c = await choose(d.name, T('Adiantar esta unidade?'), [{ v: 'n', label: T`Jogar normal por ${chk.cost}` }, { v: 'a', label: T`Adiantar por ${chk.cost + d.adiantar}, com Acelerar` }]);
     if (c === null) return;
     opts.adiantar = c === 'a';
+  }
+  if (d.escolha) {
+    const c = await choose(d.name, T('Escolha uma.'), d.escolha);
+    if (c === null) return;
+    opts.escolha = c;
   }
   if (chk.spec && chk.targets.length) { ui.mode = { kind: 'play', idx, opts, targets: chk.targets, name: d.name }; render(); return; }
   const r = E.playCard(st, 'P', idx, opts);

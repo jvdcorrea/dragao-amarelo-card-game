@@ -1,6 +1,6 @@
 # Dragão Amarelo
 
-*Documento de design preliminar · v0.67 · rascunho para editar*
+*Documento de design preliminar · v0.69 · rascunho para editar*
 
 **Como usar este documento**
 - Texto com `(Pn)` é decisão tomada; o número aponta a pergunta de origem.
@@ -384,7 +384,7 @@ Primeira versão jogável do gerenciamento. Os números são provisórios e as d
 - **Aventureiros e missões (P70, aplica P19, P22, P25):** na primeira volta de uma descida, uma aventureira bate à porta (Brisa, batedora, placeholder) e o Quadro de Missões é liberado. Cada aventureiro tem classe (Guerreiro, Batedor, Mago, Clérigo), nível e especialidade; missões têm dificuldade 1 a 3, duração em dias, ouro e às vezes uma carta. Chance de sucesso: 60% + 15% × (nível + 1 se a especialidade bate − dificuldade), entre 20% e 95%. Falha: volta sem nada e passa 1 dia se recuperando. Sucesso dá experiência; o nível sobe a cada (nível × 2) sucessos. Até 4 aventureiros, ampliável pelo Alojamento.
 - **Instalações (P71):** depois da primeira aventureira, Felix sugere reabrir a taverna e o menu de Instalações é liberado. "Fazer faxina na taverna" usa a obra do dia e fica pronta ao fim do dia; a Taverna oferece 3 candidatos gerados ao acaso por dia (placeholder; no jogo final, contratar envolve batalha social), por 25 de ouro mais 15 por nível acima de 1. O **Alojamento** (P76) amplia o limite de aventureiros: começa em 4 e cada nível abre mais 2, até 10; custa 60, 120 e 200 de ouro por nível, usa a obra do dia e exige a Taverna aberta. Área de treinamento, Laboratório arcano e Ferraria aparecem bloqueadas, à espera de um NPC que as libere.
 - **Defesas (P72, aplica P24 a P27):** a partir do dia 3, cada noite tem 20% de chance de invasão. Metade das defesas físicas são monstros do Buraco gerados ao acaso (quatro temas com cartas do grupo 1; Vida cresce com os andares concluídos; vitória dá 15 a 25 de ouro, derrota custa até 20). A outra metade são **humanos com ameaça variável**: ladrões atrás do que a guilda traz da dungeon (Vesper, a Ladra-Chefe), salteadores do Bando da Estrada (Capitão Brega) ou aventureiros do Grifo Dourado, a guilda rival. A ameaça (Fácil, Média ou Difícil) cresce com os andares concluídos e com o ouro guardado no cofre, porque riqueza vira risco, com 20% de chance de vir um nível acima ou abaixo. Cada nível muda o deck dos invasores, a Vida do líder (cerca de 12, 18 e 24) e o que está em jogo: vitória dá 15 a 25, 25 a 40 ou 40 a 60 de ouro (o prêmio da guarda pelos ladrões e salteadores); derrota custa até 15, 25 ou 35. Nenhuma defesa gasta ação. Cofre, portão de contenção e vigias reduzindo a ameaça ficam para as instalações.
-- **Cidade (P73, revisto em P78):** uma ida por dia; dentro dela, o jogador visita quantos Mestres e NPCs quiser, e a ação só é gasta ao voltar para a guilda (sair sem visitar ninguém não gasta). Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. **Lerael Vane, arquivista da Sociedade Mágica** (P81), recebe cordialmente as cópias que passam de 2 para avançar as pesquisas arcanas e paga um honorário por cópia (Comum 5, Incomum 12, Rara 30 de ouro). Elfa de óculos, formal, meticulosa e cronicamente sem dormir; a Sociedade Mágica registra Disciplinas, artefatos, fenômenos e Cartomantes, e a arquivista comenta que faz tempo que não aparece um.
+- **Cidade (P73, revisto em P78):** uma ida por dia; dentro dela, o jogador visita quantos Mestres e NPCs quiser, e a ação só é gasta ao voltar para a guilda (sair sem visitar ninguém não gasta). Os seis Mestres (todos NPCs únicos) vendem boosters de 5 cartas da Disciplina deles por 60 de ouro, com o mesmo peso para cartas novas. **Lerael Vane, arquivista da Sociedade Mágica** (P81, revisto em P103), vende boosters de cartas básicas achadas pelo time de arqueologia da Sociedade; as cópias que passam de 2 são vendidas sozinhas à Sociedade. Elfa de óculos, formal, meticulosa e cronicamente sem dormir; a Sociedade Mágica registra Disciplinas, artefatos, fenômenos e Cartomantes, e a arquivista comenta que faz tempo que não aparece um.
 - **Mestres definidos (P74):** cada um tem retrato, uma cena de chegada, uma saudação e opções de diálogo com respostas (sem efeito mecânico, salvo o autógrafo, que só pode ser pedido uma vez). Da segunda visita em diante, Gun'Liao, Charles e Mikeus cumprimentam com outra fala. A parte de compra da tela de cada Mestre se chama Treinamento.
 - **Diálogo como registro (P78):** cada fala escolhida fica na tela, em sequência, registrando a conversa da ida. Falas ainda não feitas aparecem como botões; as já feitas vão para um menu recolhível "Falas já feitas", de onde podem ser repetidas.
 - **Falas condicionais e notificação (P82):** uma fala pode exigir outra antes, exigir que um conjunto de falas tenha sido feito num dia anterior, exigir já ter conhecido outro Mestre ou ter vencido o Basilisco. Falas em rodízio mudam o texto a cada vez. Na cidade, um "!" ao lado do NPC avisa que há falas novas.
@@ -703,3 +703,25 @@ No jogo em português, as Disciplinas passam a ter nome em português; no inglê
 | Magia Espacial | Space Wizardry |
 
 Os ids internos (`temporal`, `draconic`, `necro`, `holy`, `tech`, `space`) não mudam. Os outros documentos ainda citam as Disciplinas pelos nomes em inglês.
+
+## Lerael, mestra neutra, e venda automática das repetidas (P103)
+
+A Lerael deixa de receber as cartas repetidas no balcão e passa a vender cartas básicas, como uma mestra neutra. O time de arqueologia da Sociedade Mágica desenterra cartas o tempo todo; as que não têm valor científico vão à venda para custear as escavações. Melhor o jogador usar do que ficarem mofando no arquivo.
+
+- **Booster de cartas básicas:** 5 cartas sem Disciplina (3 Comuns, 1 Incomum e 1 Incomum ou Rara), com o mesmo peso dos Mestres para cartas que o jogador ainda não tem, por 60 de ouro. Depois do Basilisco, as básicas do grupo 2 entram no booster, com o selo “Cartas novas” na cidade. A Lerael não indica aventureiros.
+- **Venda automática:** toda carta que chega à coleção quando o jogador já tem 2 cópias vai direto para a Sociedade, que paga o mesmo honorário de antes (Comum 5, Incomum 12, Rara 30 de ouro). Vale para boosters, a mochila no fim do andar, a carta que sobra numa derrota, as missões e o equipamento dos passeios. As cartas vendidas aparecem marcadas no booster (“Repetida: +5 de ouro”), e a recompensa da Elite avisa antes da escolha.
+- **Saves antigos:** as cópias além de 2 que já estavam na coleção são vendidas de uma vez, com um envelope da Sociedade explicando a mudança.
+- **Diálogo:** saudação nova e duas falas novas (“De onde vêm essas cartas?” e “E as minhas cartas repetidas?”). As antigas continuam.
+- No log, cada venda automática fica no histórico como `venda` com `auto: true`; a compra com a Lerael é um `booster` do tipo `lerael`.
+
+*Provisório:* o preço (60, igual aos Mestres), a composição do booster, a saudação, as falas novas e o envelope.
+
+## Neutras novas (P104)
+
+Com o booster da Lerael (P103), as básicas precisavam de mais variedade: o deck inicial já traz 2 cópias de 8 das 12 Comuns básicas, então cerca de metade das vagas Comuns do booster virava ouro. Entraram 17 cartas e o Gigante ganhou texto:
+
+- **Grupo 1 (13):** 6 Comuns, 4 Incomuns e 3 Raras. Felinos (Escavador, Sentinela, Cartógrafa, Mumificado, Velho Bigode, o gato de Ergos, e a Esfinge Adormecida) e achados da arqueologia, sem marcação própria (Moeda Antiga, Pergaminho Selado, Ídolo Rachado, Inseto no Âmbar, Pá de Escavação, Relicário Antigo e o Golem de Argila do Arquivo).
+- **Grupo 2 (4), com o tema da forja:** Gato do Fole, Gata Temperada, Couraça Felina e Salamandra da Forja.
+- **Regras novas no motor:** comprar a carta do fundo do deck, compra atrasada para o próximo turno e a primeira carta com escolha ao jogar (a Esfinge).
+- **Balanceamento:** cada carta foi medida com o bot guloso contra a régua das neutras que já existiam; as que ficaram fora foram ajustadas antes de entrar. Tabela e ajustes em `cartas.md`.
+- Cartas sociais neutras novas ficam para depois.

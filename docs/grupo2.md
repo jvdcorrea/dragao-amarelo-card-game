@@ -1,6 +1,6 @@
 # Dragão Amarelo: Grupo 2 · A Forja Esquecida
 
-*v0.3 · implementado no protótipo · andares 6 a 10 · complementa o design (v0.65), as cartas (v0.20) e os inimigos (v0.13) · números provisórios*
+*v0.4 · implementado no protótipo · andares 6 a 10 · complementa o design (v0.69), as cartas (v0.21) e os inimigos (v0.13) · números provisórios*
 
 > v0.3 (P100): Veterano da Bigorna passa a ter Acelerar de verdade (antes o código usava um nome de palavra-chave que o motor não conhecia).
 
@@ -137,7 +137,7 @@ Todos começam com 1 de mana a mais que o protagonista.
 
 ---
 
-## Cartas novas (28)
+## Cartas novas (32)
 
 Aparecem nas recompensas depois que o jogador conclui o andar 5 (boosters do andar, Tesouros, Elites e Mestres). Nos andares 6 a 10, a vaga Incomum ou Rara dos boosters dá Rara em 50% das vezes.
 
@@ -147,6 +147,10 @@ Aparecem nas recompensas depois que o jogador conclui o andar 5 (boosters do and
 | Gato Ferreiro | Básica | 3 | Unidade 2/3 (Felino) | Ao Entrar: Blindagem 2 a outro Felino aliado | Comum |
 | Brasa Guardada | Básica | 2 | Feitiço | 2 de dano a uma unidade inimiga; se ela morrer, compre 1 carta | Comum |
 | Lingote Temperado | Básica | 1 | Feitiço | +0/+1 e Blindagem 2 a uma unidade aliada | Comum |
+| Gato do Fole (P104) | Básica | 2 | Unidade 2/2 (Felino) | Ao Entrar: sua arma ganha +1/+1 | Comum |
+| Gata Temperada (P104) | Básica | 3 | Unidade 3/3 (Felino) | Blindagem 2 | Comum |
+| Couraça Felina (P104) | Básica | 2 | Feitiço | Seus Felinos ganham +1/+1 e Blindagem 2 | Incomum |
+| Salamandra da Forja (P104) | Básica | 5 | Unidade 5/4 | Blindagem 3. Ao Entrar: 2 de dano a todas as outras unidades | Rara |
 | Golpe que Ainda Vem | Temporal | 3 | Feitiço | Atraso: no início do seu próximo turno, 5 de dano a um inimigo aleatório | Incomum |
 | Ferreiro de Outras Eras | Temporal | 3 | Unidade 3/3 | Eco. Ao Entrar: sua arma ganha +1/+0 | Comum |
 | Veterano da Bigorna | Temporal | 4 | Unidade 4/3 | Acelerar. Perfurar | Rara |

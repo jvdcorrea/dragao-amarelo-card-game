@@ -13,7 +13,7 @@ Abra o `index.html` num navegador (é uma página única, sem dependências alé
 O protótipo tem:
 - campanha com dois grupos de andares (As Grutas Vivas e A Forja Esquecida): mapa em grafo, eventos, Notas de Ergos, Elites, chefes, Tesouros, boosters com raridade, coleção salva e editor de deck;
 - gestão da guilda: aventureiros e missões, instalações, defesas noturnas, quests e a dívida com o Banco da Coroa;
-- cidade com os seis Mestres, o banco, a Sociedade Mágica e passeios;
+- cidade com os seis Mestres, o banco, a Lerael (cartas básicas da Sociedade Mágica) e passeios;
 - negociações sociais no mesmo motor da batalha, com deck social próprio;
 - área de playtest: batalha avulsa, negociação avulsa e exportação de log em .zip;
 - dois idiomas, português e inglês (P101), com troca nas Configurações.
@@ -56,7 +56,7 @@ python3 tests/browser/run_all.py       # testes de navegador (Playwright)
 
 ## Versões dos documentos
 
-Design v0.67, cartas v0.20, inimigos v0.13, tradução v0.3. Lista de tarefas em `docs/todo.md`. Histórico de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
+Design v0.69, cartas v0.21, inimigos v0.13, tradução v0.3. Lista de tarefas em `docs/todo.md`. Histórico de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Créditos
 

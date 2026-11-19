@@ -1,6 +1,9 @@
 CARD = {
  # neutras
  'felix':'cat','pocao':'health-potion','mercenario':'swordman','tocha':'torch','rede':'bug-net','curandeira':'paw-heart','guardiao':'cross-shield','espada':'ancient-sword','coletor':'paw-print','lanceiro':'spears','bombardeiro':'unlit-bomb','investida_coord':'crossed-swords','capita':'captain-hat-profile','racao':'knapsack','bumerangue':'boomerang','formacao':'templar-shield','lamina_enc':'rusty-sword','elixir':'magic-potion','barril':'barrel','mapa_ergos':'treasure-map','gigante':'rock-golem',
+ # neutras novas (P104)
+ 'gato_escavador':'dig-hole','gato_sentinela':'guarded-tower','gata_cartografa':'scroll-quill','gato_mumificado':'mummy-head','velho_bigode':'saber-toothed-cat-head','moeda_antiga':'crown-coin','pergaminho_selado':'tied-scroll','inseto_ambar':'amber-mosquito','pa_escavacao':'trench-spade','idolo_rachado':'colombian-statue','relicario':'egyptian-urns','esfinge':'egyptian-sphinx','golem_argila':'clay-brick','caco_argila':'broken-pottery',
+ 'gato_fole':'bellows','gata_temperada':'leather-armor','couraca_felina':'armor-vest','salamandra_forja':'salamander',
  # temporal
  'recruta':'spartan-helmet','batedor_amanha':'sands-of-time','escudeiro':'centurion-helmet','golpe_previsto':'sword-brandish','lamina_reb':'rune-sword','arqueira':'archer','rebobinar':'anticlockwise-rotation','veterano':'black-knight-helm','duelista':'two-handed-sword','licao':'open-book','coluna':'clock-tower','estandarte':'knight-banner','cavaleiro':'mounted-knight','machado':'battle-axe','carga':'swords-power','marechal':'hourglass',
  # draconic

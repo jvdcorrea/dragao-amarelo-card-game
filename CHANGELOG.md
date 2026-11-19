@@ -2,6 +2,19 @@
 
 Mudanças do protótipo desde a chegada dos Mestres como personagens (design v0.44, 26/10/2026). A versão de cada bloco é a do documento de design (`docs/design.md`); os números entre parênteses (Pn) apontam a decisão de design correspondente. Datas no formato dia/mês de 2026.
 
+## v0.69 · 19/11 · Neutras novas
+
+- **17 cartas básicas novas (P104).** No grupo 1, Felinos (Escavador, Sentinela, Cartógrafa, Mumificado, Velho Bigode e a Esfinge Adormecida) e achados da arqueologia (Moeda Antiga, Pergaminho Selado, Ídolo Rachado, Inseto no Âmbar, Pá de Escavação, Relicário Antigo e o Golem de Argila do Arquivo). No grupo 2, Gato do Fole, Gata Temperada, Couraça Felina e Salamandra da Forja.
+- **Gigante das Profundezas** ganhou texto: custa 1 a menos para cada unidade aliada que morreu na batalha.
+- **Regras novas:** comprar do fundo do deck, compra no próximo turno e escolha ao jogar (o enigma da Esfinge).
+- Balanceamento com o bot guloso antes de entrar; tabela em `docs/cartas.md`. Teste de navegador novo: `tests/browser/test_neutras.py`.
+
+## v0.68 · 17/11 · Lerael vende cartas básicas
+
+- **Lerael, mestra neutra (P103).** Na cidade, ela vende boosters de cartas básicas (60 de ouro) achadas pelo time de arqueologia da Sociedade Mágica, sem valor científico, para custear as escavações. Saudação e duas falas novas.
+- **Venda automática das repetidas (P103).** Cópias além de 2 vão direto para a Sociedade assim que chegam, pelo honorário de antes (5, 12 ou 30 de ouro). O booster marca as vendidas, e a Elite avisa antes da escolha. Saves antigos vendem o excesso de uma vez, com um envelope da Sociedade.
+- Teste de navegador novo: `tests/browser/test_lerael.py`.
+
 ## v0.67 · 10/11 · Palavras-chave na mesa, inglês e Disciplinas em português
 
 - **Palavras-chave na mesa (P100).** Guarda vira moldura de escudo, Escudo vira bolha, Emboscada esmaece a peça; Letal, Blindagem, Imóvel e Ao Morrer ganham ícones. Nas Configurações, “por extenso” escreve os nomes nas peças.

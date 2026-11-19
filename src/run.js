@@ -34,8 +34,12 @@ const RARITY = {
   felix: 'C', tocha: 'C', rede: 'C', curandeira: 'C', guardiao: 'C', espada: 'C', coletor: 'C', pocao: 'C', lanceiro: 'C', bombardeiro: 'C', racao: 'C', bumerangue: 'C',
   investida_coord: 'I', capita: 'I', formacao: 'I', lamina_enc: 'I', elixir: 'I', barril: 'I',
   mapa_ergos: 'R', gigante: 'R',
+  // Neutras novas (P104)
+  gato_escavador: 'C', gato_sentinela: 'C', gata_cartografa: 'C', moeda_antiga: 'C', pergaminho_selado: 'C', idolo_rachado: 'C',
+  gato_mumificado: 'I', inseto_ambar: 'I', pa_escavacao: 'I', relicario: 'I',
+  velho_bigode: 'R', esfinge: 'R', golem_argila: 'R',
   // Grupo 2: A Forja Esquecida (só a partir do andar 6)
-  martelo_forja: 'I', gato_ferreiro: 'C', brasa_guardada: 'C', lingote: 'C',
+  martelo_forja: 'I', gato_ferreiro: 'C', brasa_guardada: 'C', lingote: 'C', gato_fole: 'C', gata_temperada: 'C', couraca_felina: 'I', salamandra_forja: 'R',
   golpe_vem: 'I', ferreiro_eras: 'C', veterano_bigorna: 'R', ensaio: 'C',
   dragao_escoria: 'I', sopro_magma: 'I', ovo_incandescente: 'C', wyrm_ferro: 'R',
   ferreiro_esqueletico: 'C', requiem_bigorna: 'R', martelo_funebre: 'C', cinzas_dancam: 'I',

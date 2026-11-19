@@ -1,6 +1,6 @@
 # Dragão Amarelo: Lista de tarefas
 
-*Atualizada em 10/11/2026 · acompanha o design v0.67*
+*Atualizada em 19/11/2026 · acompanha o design v0.69*
 
 Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta decisão · **[ ]** a fazer
 
@@ -17,7 +17,7 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 3. **[x] Ouro em cada luta vencida** (P69). Batalha 8 a 12, Elite 20 a 25, Chefe 50, inclusive em revisitas. Vai direto para o cofre e não se perde na derrota.
 
-4. **[x] Cartas repetidas (quando passam de 2).** Lerael Vane, arquivista da Sociedade Mágica (P81), recebe as cópias na cidade e paga um honorário (Comum 5, Incomum 12, Rara 30 de ouro). As ideias abaixo ficam como opções futuras. Ideias para não ser um mercador:
+4. **[x] Cartas repetidas (quando passam de 2).** Vendidas automaticamente à Sociedade Mágica assim que chegam (P103), pelo honorário de antes (Comum 5, Incomum 12, Rara 30 de ouro). A Lerael virou mestra neutra e vende boosters de cartas básicas. As ideias abaixo ficam como opções futuras. Ideias para não ser um mercador:
    - **Os próprios Mestres aceitam cópias da Disciplina deles** como parte do pagamento do booster. Não cria NPC novo e liga duas coisas que já existem.
    - **Arquivista da biblioteca real:** guarda uma cópia de cada carta "para a posteridade" e paga em ouro. Combina com o salão de livros da ilustração do Felix.
    - **Banco do credor:** aceita cartas como abatimento da dívida, pela avaliação dele (sempre desconfiada). Liga as cópias à dívida.
@@ -70,6 +70,20 @@ Legenda: **[x]** feito no protótipo · **[~]** feito com placeholder, falta dec
 
 - [x] Paradigma da dívida: tesouro paga a parcela com margem, tempo livre, juros como punição; tabela ECON e simulador.
 - [ ] Calibrar com uma campanha sem o menu de testes (renda real por dia e chance por andar).
+
+## Lerael e venda automática (P103)
+
+- [x] Booster de cartas básicas com a Lerael (60 de ouro) e venda automática das cópias além de 2, com migração dos saves.
+- *Decisões minhas para revisar:* preço igual ao dos Mestres; composição igual (3 Comuns, 1 Incomum, 1 Incomum ou Rara); a Lerael não indica aventureiros; a saudação nova, as falas “De onde vêm essas cartas?” e “E as minhas cartas repetidas?” e o envelope da Sociedade para os saves antigos.
+- [x] Com só 20 básicas no grupo 1, o booster da Lerael repetia muito cedo. Entraram 13 neutras novas no grupo 1 e 4 no grupo 2 (P104).
+- [ ] O sorteio dá peso dobrado só a cartas que você não tem nenhuma. Com a venda automática, talvez devesse valer para as que você tem menos de 2. Decisão do João.
+
+## Neutras novas (P104)
+
+- [x] 17 neutras novas e o Gigante com texto, balanceadas com o bot guloso (tabela em `cartas.md`).
+- *Decisões minhas para revisar:* todos os nomes; os números depois do balanceamento (Esfinge 4/5 com “compre 1 carta”, Golem 2/5 com Cacos 1/1, Sentinela 2/5, Mumificado 2/2, Relicário de custo 3 e sem Guarda, Inseto com “Compre 1 carta”, Couraça +1/+1); as 4 do grupo 2, que você ainda não tinha visto; os ícones.
+- [ ] A Moeda Antiga não dá para medir com o bot guloso. Ver nos playtests se ela empurra demais as Raras para um turno antes.
+- [ ] O Gato Mumificado volta sempre que morre (cada vez custa 1 a mais). Ver se fica cansativo.
 
 ## Idiomas (P101)
 

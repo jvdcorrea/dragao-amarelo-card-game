@@ -1,6 +1,6 @@
 # Dragão Amarelo: Amostra de Cartas
 
-*v0.20 · complementa o documento de design (v0.65) e o arquivo de inimigos · todos os números são provisórios*
+*v0.21 · complementa o documento de design (v0.69) e o arquivo de inimigos · todos os números são provisórios*
 
 > v0.20 (P100): o Veterano da Bigorna (grupo 2) não tinha Acelerar de fato, porque a palavra-chave estava com o nome errado no código; agora tem. O Ensaio de Batalha passou a contar qualquer unidade com Acelerar, inclusive as Adiantadas.
 
@@ -500,9 +500,53 @@ O núcleo neutro é barato de propósito: cobre os turnos 1 a 3 de qualquer Disc
 | **Elixir do Boticário** | 3 | Feitiço | | Recupere 4 de vida. Compre 1 carta | Contato (boticário) |
 | **Barril de Pólvora** | 3 | Estrutura | Vida 2 | Quando for destruída, cause 3 de dano a todas as unidades | Guilda |
 
-### Excepcionais [A DEFINIR]
+### Batalha: neutras novas (P104)
 
-Espaço para as neutras que não cabem em nenhuma Disciplina (um golem, uma criatura lendária). O **Gigante das Profundezas** (6 de custo, 6/7, sem texto, Recompensa) fica como marcador até você definir.
+Vendidas pela Lerael nos boosters de cartas básicas (P103) e também nos boosters do andar, Tesouros e Elites. Os Felinos seguem a marcação Felino; os achados da arqueologia não têm marcação própria. Nomes e números provisórios.
+
+| Carta | Custo | Tipo | Stats | Texto | Raridade |
+|---|---|---|---|---|---|
+| **Gato Escavador** | 2 | Unidade (Felino) | 2/1 | Ao Entrar: compre a carta do fundo do seu deck | Comum |
+| **Gato Sentinela** | 4 | Unidade (Felino) | 2/5 | Guarda | Comum |
+| **Gata Cartógrafa** | 3 | Unidade (Felino) | 2/3 | Ao Entrar: se você controlar outro Felino, compre 1 carta | Comum |
+| **Moeda Antiga** | 0 | Feitiço | | Ganhe 1 de mana neste turno | Comum |
+| **Pergaminho Selado** | 2 | Feitiço | | No início do seu próximo turno, compre 2 cartas | Comum |
+| **Ídolo Rachado** | 2 | Estrutura | Vida 3 | No fim do seu turno, cause 1 de dano a um inimigo aleatório | Comum |
+| **Gato Mumificado** | 2 | Unidade (Felino) | 2/2 | Ao Morrer: volta para a sua mão custando 1 a mais | Incomum |
+| **Inseto no Âmbar** | 1 | Feitiço | | Uma unidade inimiga perde todo o texto, inclusive palavras-chave e Blindagem. Compre 1 carta | Incomum |
+| **Pá de Escavação** | 2 | Arma | 1/2 | Ao atacar com ela: compre a carta do fundo do seu deck | Incomum |
+| **Relicário Antigo** | 3 | Estrutura | Vida 3 | No início do seu turno, compre 1 carta e esta Estrutura perde 1 de Vida | Incomum |
+| **Velho Bigode, o Gato de Ergos** | 5 | Unidade (Felino) | 4/5 | Ao Entrar: seus outros Felinos ganham Escudo | Rara |
+
+> [!note] Fundo do deck
+> Escavador e Pá compram a carta do fundo do deck, onde o Prever (Magia Espacial) deixa as cartas que não escolheu. Com o deck vazio, compram normalmente (e a fadiga vale).
+
+### Excepcionais (P104)
+
+| Carta | Custo | Tipo | Stats | Texto | Raridade |
+|---|---|---|---|---|---|
+| **Esfinge Adormecida** | 6 | Unidade (Felino) | 4/5 | Ao Entrar, a Esfinge propõe um enigma; escolha uma: compre 1 carta, cause 4 de dano a um inimigo aleatório ou recupere 6 de vida | Rara |
+| **Golem de Argila do Arquivo** | 5 | Unidade | 2/5 | Guarda. Ao Morrer: invoque dois Cacos de Argila 1/1 | Rara |
+| **Gigante das Profundezas** | 6 | Unidade | 6/7 | Custa 1 a menos para cada unidade aliada que morreu nesta batalha | Rara |
+
+O Gigante deixou de ser um marcador sem texto. A Esfinge é a primeira carta com escolha ao jogar: a interface pergunta antes de ela entrar, e os bots dos testes usam a primeira opção.
+
+**Balanceamento (P104).** Cada carta entrou no lugar das 2 Espadas de Ferro do deck inicial das 6 Disciplinas, e o bot guloso (`tests/greedy.js`) jogou 40 partidas por encontro e Disciplina contra os encontros do grupo (1.680 por carta). A régua são as neutras que já existiam, no mesmo teste: de cerca de -6 pontos (Poção de Fôlego, Investida Coordenada) a +6 (Felix, Gigante). Ficou fora da régua e foi ajustado: a Esfinge (+10, por causa da opção de comprar 2 cartas, que virou 1; sem isso, a opção de dano dá +6 e a de cura, +5), o Golem de Argila (+10, de 3/6 com Cacos 1/2 para 2/5 com Cacos 1/1), o Gato Sentinela (+7, de 3/5 para 2/5), o Gato Mumificado (fraco a 2/1, foi a 2/2), o Relicário (de 4 para 3 de custo; sem Guarda, que estruturas não têm, ele virou compra de 1 carta por turno), o Inseto no Âmbar (-8 no grupo 2, ganhou “Compre 1 carta”) e a Couraça Felina (de +0/+1 para +1/+1). A Moeda Antiga não se mede assim: o bot joga as cartas mais caras primeiro e a gasta no fim do turno.
+
+| Carta | Variação na vitória | | Carta | Variação na vitória |
+|---|---|---|---|---|
+| Esfinge Adormecida | +7,7 | | Gato Mumificado | +4,0 |
+| Golem de Argila do Arquivo | +6,4 | | Inseto no Âmbar | +3,5 |
+| Gigante das Profundezas | +5,8 | | Gata Cartógrafa | +3,2 |
+| Velho Bigode | +5,2 | | Ídolo Rachado | -0,5 |
+| Gato Sentinela | +5,1 | | Relicário Antigo | -0,8 |
+| Pá de Escavação | +5,1 | | Moeda Antiga | -4,5 (não medível) |
+| Gato Escavador | +4,5 | | *grupo 2:* Salamandra da Forja | +10,1 (Gigante: +10,5) |
+| Pergaminho Selado | +4,2 | | Gata Temperada | +4,8 |
+| | | | Gato do Fole | +0,5 |
+| | | | Couraça Felina | -4,8 |
+
+O bot avalia mal compra de cartas na hora certa, buffs e remoção de texto; os números servem para achar o que está muito fora, não para afinar.
 
 > [!tip] Felinos como cola
 > A marcação Felino dá identidade às neutras sem roubar assinatura de nenhuma Disciplina: Capitã, Lanceiro, Rede de Captura, Ração e Bumerangue ficam melhores com gatos em campo. A Rede de Captura é um feitiço imediato, e não uma Armadilha, para não invadir o território de Magitech.
@@ -582,7 +626,7 @@ Três raridades: **Comum**, **Incomum** e **Rara**. Em geral, as cartas de Recom
 | Holy Shadowmancy | Acólito Vigilante, Oração Breve, Lâmina do Véu, Noviço Sem Rosto, Juramento Velado, Fanático do Véu | Véu Renovado, Assassina Devota, Lâmina da Prece, Vigília Silenciosa, Sacerdotisa do Crepúsculo, Mestre Sem Nome, Julgamento Silencioso, Purificação | Grande Liturgia, Arauto da Aurora Velada, Serafim de Mil Véus |
 | Magitech | Autômato de Bolso, Frasco Volátil, Placa de Reforço, Armadilha de Molas, Aprendiz de Alquimista, Núcleo Encantado | Torre de Vigia Mecânica, Golem de Latão, Besta de Repetição, Gás Paralisante, Oficina Ambulante, Cavaleiro de Engrenagens | Canhão de Ombro, Destilaria de Elixires, Colosso Arcano |
 | Space Wizardry | Faísca Estelar, Astrolábio Animado, Chuva de Meteoritos, Aprendiz Astral, Escudo de Gravidade | Leitura das Estrelas, Raio Lunar, Grifo Cometário, Golem de Poeira Estelar, Elemental de Nebulosa, Eclipse, Cometa Convocado | Quimera Nebular, Buraco Negro, Arquimago do Zênite |
-| Neutras | Felix, o Familiar, Tocha do Explorador, Rede de Captura, Gata Curandeira, Gato Guardião, Espada de Ferro, Gato Coletor, Poção de Fôlego, Gato Lanceiro, Gato Bombardeiro, Ração de Viagem, Bumerangue | Investida Coordenada, Capitã dos Felinos, Formação Defensiva, Lâmina Encomendada, Elixir do Boticário, Barril de Pólvora | Mapa Rabiscado de Ergos, Gigante das Profundezas |
+| Neutras | Felix, o Familiar, Tocha do Explorador, Rede de Captura, Gata Curandeira, Gato Guardião, Espada de Ferro, Gato Coletor, Poção de Fôlego, Gato Lanceiro, Gato Bombardeiro, Ração de Viagem, Bumerangue, Gato Escavador, Gato Sentinela, Gata Cartógrafa, Moeda Antiga, Pergaminho Selado, Ídolo Rachado | Investida Coordenada, Capitã dos Felinos, Formação Defensiva, Lâmina Encomendada, Elixir do Boticário, Barril de Pólvora, Gato Mumificado, Inseto no Âmbar, Pá de Escavação, Relicário Antigo | Mapa Rabiscado de Ergos, Gigante das Profundezas, Velho Bigode, Esfinge Adormecida, Golem de Argila do Arquivo |
 
 > [!warning] Gato Farejador fora dos boosters
 > Ele dá ouro, e o protótipo ainda não tem economia de ouro. Volta quando a guilda entrar.
